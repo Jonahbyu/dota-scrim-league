@@ -126,6 +126,9 @@ export function playerLeaderboard(matches) {
     dmg_per_1k_nw: r.net_worth ? Math.round((r.damage / r.net_worth) * 1000) : null,
     avg_kp: r.kp.length ? r.kp.reduce((s, x) => s + x, 0) / r.kp.length : null,
     heroes: [...r.heroes].sort().join(", "),
+    // Same heroes with games played, most played first (for portrait strips).
+    hero_list: [...r.played.reduce((m, p) => m.set(p.hero, (m.get(p.hero) ?? 0) + 1), new Map())]
+      .map(([hero, n]) => ({ hero, n })).sort((a, b) => b.n - a.n || a.hero.localeCompare(b.hero)),
     ...(mapSummary(r.played) ?? NO_MAP),
   }));
 }

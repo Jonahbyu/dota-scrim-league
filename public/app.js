@@ -235,6 +235,7 @@ function draftHtml(d) {
         <td class="l">${textInput(`players.${i}.name`, p.name, 'list="player-list" placeholder="name" style="min-width:130px"')}</td>
         <td class="l"><input data-path="players.${i}.tag" value="${esc(p.tag)}" placeholder="optional" style="width:80px"></td>
         <td class="l">${textInput(`players.${i}.hero`, p.hero, 'list="hero-list" placeholder="hero" style="min-width:140px"')}</td>
+        <td><input class="num" data-path="players.${i}.pick" data-type="int-opt" inputmode="numeric" value="${p.pick ?? ""}" style="width:52px" placeholder="—"></td>
         ${STATS.map(([k]) => `<td>${numInput(`players.${i}.${k}`, p[k])}</td>`).join("")}
       </tr>`).join("");
 
@@ -260,10 +261,10 @@ function draftHtml(d) {
     ${upload.notes.length ? `<div class="notice warn"><b>Reader notes:</b><ul>${upload.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></div>` : ""}
     <div class="table-wrap edit" style="margin-top:12px">
       <table>
-        <thead><tr><th class="l">Player</th><th class="l">Tag</th><th class="l">Hero</th>${STATS.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
+        <thead><tr><th class="l">Player</th><th class="l">Tag</th><th class="l">Hero</th><th title="Draft order, 1–10, from the Scoreboard's PICK column">Pick</th>${STATS.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
         <tbody>
-          <tr class="sep a"><td colspan="${STATS.length + 3}">Team A</td></tr>${teamRows("a")}
-          <tr class="sep b"><td colspan="${STATS.length + 3}">Team B</td></tr>${teamRows("b")}
+          <tr class="sep a"><td colspan="${STATS.length + 4}">Team A</td></tr>${teamRows("a")}
+          <tr class="sep b"><td colspan="${STATS.length + 4}">Team B</td></tr>${teamRows("b")}
         </tbody>
       </table>
     </div>
@@ -290,7 +291,11 @@ function onDraftInput(e) {
   const el = e.target;
   if (!el.dataset.path) return;
   let v = el.value;
-  if (el.dataset.type === "int") {
+  if (el.dataset.type === "int-opt") {
+    const cleaned = v.replace(/s/g, "");
+    v = /^d+$/.test(cleaned) ? Number(cleaned) : null;
+    el.classList.toggle("bad", cleaned !== "" && v == null);
+  } else if (el.dataset.type === "int") {
     const cleaned = v.replace(/[,\s]/g, "");
     v = /^\d+$/.test(cleaned) ? Number(cleaned) : null;
     el.classList.toggle("bad", v == null);
@@ -337,14 +342,20 @@ function renderUpload() {
            <div class="slot-hint">Paste · drop · click</div></div></div>`;
   };
   const how = `Snip the post-game <b>overview</b> (hero cards) and the <b>Scoreboard</b> tab with <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>,
-       then press <kbd>Ctrl</kbd>+<kbd>V</kbd> here — once for each. Don't hover over anything while snipping; tooltips cover numbers.
+       then press <kbd>Ctrl</kbd>+<kbd>V</kbd> here — once for each. On the Scoreboard, scroll the table all the way right so <b>PICK</b> shows
+       (that's the draft order). Don't hover over anything while snipping; tooltips cover numbers.
        Screenshots are read on your computer; only the stats you save are uploaded.`;
+  const examples = `<div class="examples" style="--i:2"><div class="examples-lbl">Example</div>
+      ${[["example-overview", "Overview: all ten hero cards, team names and score"], ["example-scoreboard", "Scoreboard, scrolled right to PICK"]].map(([f, cap]) =>
+        `<figure class="example"><img src="img/${f}.webp" alt="${cap}" loading="lazy"><figcaption>${cap}</figcaption></figure>`).join("")}
+    </div>`;
   app.innerHTML = `
     ${upload.league === "ad2l"
       ? pageHead(SOURCES.ad2l.kicker, "Upload an unticketed game", `For Champion division games played <b>without a league ticket</b>, which never reach OpenDota's league list, so the site can't find them. ${how}
          They count on team, player, hero and tier pages, marked “Unticketed”; standings stay PlayOn's. No draft, gold graph or ward data (that only comes from replays).`)
       : pageHead("Post-game intake", "Upload a scrim", how)}
     <div class="reveal">
+      ${upload.images.length || upload.draft ? "" : examples}
       <div class="slots" id="drop" style="--i:3">${slot(0)}${slot(1)}
         <input type="file" id="file" accept="image/*" multiple hidden></div>
       <div class="row upload-actions" style="--i:4">
@@ -372,6 +383,7 @@ function renderUpload() {
   drop.ondragleave = () => drop.querySelectorAll(".slot").forEach((s) => s.classList.remove("over"));
   drop.ondrop = (e) => { e.preventDefault(); drop.ondragleave(); addFiles(e.dataTransfer.files); };
   zoom.onclick = () => zoom.close();
+  app.querySelectorAll(".example img").forEach((img) => (img.onclick = () => { zoom.querySelector("img").src = img.src; zoom.showModal(); }));
 
   document.getElementById("parse").onclick = runParse;
   document.getElementById("manual").onclick = () => { upload.draft = blankDraft(); upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
@@ -760,12 +772,12 @@ async function renderPlayers(src) {
     ] : []),
     ...(src.key === "ad2l" && ad2lCache?.pubs ? [
       ["pub_games", `Pubs since ${sinceLabel()}`, null, "", "gold"], ["pub_win_rate", "Pub win %", pct, "", "jade"], ["pub_kda", "Pub KDA", dec],
-      ["pub_heroes", "Pub heroes", (v) => esc(v), "l wrap"],
+      ["pub_heroes", "Pub heroes", (v, r) => heroStrip(src, r.pub_list), "l strip"],
     ] : []),
-    ["heroes", "Heroes", (v) => esc(v), "l wrap"],
+    ["heroes", "Heroes", (v, r) => heroStrip(src, r.hero_list), "l strip"],
   ], src.key === "ad2l" && ad2lCache?.pubs ? data.map((r) => {
     const ps = r.account_id ? pubSummary(pubsSince(ad2lCache, r.account_id, lastNight())) : null;
-    return { ...r, pub_games: ps?.games ?? 0, pub_win_rate: ps?.win_rate ?? null, pub_kda: ps?.kda ?? null, pub_heroes: ps ? ps.heroes.slice(0, 4).map((h) => `${h.hero}${h.games > 1 ? ` ×${h.games}` : ""}`).join(", ") : "" };
+    return { ...r, pub_games: ps?.games ?? 0, pub_win_rate: ps?.win_rate ?? null, pub_kda: ps?.kda ?? null, pub_heroes: ps ? ps.heroes.map((h) => h.hero).join(", ") : "", pub_list: ps ? ps.heroes.slice(0, 10).map((h) => ({ hero: h.hero, n: h.games })) : [] };
   }) : data, "games", { toolbar: true });
 }
 
@@ -814,18 +826,22 @@ async function renderPredict() {
   const week = upcoming.filter((s) => s.time === night);
   const mine = (sid) => (preds ?? []).filter((p) => p.series_id === sid && p.uid === uid).sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))[0];
   const label = (s, o) => (o === "tie" ? "1–1" : `${esc(teamName[o === "home" ? s.home : s.away])} 2–0`);
-  const bar = (o, cls = "") => `<div class="pred-bar ${cls}">${OUTCOMES.map((k) => `<span class="seg ${k}" style="flex:${Math.max(o[k], 0.001)}" title="${Math.round(o[k] * 100)}%">${o[k] >= 0.12 ? `${Math.round(o[k] * 100)}%` : ""}</span>`).join("")}</div>`;
 
   // The model's full draft for a series, in Captains Mode order, for either team on first
   // pick (not known ahead of time); a toggle switches between the two.
   const PHASE_ROWS = [["ban", 1, "Ban phase 1"], ["pick", 1, "First picks"], ["ban", 2, "Ban phase 2"], ["pick", 2, "Picks"], ["ban", 3, "Ban phase 3"], ["pick", 3, "Last picks"]];
-  const draftHtml = (steps, home) => PHASE_ROWS.map(([kind, phase, title]) => {
-    const row = steps.filter((x) => x.kind === kind && x.phase === phase);
-    return `<div class="pd-row ${kind}"><div class="pd-title">${title}</div><div class="pd-steps">${row.map((x) => `
-      <div class="pd-step ${x.team.id === home.id ? "a" : "b"} ${kind}" title="${x.n}. ${esc(x.team.name)} ${kind === "ban" ? "ban" : "pick"}${x.hero ? ` ${esc(x.hero)}` : ""} — ${esc(x.why)}">
-        <span class="pd-n">${x.n}</span>${x.hero ? portrait(x.hero) : ""}<span class="pd-hero">${x.hero ? esc(x.hero) : "?"}</span>${x.player ? `<span class="pd-player">${esc(x.player.name)}</span>` : ""}
-      </div>`).join("")}</div></div>`;
-  }).join("");
+  // Laid out by side: home team's steps on the left, away team's on the right. Heroes show
+  // as portraits (name on hover); picks carry the player expected to play them.
+  const draftHtml = (steps, home, away) => `<div class="pd-row pd-sides"><div></div>
+      <div class="pd-side a">${esc(home.name)}</div><div class="pd-side b">${esc(away.name)}</div></div>` +
+    PHASE_ROWS.map(([kind, phase, title]) => {
+      const row = steps.filter((x) => x.kind === kind && x.phase === phase);
+      const side = (id, cls) => `<div class="pd-steps">${row.filter((x) => x.team.id === id).map((x) => `
+        <div class="pd-step ${cls} ${kind}" title="${x.n}. ${esc(x.team.name)} ${kind === "ban" ? "ban" : "pick"}${x.hero ? ` ${esc(x.hero)}` : ""} — ${esc(x.why)}">
+          <span class="pd-n">${x.n}</span>${x.hero ? portrait(x.hero) : '<span class="pd-hero">?</span>'}${x.player ? `<span class="pd-player">${esc(x.player.name)}</span>` : ""}
+        </div>`).join("")}</div>`;
+      return `<div class="pd-row ${kind}"><div class="pd-title">${title}</div>${side(home.id, "a")}${side(away.id, "b")}</div>`;
+    }).join("");
 
   const read = (s) => {
     const home = d.teams.find((t) => t.id === s.home), away = d.teams.find((t) => t.id === s.away);
@@ -838,32 +854,54 @@ async function renderPredict() {
           <div class="dr-heroes">${p.heroes.map((h) => `<span class="dr-chip" title="${h.league} league games, ${h.pub} recent pubs${h.ban_risk >= 0.2 ? ` · ${Math.round(h.ban_risk * 100)}% ban risk` : ""}">${portrait(h.hero)}${esc(h.hero)} <b>${Math.round(h.chance * 100)}%</b></span>`).join("") || '<span class="muted">—</span>'}</div></div>`).join("")}
       </div>`;
     };
+    // Game 2 follows on from the model's game 1 (same first pick), assuming the favourite
+    // took game 1: their heroes draw bans and repeats get less likely.
+    const fav = oddsOf(s).game >= 0.5 ? home : away;
+    const drafts = [];
+    for (const [fp, x, y] of [["home", home, away], ["away", away, home]]) {
+      const g1 = predictDraft(d, x, y, since);
+      drafts.push([`${fp}-1`, g1], [`${fp}-2`, predictDraft(d, x, y, since, undefined, { steps: g1, winner: fav.id })]);
+    }
     return `<details class="dr"><summary>Model's draft</summary>
-      <div class="pd-toggle" role="group" aria-label="First pick">
-        <span class="pd-lbl">First pick</span>
-        <button type="button" data-fp="home" aria-pressed="true">${esc(home.name)}</button>
-        <button type="button" data-fp="away" aria-pressed="false">${esc(away.name)}</button>
+      <div class="pd-toggles">
+        <div class="pd-toggle" role="group" aria-label="Game">
+          <span class="pd-lbl">Game</span>
+          <button type="button" data-g="1" aria-pressed="true">G1</button>
+          <button type="button" data-g="2" aria-pressed="false">G2</button>
+        </div>
+        <div class="pd-toggle" role="group" aria-label="First pick">
+          <span class="pd-lbl">First pick</span>
+          <button type="button" data-fp="home" aria-pressed="true">${esc(home.name)}</button>
+          <button type="button" data-fp="away" aria-pressed="false">${esc(away.name)}</button>
+        </div>
       </div>
-      <div class="pd" data-for="home">${draftHtml(predictDraft(d, home, away, since), home)}</div>
-      <div class="pd" data-for="away" hidden>${draftHtml(predictDraft(d, away, home, since), home)}</div>
+      <p class="table-note pd-g2note" hidden>Game 2 assumes ${esc(fav.name)} (the model's favourite) won game 1 with the model's game 1 draft.</p>
+      ${drafts.map(([k, st], i) => `<div class="pd" data-for="${k}"${i ? " hidden" : ""}>${draftHtml(st, home, away)}</div>`).join("")}
       <p class="table-note">All 24 steps in S48's Captains Mode order: the first-pick team bans 3, 2 and 2 across the phases and the other team 4, 1 and 2. Each ban weighs how often (and how recently) that team bans the hero in that phase, what the other team's players still to pick have been playing (league games from the last few weeks count most, plus pubs since ${sinceLabel()}), and the division's usual bans. Each pick gives an unpicked player the best hero left in their pool; early picks lean toward heroes that get contested. Hover any step for why.</p>
       <div class="dr-sub">Player pools</div>
       <div class="dr-cols">${pools(home, away)}${pools(away, home)}</div></details>`;
   };
 
+  // One card per series: three pick buttons, each carrying the model's odds and how many
+  // people took it; the model's call is tagged on its button.
+  const oddsOf = (s) => seriesOdds(ratings.get(s.home) ?? 0, ratings.get(s.away) ?? 0);
   const card = (s) => {
-    const o = seriesOdds(ratings.get(s.home) ?? 0, ratings.get(s.away) ?? 0);
+    const o = oddsOf(s), call = modelCall(o);
     const locked = now >= s.time * 1000;
     const my = mine(s.id);
     const c = preds ? crowd(preds, s) : null;
     return `<article class="pred-card" data-sid="${s.id}">
-      <div class="pred-when">${new Date(s.time * 1000).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}${locked ? ' · <b class="s-b">Locked</b>' : ""}</div>
-      <div class="pred-teams"><span class="a">${teamLink(SOURCES.ad2l, teamName[s.home], s.home)}</span><i>vs</i><span class="b">${teamLink(SOURCES.ad2l, teamName[s.away], s.away)}</span></div>
-      <div class="pred-call"><span class="pred-lbl">Model's call</span><b class="${{ home: "s-a", away: "s-b", tie: "s-t" }[modelCall(o)]}">${label(s, modelCall(o))}</b>
-        <span class="pred-conf">${(() => { const e = Math.abs(o.game - 0.5); return modelCall(o) === "tie" ? "Dead even. Split." : e >= 0.15 ? "Lock it in." : e >= 0.07 ? "Confident." : "Gut call, still sweeping."; })()}</span></div>
-      <div class="pred-row"><span class="pred-lbl">Odds</span>${bar(o)}</div>
-      ${c && c.n ? `<div class="pred-row"><span class="pred-lbl">Crowd <small>${c.n}</small></span>${bar(c, "crowd")}</div>` : ""}
-      <div class="pred-picks" role="group" aria-label="Your pick">${OUTCOMES.map((k) => `<button type="button" data-pick="${k}" aria-pressed="${my?.pick === k}" ${locked || !preds ? "disabled" : ""}>${label(s, k)}</button>`).join("")}</div>
+      <div class="pred-head">
+        <div class="pred-teams"><span class="a">${teamLink(SOURCES.ad2l, teamName[s.home], s.home)}</span><i>vs</i><span class="b">${teamLink(SOURCES.ad2l, teamName[s.away], s.away)}</span></div>
+        ${locked ? '<span class="pred-lock">Locked</span>' : ""}
+      </div>
+      <div class="pred-picks" role="group" aria-label="Your pick">${OUTCOMES.map((k) => {
+        const n = c ? Math.round(c[k] * c.n) : 0;
+        return `<button type="button" class="${k}" data-pick="${k}" aria-pressed="${my?.pick === k}" ${locked || !preds ? "disabled" : ""}>
+          <span class="pk-main">${label(s, k)}</span>
+          <span class="pk-sub">${Math.round(o[k] * 100)}%${c ? ` · ${n} pick${n === 1 ? "" : "s"}` : ""}${k === call ? ' · <b>model</b>' : ""}</span>
+        </button>`;
+      }).join("")}</div>
       ${read(s)}
     </article>`;
   };
@@ -872,6 +910,32 @@ async function renderPredict() {
   const playedNights = [...new Set(d.series.filter(isPlayed).map((s) => s.time))].sort((a, b) => b - a);
   const valid = preds ? validPicks(preds, d.series) : [];
   const myKey = nameKey(name);
+
+  // Leaderboard: standings plus everyone's picks for the coming night, one column per
+  // series. People with picks this week but nothing scored yet still get a row.
+  const board = new Map(st.map((r) => [r.model ? "\u0000model" : nameKey(r.name), { ...r, now: {} }]));
+  for (const p of valid) {
+    if (!week.some((s) => s.id === p.series_id)) continue;
+    const k = nameKey(p.name);
+    if (!board.has(k)) board.set(k, { name: p.name, points: 0, picks: 0, accuracy: null, now: {} });
+    board.get(k).now[p.series_id] = p.pick;
+  }
+  if (week.length) {
+    if (!board.has("\u0000model")) board.set("\u0000model", { name: "The model", model: true, points: 0, picks: 0, accuracy: null, now: {} });
+    for (const s of week) board.get("\u0000model").now[s.id] = modelCall(oddsOf(s));
+  }
+  const boardRows = [...board.entries()].sort(([, a], [, b]) => b.points - a.points || (b.accuracy ?? -1) - (a.accuracy ?? -1) || a.name.localeCompare(b.name));
+  const pickChip = (s, k) => (k ? `<span class="pk-chip ${k}" title="${k === "tie" ? "1–1" : `${esc(teamName[k === "home" ? s.home : s.away])} 2–0`}">${k === "tie" ? "1–1" : `${esc(teamName[k === "home" ? s.home : s.away])} 2–0`}</span>` : '<span class="muted">—</span>');
+  const boardHtml = boardRows.length ? `<div class="table-wrap sticky-name"><table class="pred-board">
+    <thead><tr><th class="rank">#</th><th class="l">Name</th><th>Points</th><th>Correct</th>
+      ${week.map((s) => `<th class="l pb-series"><span class="a">${esc(teamName[s.home])}</span><span class="b">${esc(teamName[s.away])}</span></th>`).join("")}</tr></thead>
+    <tbody>${boardRows.map(([k, r], i) => `<tr class="${k === myKey ? "me" : ""}">
+      <td class="rank${i < 3 && r.picks ? " top" : ""}">${String(i + 1).padStart(2, "0")}</td>
+      <td class="l">${r.model ? `<b>${esc(r.name)}</b> <span class="tag">replayed</span>` : esc(r.name)}</td>
+      <td class="num">${r.picks ? `${r.points}<span class="muted">/${r.picks}</span>` : '<span class="muted">—</span>'}</td>
+      <td class="num">${r.accuracy == null ? '<span class="muted">—</span>' : pct(r.accuracy)}</td>
+      ${week.map((s) => `<td class="l">${pickChip(s, r.now[s.id])}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>` : "";
   const past = playedNights.map((t) => {
     const rows = d.series.filter((s) => s.time === t && isPlayed(s)).map((s) => {
       const m = bt.find((x) => x.s.id === s.id);
@@ -891,36 +955,46 @@ async function renderPredict() {
   const called = bt.filter((x) => x.correct).length;
   const ties = bt.filter((x) => x.actual === "tie").length;
   const decisive = bt.filter((x) => x.actual !== "tie");
-  app.innerHTML = `${pageHead(kicker, "Predictions", `Call each series: a 2–0 either way or a 1–1 split. One point per correct call. Picks lock when the series starts, and you can change yours until then. The model plays too.`)}
-    <div class="pred-name panel">
-      <label>Your name <input id="pred-name" maxlength="24" value="${esc(name)}" placeholder="Type your name" autocomplete="nickname"></label>
-      <button class="primary" id="pred-name-save" type="button">Save name</button>
-      <span class="muted" id="pred-name-note">${name ? `Predicting as <b>${esc(name)}</b>. Standings group by name, so use the same one each week.` : "Your name is how you show up in the standings. It's stored with your picks; nothing else is."}</span>
+  app.innerHTML = `${pageHead(kicker, "Predictions", `Call each series: 2–0 either way or a 1–1 split. One point per correct call. You can change a pick until the series starts.`)}
+    <div class="pred-name">
+      <div class="pred-name-show"${name ? "" : " hidden"}>Picking as <b>${esc(name)}</b> <button type="button" class="linkish" id="pred-name-edit">Change</button></div>
+      <div class="pred-name-form"${name ? " hidden" : ""}>
+        <label>Your name <input id="pred-name" maxlength="24" value="${esc(name)}" placeholder="Type your name" autocomplete="nickname"></label>
+        <button class="primary" id="pred-name-save" type="button">Save</button>
+        <span class="muted">Your name is how you show up on the leaderboard. Use the same one each week.</span>
+      </div>
     </div>
-    ${preds ? "" : `<div class="notice err">Couldn't reach the predictions database, so picks and standings are unavailable right now. The model's numbers below still work.</div>`}
-    <h2>${night ? new Date(night * 1000).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : "No upcoming series"}</h2>
-    ${week.length ? `<div class="pred-grid reveal">${week.map(card).join("")}</div>
-      <div class="pred-legend"><span class="seg home"></span>First team 2–0 <span class="seg tie"></span>1–1 <span class="seg away"></span>Second team 2–0</div>`
-      : `<div class="panel empty">PlayOn hasn't posted the next week's schedule yet. It shows up here after the next sync.</div>`}
+    ${preds ? "" : `<div class="notice err">Couldn't reach the predictions database, so picks and the leaderboard are unavailable right now. The model's odds still work.</div>`}
     <div id="pred-msg"></div>
-    <h2>Standings</h2>
-    ${st.length ? `<div id="pred-st"></div>` : `<div class="panel empty">No scored picks yet. Standings start once a series you picked has been played.</div>`}
+    <h2>${night ? new Date(night * 1000).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : "No upcoming series"}${night ? ` <span class="pred-time">${new Date(night * 1000).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>` : ""}</h2>
+    ${week.length ? `<div class="pred-grid reveal">${week.map(card).join("")}</div>
+      <p class="table-note">Each button shows the model's odds for that result and how many people picked it. <b>model</b> marks the model's own call.</p>`
+      : `<div class="panel empty">PlayOn hasn't posted the next week's schedule yet. It shows up here after the next sync.</div>`}
+    <h2>Leaderboard</h2>
+    ${boardHtml ? `${boardHtml}<p class="table-note">Points = correct calls / series called. Columns on the right are this week's picks.</p>` : `<div class="panel empty">No picks yet.</div>`}
+    ${past ? `<details class="how"><summary>Past weeks</summary>${past}<p class="table-note">Model = what it would have picked that week from earlier results only. Crowd = most-picked call (count after it). Picks saved after a series started don't count.</p></details>` : ""}
     <details class="how"><summary>How the model works</summary>
       <p>Each team has a strength rating fitted to every game result so far (PlayOn's series scores, so games OpenDota never saw still count). With only ${playedNights.length} weeks played, results alone jump around, so each rating is pulled toward a starting point from the roster's average PlayOn medal. How hard to pull, and how much medals matter, were chosen by replaying the season: predicting each week from only the weeks before it and keeping what did best.</p>
       <p>The model's call is bold: it takes the favourite to win 2–0, even when a 1–1 split is the single likeliest result, and only calls 1–1 when the teams are a true coin flip (per-game odds within ${TIE_EDGE * 100} points of 50%). The odds bar stays honest: results so far haven't predicted the next week much better than a coin flip, so the settings lean on medals and most series look close. Replayed over the season, the bold calls got <b>${called} of ${bt.length}</b> series exactly right${decisive.length ? ` and picked the right team in ${decisive.filter((x) => x.pick === x.actual).length} of the ${decisive.length} that weren't 1–1` : ""}${bt.some((x) => x.pick === "tie") ? `, and called ${bt.filter((x) => x.pick === "tie").length} splits` : ""}; always calling 1–1 would have got ${ties}.</p>
       <p>Game odds are treated as independent, so a 2–0 is the single-game chance squared. Settings in use: pull ${params.lambda}, medal weight ${params.beta}.</p>
-    </details>
-    ${past ? `<h2>Past weeks</h2>${past}<p class="table-note">Model = what it would have picked that week from earlier results only. Crowd = most-picked call (count after it). Picks saved after a series started don't count.</p>` : ""}`;
+    </details>`;
 
-  if (st.length) sortableTable(document.getElementById("pred-st"), [
-    ["name", "Name", (v, r) => (r.model ? `<b>${esc(v)}</b> <span class="tag">replayed</span>` : esc(v)), "l"],
-    ["points", "Points", null, "", "gold"], ["picks", "Picks"], ["accuracy", "Correct %", pct, "", "jade"],
-  ], st, "points");
+  document.getElementById("pred-name-edit").onclick = () => {
+    app.querySelector(".pred-name-show").hidden = true;
+    app.querySelector(".pred-name-form").hidden = false;
+    document.getElementById("pred-name").focus();
+  };
 
-  app.querySelectorAll("details.dr").forEach((dr) => dr.querySelectorAll("[data-fp]").forEach((b) => b.onclick = () => {
-    dr.querySelectorAll("[data-fp]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-    dr.querySelectorAll(".pd").forEach((x) => (x.hidden = x.dataset.for !== b.dataset.fp));
-  }));
+  app.querySelectorAll("details.dr").forEach((dr) => {
+    const sel = { fp: "home", g: "1" };
+    dr.querySelectorAll("[data-fp], [data-g]").forEach((b) => b.onclick = () => {
+      const k = b.dataset.fp ? "fp" : "g";
+      sel[k] = b.dataset[k];
+      dr.querySelectorAll(`[data-${k}]`).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      dr.querySelectorAll(".pd").forEach((x) => (x.hidden = x.dataset.for !== `${sel.fp}-${sel.g}`));
+      dr.querySelector(".pd-g2note").hidden = sel.g !== "2";
+    });
+  });
   const input = document.getElementById("pred-name");
   document.getElementById("pred-name-save").onclick = () => {
     const n = input.value.trim().slice(0, 24);
@@ -1147,7 +1221,7 @@ function draftSlotHtml(rec, src, who) {
       <thead><tr><th class="l">Pick</th><th>Draft phase</th><th>Games</th><th>W–L</th><th>Win %</th><th class="l">Heroes</th></tr></thead>
       <tbody>${rec.slots.map((r, i) => `<tr${r.games ? "" : ' class="muted"'}><td class="l">${SLOT_NAMES[i]}</td><td>${SLOT_PHASE[i]}</td><td>${r.games}</td><td>${r.games ? wl(r.wins, r.games) : "—"}</td>
         <td class="${r.win_rate >= 0.6 && r.games >= 2 ? "best" : ""}">${pct(r.win_rate)}</td>
-        <td class="l wrap">${r.heroes.map((x) => `${heroLink(src, x.hero)}${x.n > 1 ? ` ×${x.n}` : ""}`).join(", ") || "—"}</td></tr>`).join("")}</tbody>
+        <td class="l strip">${heroStrip(src, r.heroes)}</td></tr>`).join("")}</tbody>
     </table></div>`;
 }
 
@@ -1302,6 +1376,11 @@ const portrait = (hero, cls = "") => {
   const src = heroImg(hero);
   return src ? `<img class="hero-img ${cls}" src="${src}" alt="${esc(hero)}" title="${esc(hero)}" loading="lazy">` : `<span class="hero-img ${cls} missing" title="${esc(hero)}">${esc(hero.slice(0, 2))}</span>`;
 };
+
+// A row of small hero portraits, each linking to the hero's page, with "×n" when played more than once.
+const heroStrip = (src, list) => (list?.length
+  ? `<span class="hero-strip">${list.map(({ hero, n }) => `<a href="${heroHref(src, hero)}" title="${esc(hero)}${n > 1 ? ` ×${n}` : ""}">${portrait(hero)}${n > 1 ? `<b>${n}</b>` : ""}</a>`).join("")}</span>`
+  : '<span class="muted">—</span>');
 
 function draftStrip(m, src) {
   if (!m.draft?.length) return `<p class="draft-none">Draft order isn't on the post-game screen, so scrims show lineups only.</p>`;
