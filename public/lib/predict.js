@@ -230,9 +230,11 @@ export function crowd(preds, s) {
 }
 
 // ---------- the model's call ----------
-// The odds stay honest; the call doesn't hedge. It takes the favourite to win 2-0 (1-1 is
-// often the single likeliest result between close teams, but it's never the bold call).
-export const modelCall = (o) => (o.game >= 0.5 ? "home" : "away");
+// The odds stay honest; the call is bold. It takes the favourite to win 2-0 unless the
+// teams are a genuine coin flip (per-game odds within 1.5 points of 50%), then it calls 1-1.
+// That's roughly one split a week; everything else is a sweep.
+export const TIE_EDGE = 0.015;
+export const modelCall = (o) => (Math.abs(o.game - 0.5) < TIE_EDGE ? "tie" : o.game >= 0.5 ? "home" : "away");
 
 // ---------- predicted draft ----------
 // Captains Mode order as S48 plays it, from the first-pick team's (X) point of view; the

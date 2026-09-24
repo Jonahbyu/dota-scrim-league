@@ -8,7 +8,7 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   (Tesseract OCR — no AI, no API keys), you check them, and the game is saved.
 - **AD2L S48 Champion** — switch league in the top-left: standings, every ticketed game
   with full stats, players and heroes, pulled from PlayOn + OpenDota.
-- **Tier list** — every player with 3+ games, ranked S–D by in-season performance
+- **Tier list** (top of the Players tab) — every player with 3+ games, ranked S–D by in-season performance
   against same-role players plus win rate (see "Tier list" below).
 - **Weekly recap** — one week at a time: highlights (player of the week, biggest damage,
   best KDA, top GPM, most kills) and every game with lineups and MVP. AD2L games also show

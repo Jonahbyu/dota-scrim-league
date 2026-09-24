@@ -10,7 +10,7 @@ import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.
 import { buildPlayerIndex, matchPlayers, nameKey } from "./lib/players.js";
 import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
 import { asAd2l, guessTeams, teamByName } from "./lib/unticketed.js";
-import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks, modelCall, predictDraft } from "./lib/predict.js";
+import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks, modelCall, TIE_EDGE, predictDraft } from "./lib/predict.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid, listPredictions, savePrediction } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
@@ -429,13 +429,13 @@ const SOURCES = {
     key: "scrim", kicker: "The ledger", load: allMatches,
     link: (m) => `#/match/${m.id}`, base: "#/",
     empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
-    nav: [["#/", "matches", "Matches"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/tiers", "tiers", "Tiers"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/", "matches", "Matches"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
   ad2l: {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/week",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
   },
 };
 
@@ -715,7 +715,7 @@ function sortableTable(el, columns, rows, sortKey, { toolbar = false } = {}) {
         <button class="sort-dir" type="button">${dir < 0 ? "High → low" : "Low → high"}</button>
         <span class="sort-hint">or click any column header ↕</span>
       </div>` : "";
-    el.innerHTML = `${bar}<div class="table-wrap"><table>
+    el.innerHTML = `${bar}<div class="table-wrap sticky-name"><table>
       <thead><tr><th class="rank">#</th>${columns.map(([k, label, , cls]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
         aria-sort="${k === key ? (dir < 0 ? "descending" : "ascending") : "none"}">${label}<span class="sort-ico">${k === key ? (dir < 0 ? "▾" : "▴") : "↕"}</span></th>` : "<th></th>").join("")}</tr></thead>
       <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " top" : ""}">${String(i + 1).padStart(2, "0")}</td>${columns.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
@@ -737,11 +737,16 @@ async function renderPlayers(src) {
   let matches;
   try { matches = (await src.load()).filter(hasDetails); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Players")}${errorBox(e)}`; return; }
   const data = playerLeaderboard(matches);
-  app.innerHTML = `${pageHead(src.kicker, "Players", data.length ? `${data.length} players across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Sort by any stat with the menu or by clicking a column header; click a name for that player's page.` : "")}
-    ${data.length ? `<div id="t" class="reveal"></div>
+  const tiers = data.length ? tierSection(src, matches) : null;
+  app.innerHTML = `${pageHead(src.kicker, "Players", data.length ? `${data.length} players across ${matches.length} ${matches.length === 1 ? "game" : "games"}: the tier list first, then every stat below. Click a name for that player's page.` : "")}
+    ${data.length ? `${tiers.html}
+    <h2 id="player-stats">All stats</h2>
+    <p class="table-note wm-intro">Sort by any stat with the menu or by clicking a column header.</p>
+    <div id="t" class="reveal"></div>
     <p class="table-note">GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. ${src.key === "ad2l" ? "Players are matched by their PlayOn name (smurfs included). Per-game map stats (/g) come from parsed replays; Roshans and Tormentors are last-hit totals." : "Players are matched by name."} Bars compare against the column's best.</p>`
     : `<div class="panel empty"><strong>No players yet</strong>${src.empty}</div>`}`;
   if (!data.length) return;
+  tiers.draw();
   const teamCol = src.key === "ad2l"
     ? [["team", "Team", (v, r) => `${v ? teamLink(src, v) : ""}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l name"]] : [];
   sortableTable(document.getElementById("t"), [
@@ -854,8 +859,8 @@ async function renderPredict() {
     return `<article class="pred-card" data-sid="${s.id}">
       <div class="pred-when">${new Date(s.time * 1000).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}${locked ? ' · <b class="s-b">Locked</b>' : ""}</div>
       <div class="pred-teams"><span class="a">${teamLink(SOURCES.ad2l, teamName[s.home], s.home)}</span><i>vs</i><span class="b">${teamLink(SOURCES.ad2l, teamName[s.away], s.away)}</span></div>
-      <div class="pred-call"><span class="pred-lbl">Model's call</span><b class="${modelCall(o) === "home" ? "s-a" : "s-b"}">${label(s, modelCall(o))}</b>
-        <span class="pred-conf">${(() => { const e = Math.abs(o.game - 0.5); return e >= 0.15 ? "Lock it in." : e >= 0.07 ? "Confident." : "Gut call, still sweeping."; })()}</span></div>
+      <div class="pred-call"><span class="pred-lbl">Model's call</span><b class="${{ home: "s-a", away: "s-b", tie: "s-t" }[modelCall(o)]}">${label(s, modelCall(o))}</b>
+        <span class="pred-conf">${(() => { const e = Math.abs(o.game - 0.5); return modelCall(o) === "tie" ? "Dead even. Split." : e >= 0.15 ? "Lock it in." : e >= 0.07 ? "Confident." : "Gut call, still sweeping."; })()}</span></div>
       <div class="pred-row"><span class="pred-lbl">Odds</span>${bar(o)}</div>
       ${c && c.n ? `<div class="pred-row"><span class="pred-lbl">Crowd <small>${c.n}</small></span>${bar(c, "crowd")}</div>` : ""}
       <div class="pred-picks" role="group" aria-label="Your pick">${OUTCOMES.map((k) => `<button type="button" data-pick="${k}" aria-pressed="${my?.pick === k}" ${locked || !preds ? "disabled" : ""}>${label(s, k)}</button>`).join("")}</div>
@@ -902,7 +907,7 @@ async function renderPredict() {
     ${st.length ? `<div id="pred-st"></div>` : `<div class="panel empty">No scored picks yet. Standings start once a series you picked has been played.</div>`}
     <details class="how"><summary>How the model works</summary>
       <p>Each team has a strength rating fitted to every game result so far (PlayOn's series scores, so games OpenDota never saw still count). With only ${playedNights.length} weeks played, results alone jump around, so each rating is pulled toward a starting point from the roster's average PlayOn medal. How hard to pull, and how much medals matter, were chosen by replaying the season: predicting each week from only the weeks before it and keeping what did best.</p>
-      <p>The model's call never hedges: it takes the favourite to win 2–0, even when a 1–1 split is the single likeliest result. The odds bar stays honest: results so far haven't predicted the next week much better than a coin flip, so the settings lean on medals and most series look close. Replayed over the season, the bold calls got <b>${called} of ${bt.length}</b> series exactly right${decisive.length ? ` and picked the right team in ${decisive.filter((x) => x.pick === x.actual).length} of the ${decisive.length} that weren't 1–1` : ""}; always calling 1–1 would have got ${ties}.</p>
+      <p>The model's call is bold: it takes the favourite to win 2–0, even when a 1–1 split is the single likeliest result, and only calls 1–1 when the teams are a true coin flip (per-game odds within ${TIE_EDGE * 100} points of 50%). The odds bar stays honest: results so far haven't predicted the next week much better than a coin flip, so the settings lean on medals and most series look close. Replayed over the season, the bold calls got <b>${called} of ${bt.length}</b> series exactly right${decisive.length ? ` and picked the right team in ${decisive.filter((x) => x.pick === x.actual).length} of the ${decisive.length} that weren't 1–1` : ""}${bt.some((x) => x.pick === "tie") ? `, and called ${bt.filter((x) => x.pick === "tie").length} splits` : ""}; always calling 1–1 would have got ${ties}.</p>
       <p>Game odds are treated as independent, so a 2–0 is the single-game chance squared. Settings in use: pull ${params.lambda}, medal weight ${params.beta}.</p>
     </details>
     ${past ? `<h2>Past weeks</h2>${past}<p class="table-note">Model = what it would have picked that week from earlier results only. Crowd = most-picked call (count after it). Picks saved after a series started don't count.</p>` : ""}`;
@@ -1576,12 +1581,13 @@ async function renderTeams(src, slug) {
 // ---------- Tier list ----------
 
 let tierRole = "all";
-async function renderTiers(src) {
-  app.innerHTML = loading(src.kicker, "Tier list");
-  let matches;
-  try { matches = (await src.load()).filter(hasDetails); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Tier list")}${errorBox(e)}`; return; }
+// The tier list, shown at the top of the Players page: returns its HTML and a function
+// that fills it in once it's on the page.
+function tierSection(src, matches) {
   const list = tierList(matches);
   const draw = () => {
+    const el = document.getElementById("tiers");
+    if (!el) return;
     const show = (p) => tierRole === "all" || p.role === tierRole;
     const chip = (p, i) => {
       const rank = rankLabel(p.rank_tier);
@@ -1601,27 +1607,24 @@ async function renderTiers(src) {
       </div>`;
     }).join("");
     const tab = (k, label) => `<button type="button" class="seg${tierRole === k ? " on" : ""}" data-role="${k}">${label}</button>`;
-    document.getElementById("tiers").innerHTML = `
+    el.innerHTML = `
       <div class="row segs">${tab("all", "Everyone")}${tab("core", "Cores")}${tab("support", "Supports")}</div>
       <div class="tier-board">${bands}</div>
-      ${list.unranked.length ? `<h2>Not enough games yet</h2>
-        <p class="table-note">Needs ${MIN_GAMES}+ games to be ranked: ${list.unranked.map((p) => `${playerLink(src, p)} (${p.games})`).join(", ")}.</p>` : ""}`;
-    document.querySelectorAll(".seg").forEach((b) => (b.onclick = () => { tierRole = b.dataset.role; draw(); }));
+      ${list.unranked.length ? `<p class="table-note">Not ranked yet (needs ${MIN_GAMES}+ games): ${list.unranked.map((p) => `${playerLink(src, p)} (${p.games})`).join(", ")}.</p>` : ""}`;
+    el.querySelectorAll(".seg").forEach((b) => (b.onclick = () => { tierRole = b.dataset.role; draw(); }));
   };
-  app.innerHTML = `
-    ${pageHead(src.kicker, "Tier list", list.eligible
-      ? `${list.eligible} players ranked from ${matches.length} ${src.key === "ad2l" ? "ticketed games" : "games"} this season. Hover a player for the breakdown.`
-      : "")}
-    ${list.eligible ? `<div id="tiers"></div>
-      <details class="how">
-        <summary>How it's scored</summary>
-        <p><b>Role.</b> Each game, a team's top three by net worth count as cores and the other two as supports; a player's role is the one they played most. It's an approximation — positions aren't in the data.</p>
-        <p><b>Impact (70%).</b> Per-minute stats compared only with same-role players. Cores: GPM, damage/min, KDA, last hits/min, XPM, kill participation. Supports: kill participation, KDA, XPM, healing, damage. Deaths count against both.</p>
-        <p><b>Winning (30%).</b> Win rate pulled toward 50% as if everyone had also played ${K_PRIOR} even games, so a hot 3–0 start doesn't outrank a 6–2 season.</p>
-        <p><b>Tiers</b> by rank among everyone eligible: S top 10%, A next 20%, B next 30%, C next 25%, D last 15%. Rating is the percentile (0–100). Medal badges come from PlayOn and aren't scored. Needs ${MIN_GAMES}+ games.</p>
-      </details>`
-    : `<div class="panel empty"><strong>Not enough games yet</strong>Players need ${MIN_GAMES}+ games to be ranked.${src.key === "scrim" ? ` <a href="#/upload">Upload more scrims</a>.` : ""}</div>`}`;
-  if (list.eligible) draw();
+  const html = list.eligible ? `<h2 id="tier-list">Tier list</h2>
+    <p class="table-note wm-intro">${list.eligible} players ranked from ${matches.length} ${src.key === "ad2l" ? "ticketed games" : "games"}. Hover a player for the breakdown.</p>
+    <div id="tiers"></div>
+    <details class="how">
+      <summary>How it's scored</summary>
+      <p><b>Role.</b> Each game, a team's top three by net worth count as cores and the other two as supports; a player's role is the one they played most. It's an approximation — positions aren't in the data.</p>
+      <p><b>Impact (70%).</b> Per-minute stats compared only with same-role players. Cores: GPM, damage/min, KDA, last hits/min, XPM, kill participation. Supports: kill participation, KDA, XPM, healing, damage. Deaths count against both.</p>
+      <p><b>Winning (30%).</b> Win rate pulled toward 50% as if everyone had also played ${K_PRIOR} even games, so a hot 3–0 start doesn't outrank a 6–2 season.</p>
+      <p><b>Tiers</b> by rank among everyone eligible: S top 10%, A next 20%, B next 30%, C next 25%, D last 15%. Rating is the percentile (0–100). Medal badges come from PlayOn and aren't scored. Needs ${MIN_GAMES}+ games.</p>
+    </details>`
+    : `<p class="table-note">Tier list: players need ${MIN_GAMES}+ games to be ranked.</p>`;
+  return { html, draw };
 }
 
 // ---------- League switcher + router ----------
@@ -1650,7 +1653,7 @@ function route() {
     else if (h.startsWith("#/ad2l/games")) { section = "week"; page = () => renderWeek(src, 0); } // old Games tab: Weekly lists every game
     else if (h.startsWith("#/ad2l/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[3] ?? "")); }
     else if (h.startsWith("#/ad2l/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
-    else if (h.startsWith("#/ad2l/tiers")) { section = "tiers"; page = () => renderTiers(src); }
+    else if (h.startsWith("#/ad2l/tiers")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/player/")) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice("#/ad2l/player/".length))); }
     else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/hero/")) { section = "heroes"; page = () => renderHero(src, h.slice("#/ad2l/hero/".length)); }
@@ -1665,7 +1668,7 @@ function route() {
     else if (h.startsWith("#/upload")) { section = "upload"; page = () => { upload.league = "scrim"; if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
     else if (h.startsWith("#/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[2] ?? "")); }
     else if (h.startsWith("#/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[2] ?? 0) || 0); }
-    else if (h.startsWith("#/tiers")) { section = "tiers"; page = () => renderTiers(src); }
+    else if (h.startsWith("#/tiers")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/player/")) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice("#/player/".length))); }
     else if (h.startsWith("#/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/hero/")) { section = "heroes"; page = () => renderHero(src, h.slice("#/hero/".length)); }

@@ -82,7 +82,9 @@ test("predicted draft follows S48's order: first-pick team bans 3/2/2, the other
   assert.deepEqual(CM_ORDER.map(([, k]) => k), real.map((s) => (s.pick ? "pick" : "ban")));
 });
 
-test("the model's call always takes a side", () => {
-  assert.equal(modelCall({ game: 0.51 }), "home");
-  assert.equal(modelCall({ game: 0.49 }), "away");
+test("the model's call takes a side unless it's a coin flip", () => {
+  assert.equal(modelCall({ game: 0.52 }), "home");
+  assert.equal(modelCall({ game: 0.48 }), "away");
+  assert.equal(modelCall({ game: 0.51 }), "tie");
+  assert.equal(modelCall({ game: 0.5 }), "tie");
 });
