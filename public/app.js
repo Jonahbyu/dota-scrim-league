@@ -12,6 +12,14 @@ const pct = (x) => (x == null ? "—" : `${Math.round(x * 100)}%`);
 const dur = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 const when = (d) => (d ? d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "");
 
+const pageHead = (kicker, title, sub = "") => `
+  <header class="page-head reveal">
+    <div class="kicker" style="--i:0">${kicker}</div>
+    <h1 style="--i:1">${title}</h1>
+    ${sub ? `<p style="--i:2">${sub}</p>` : ""}
+  </header>`;
+const loading = (kicker, title) => `${pageHead(kicker, title)}<div class="panel empty">Loading…</div>`;
+
 const STATS = [
   ["level", "Lvl"], ["kills", "K"], ["deaths", "D"], ["assists", "A"], ["net_worth", "Net worth"],
   ["last_hits", "LH"], ["denies", "DN"], ["gpm", "GPM"], ["xpm", "XPM"],
@@ -144,8 +152,8 @@ function draftHtml(d) {
       <table>
         <thead><tr><th class="l">Player</th><th class="l">Tag</th><th class="l">Hero</th>${STATS.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
         <tbody>
-          <tr class="sep"><td colspan="${STATS.length + 3}">Team A</td></tr>${teamRows("a")}
-          <tr class="sep"><td colspan="${STATS.length + 3}">Team B</td></tr>${teamRows("b")}
+          <tr class="sep a"><td colspan="${STATS.length + 3}">Team A</td></tr>${teamRows("a")}
+          <tr class="sep b"><td colspan="${STATS.length + 3}">Team B</td></tr>${teamRows("b")}
         </tbody>
       </table>
     </div>
@@ -203,21 +211,28 @@ async function saveDraft() {
 
 function renderUpload() {
   const msg = upload.message;
+  const slot = (i) => {
+    const img = upload.images[i];
+    return img
+      ? `<div class="slot filled" style="--i:${i + 3}"><img src="${img.url}" alt="Screenshot ${i + 1}" title="${esc(img.name)}"><span class="slot-tag">Screenshot ${i + 1}</span></div>`
+      : `<div class="slot" style="--i:${i + 3}"><div><div class="slot-num">0${i + 1}</div>
+           <div class="slot-label">${i === 0 ? "Overview or Scoreboard" : "The other one"}</div>
+           <div class="slot-hint">Paste · drop · click</div></div></div>`;
+  };
   app.innerHTML = `
-    <h1>Upload a scrim</h1>
-    <p class="muted">Two screenshots from the post-game screen: the <b>overview</b> (hero cards with K/D/A and net worth) and the <b>Scoreboard</b> tab.
-      Snip each one (<kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>) and press <kbd>Ctrl</kbd>+<kbd>V</kbd> here. Don't hover over anything while snipping — tooltips cover numbers.
-      Screenshots are read on your computer; only the stats you save are uploaded.</p>
-    <div class="panel">
-      <div class="drop" id="drop">Paste (Ctrl+V), drop, or click to choose screenshots (max 2)
+    ${pageHead("Post-game intake", "Upload a scrim",
+      `Snip the post-game <b>overview</b> (hero cards) and the <b>Scoreboard</b> tab with <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>,
+       then press <kbd>Ctrl</kbd>+<kbd>V</kbd> here — once for each. Don't hover over anything while snipping; tooltips cover numbers.
+       Screenshots are read on your computer; only the stats you save are uploaded.`)}
+    <div class="reveal">
+      <div class="slots" id="drop" style="--i:3">${slot(0)}${slot(1)}
         <input type="file" id="file" accept="image/*" multiple hidden></div>
-      <div class="thumbs">${upload.images.map((img, i) => `<img src="${img.url}" data-i="${i}" title="${esc(img.name)}">`).join("")}</div>
-      <div class="row" style="margin-top:12px">
+      <div class="row upload-actions" style="--i:4">
         <button class="primary" id="parse" ${!upload.images.length || upload.busy ? "disabled" : ""}>Read screenshots</button>
         <button id="manual" ${upload.busy ? "disabled" : ""}>Enter manually</button>
         ${upload.images.length && !upload.busy ? `<button id="clear">Clear</button>` : ""}
       </div>
-      ${upload.busy ? `<p class="muted" id="progress" style="margin-bottom:0">${esc(upload.progress)}</p>` : ""}
+      ${upload.busy ? `<p class="progress" id="progress">${esc(upload.progress)}</p>` : ""}
     </div>
     ${msg ? `<div class="notice ${msg.kind}">${esc(msg.text)}${msg.link ? ` <a href="${msg.link}">Open it</a>` : ""}</div>` : ""}
     ${upload.draft ? draftHtml(upload.draft) : ""}
@@ -225,14 +240,17 @@ function renderUpload() {
 
   const drop = document.getElementById("drop");
   const file = document.getElementById("file");
-  drop.onclick = () => file.click();
-  file.onchange = () => addFiles(file.files);
-  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
-  drop.ondragleave = () => drop.classList.remove("over");
-  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); addFiles(e.dataTransfer.files); };
-
   const zoom = document.getElementById("zoom");
-  app.querySelectorAll(".thumbs img").forEach((img) => (img.onclick = () => { zoom.querySelector("img").src = img.src; zoom.showModal(); }));
+  drop.querySelectorAll(".slot").forEach((s) => {
+    s.onclick = () => {
+      const img = s.querySelector("img");
+      if (img) { zoom.querySelector("img").src = img.src; zoom.showModal(); } else file.click();
+    };
+  });
+  file.onchange = () => addFiles(file.files);
+  drop.ondragover = (e) => { e.preventDefault(); drop.querySelectorAll(".slot:not(.filled)").forEach((s) => s.classList.add("over")); };
+  drop.ondragleave = () => drop.querySelectorAll(".slot").forEach((s) => s.classList.remove("over"));
+  drop.ondrop = (e) => { e.preventDefault(); drop.ondragleave(); addFiles(e.dataTransfer.files); };
   zoom.onclick = () => zoom.close();
 
   document.getElementById("parse").onclick = runParse;
@@ -249,21 +267,26 @@ function renderUpload() {
 // ---------- Matches ----------
 
 async function renderMatches() {
-  app.innerHTML = `<h1>Matches</h1><div class="panel muted">Loading…</div>`;
+  app.innerHTML = loading("The ledger", "Matches");
   let data;
-  try { data = await allMatches(); } catch (e) { app.innerHTML = `<h1>Matches</h1>${errorBox(e)}`; return; }
+  try { data = await allMatches(); } catch (e) { app.innerHTML = `${pageHead("The ledger", "Matches")}${errorBox(e)}`; return; }
+  const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record`;
   app.innerHTML = `
-    <h1>Matches</h1>
-    ${data.length ? `<div class="panel match-list" style="padding:0">${data.map((m) => `
-      <a class="item" href="#/match/${m.id}">
-        <span><span class="${m.winner === "a" ? "w" : ""}">${esc(m.team_a)}</span> <span class="muted">vs</span> <span class="${m.winner === "b" ? "w" : ""}">${esc(m.team_b)}</span></span>
-        <span class="muted">${m.score_a}–${m.score_b} · ${dur(m.duration_sec)} · ${when(m.createdAt)}</span>
+    ${pageHead("The ledger", "Matches", data.length ? count : "")}
+    ${data.length ? `<div class="fixtures reveal">${data.map((m, i) => `
+      <a class="fixture win-${m.winner}" href="#/match/${m.id}" style="--i:${Math.min(i, 12)}">
+        <div class="fx-team a ${m.winner === "a" ? "" : "lost"}">${esc(m.team_a)}${m.winner === "a" ? "<small>Victory</small>" : ""}</div>
+        <div class="fx-score">
+          <div class="n">${m.score_a}<i>/</i>${m.score_b}</div>
+          <div class="meta">${dur(m.duration_sec)} · ${when(m.createdAt)}</div>
+        </div>
+        <div class="fx-team b ${m.winner === "b" ? "" : "lost"}">${esc(m.team_b)}${m.winner === "b" ? "<small>Victory</small>" : ""}</div>
       </a>`).join("")}</div>`
-    : `<div class="panel muted">No matches yet. <a href="#/upload">Upload the first one</a>.</div>`}`;
+    : `<div class="panel empty"><strong>No games yet</strong>The ledger is empty. <a href="#/upload">Upload the first scrim</a>.</div>`}`;
 }
 
 async function renderMatch(id) {
-  app.innerHTML = `<div class="panel muted">Loading…</div>`;
+  app.innerHTML = `<div class="panel empty">Loading…</div>`;
   let raw;
   try { raw = matchesCache?.find((m) => m.id === id) ?? (await getMatch(id)); } catch (e) { app.innerHTML = errorBox(e); return; }
   if (!raw) { app.innerHTML = `<div class="notice err">No such match.</div>`; return; }
@@ -278,7 +301,7 @@ async function renderMatch(id) {
   const highlight = new Set(["kills", "net_worth", "gpm", "hero_damage", "dmg_per_min", "dmg_per_1k_nw", "kill_participation", "hero_healing"]);
   const rows = (t) => m.players.filter((p) => p.team === t).map((p) => `
     <tr class="team-${t}">
-      <td class="l">${esc(p.name)}${p.tag ? ` <span class="muted">[${esc(p.tag)}]</span>` : ""}</td>
+      <td class="l">${esc(p.name)}${p.tag ? ` <span class="tag">[${esc(p.tag)}]</span>` : ""}</td>
       <td class="l">${esc(p.hero)}</td>
       ${cols.map(([k, , f]) => `<td class="${highlight.has(k) && p[k] === best(k) && p[k] > 0 ? "best" : ""}">${(f ?? ((x) => x))(p[k])}</td>`).join("")}
     </tr>`).join("");
@@ -292,34 +315,49 @@ async function renderMatch(id) {
   ];
   const ta = m.teamTotals.a.hero_damage, tb = m.teamTotals.b.hero_damage;
 
+  const plate = (t) => {
+    const won = m.winner === t;
+    return `<div class="plate ${t} ${won ? "" : "lost"}">
+      <div class="top-line"><span class="side">${t === "a" ? "Team A" : "Team B"}</span>${won ? '<span class="win-badge">Victory</span>' : ""}</div>
+      <div class="team">${esc(t === "a" ? m.team_a : m.team_b)}</div>
+      <div class="n">${t === "a" ? m.score_a : m.score_b}</div>
+    </div>`;
+  };
+
   app.innerHTML = `
-    <div class="panel score">
-      <div class="team a">${esc(m.team_a)}${m.winner === "a" ? '<span class="win-badge">WIN</span>' : ""}</div>
-      <div class="n a">${m.score_a}</div>
-      <div class="mid">${esc(m.game_mode ?? "")}<br>${dur(m.duration_sec)}</div>
-      <div class="n b">${m.score_b}</div>
-      <div class="team b">${m.winner === "b" ? '<span class="win-badge">WIN</span>' : ""}${esc(m.team_b)}</div>
-    </div>
+    <div class="kicker" style="margin-bottom:16px"><a href="#/">← The ledger</a></div>
+    <section class="banner">
+      ${plate("a")}${plate("b")}
+      <div class="banner-meta">${esc(m.game_mode || "Match")} · <b>${dur(m.duration_sec)}</b></div>
+    </section>
     <h2>Standouts</h2>
-    <div class="cards">${cards.map(([k, { p, v }]) => `<div class="card"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${esc(p.name)} · ${esc(p.hero)}</div></div>`).join("")}
-      <div class="card"><div class="k">Team hero damage</div><div class="v">${fmt(ta)} <span class="muted">vs</span> ${fmt(tb)}</div>
+    <div class="cards reveal">${cards.map(([k, { p, v }], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s"><b>${esc(p.name)}</b> · ${esc(p.hero)}</div></div>`).join("")}
+      <div class="card" style="--i:4"><div class="k">Team hero damage</div><div class="v pair">${fmt(ta)} <span class="muted">/</span> ${fmt(tb)}</div>
         <div class="s">${(ta > tb) === (m.winner === "a") ? "Winner out-damaged the loser" : "Loser out-damaged the winner"}</div></div>
     </div>
     <h2>Scoreboard</h2>
     <div class="table-wrap"><table>
       <thead><tr><th class="l">Player</th><th class="l">Hero</th>${cols.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
       <tbody>
-        <tr class="sep"><td colspan="${cols.length + 2}">${esc(m.team_a)}</td></tr>${rows("a")}
-        <tr class="sep"><td colspan="${cols.length + 2}">${esc(m.team_b)}</td></tr>${rows("b")}
+        <tr class="sep a"><td colspan="${cols.length + 2}">${esc(m.team_a)}</td></tr>${rows("a")}
+        <tr class="sep b"><td colspan="${cols.length + 2}">${esc(m.team_b)}</td></tr>${rows("b")}
       </tbody></table></div>
-    <p class="muted">Dmg/min = hero damage ÷ game minutes. Dmg per 1k NW = hero damage per 1,000 net worth (damage efficiency). KP = (kills + assists) ÷ team score.
+    <p class="table-note">▲ best in match. Dmg/min = hero damage ÷ minutes. Dmg per 1k NW = hero damage per 1,000 net worth (efficiency). KP = (kills + assists) ÷ team score.
       Uploaded ${when(m.createdAt)}. Wrong? Ask the league admin to remove it.</p>`;
 }
 
 // ---------- Leaderboards ----------
 
+// columns: [key, label, format?, class?, bar colour?]. A bar colour draws a thin bar under
+// the value, scaled to the column's highest value.
 function sortableTable(el, columns, rows, sortKey) {
   let key = sortKey, dir = -1;
+  const max = Object.fromEntries(columns.filter((c) => c[4]).map(([k]) => [k, Math.max(...rows.map((r) => r[k] ?? 0)) || 1]));
+  const cell = ([k, , f, cls, bar], r) => {
+    const barCls = bar ? ` bar ${bar}` : "";
+    const style = bar ? ` style="--w:${Math.max(0, (r[k] ?? 0) / max[k]).toFixed(3)}"` : "";
+    return `<td class="${cls ?? ""}${barCls}"${style}>${f ? f(r[k], r) : esc(r[k])}</td>`;
+  };
   const draw = () => {
     const sorted = [...rows].sort((a, b) => {
       const x = a[key], y = b[key];
@@ -327,8 +365,8 @@ function sortableTable(el, columns, rows, sortKey) {
       return dir * ((x ?? -Infinity) - (y ?? -Infinity));
     });
     el.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr>${columns.map(([k, label, , cls]) => `<th class="sortable ${cls ?? ""}" data-k="${k}">${label}${k === key ? (dir < 0 ? " ▾" : " ▴") : ""}</th>`).join("")}</tr></thead>
-      <tbody>${sorted.map((r) => `<tr>${columns.map(([k, , f, cls]) => `<td class="${cls ?? ""}">${f ? f(r[k], r) : esc(r[k])}</td>`).join("")}</tr>`).join("")}</tbody>
+      <thead><tr><th class="rank">#</th>${columns.map(([k, label, , cls]) => `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}">${label}${k === key ? (dir < 0 ? " ▾" : " ▴") : ""}</th>`).join("")}</tr></thead>
+      <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " top" : ""}">${String(i + 1).padStart(2, "0")}</td>${columns.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
     </table></div>`;
     el.querySelectorAll("th").forEach((th) => (th.onclick = () => {
       if (th.dataset.k === key) dir = -dir; else { key = th.dataset.k; dir = -1; }
@@ -339,31 +377,34 @@ function sortableTable(el, columns, rows, sortKey) {
 }
 
 async function renderPlayers() {
-  app.innerHTML = `<h1>Players</h1><div class="panel muted">Loading…</div>`;
+  app.innerHTML = loading("Individual records", "Players");
   let matches;
-  try { matches = await allMatches(); } catch (e) { app.innerHTML = `<h1>Players</h1>${errorBox(e)}`; return; }
+  try { matches = await allMatches(); } catch (e) { app.innerHTML = `${pageHead("Individual records", "Players")}${errorBox(e)}`; return; }
   const data = playerLeaderboard(matches);
-  app.innerHTML = `<h1>Players</h1>${data.length ? `<div id="t"></div>
-    <p class="muted">Click a column to sort. GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. Players are matched by name.</p>` : `<div class="panel muted">No games yet.</div>`}`;
+  app.innerHTML = `${pageHead("Individual records", "Players", data.length ? `${data.length} players across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Click a column to sort.` : "")}
+    ${data.length ? `<div id="t" class="reveal"></div>
+    <p class="table-note">GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. Players are matched by name. Bars compare against the column's best.</p>`
+    : `<div class="panel empty"><strong>No players yet</strong><a href="#/upload">Upload a scrim</a> to start the table.</div>`}`;
   if (!data.length) return;
   sortableTable(document.getElementById("t"), [
-    ["name", "Player", (v) => esc(v), "l"], ["games", "Games"], ["win_rate", "Win %", pct],
-    ["kills", "K"], ["deaths", "D"], ["assists", "A"], ["kda", "KDA", (v) => v.toFixed(2)],
-    ["avg_gpm", "GPM"], ["avg_xpm", "XPM"], ["dmg_per_min", "Dmg/min", fmt], ["dmg_per_1k_nw", "Dmg per 1k NW", fmt],
+    ["name", "Player", (v) => esc(v), "l"], ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
+    ["kills", "K"], ["deaths", "D"], ["assists", "A"], ["kda", "KDA", (v) => v.toFixed(2), "", "jade"],
+    ["avg_gpm", "GPM", null, "", "gold"], ["avg_xpm", "XPM"], ["dmg_per_min", "Dmg/min", fmt, "", "ember"], ["dmg_per_1k_nw", "Dmg per 1k NW", fmt, "", "ember"],
     ["avg_kp", "Avg KP", pct], ["heroes", "Heroes", (v) => esc(v), "l"],
   ], data, "games");
 }
 
 async function renderHeroes() {
-  app.innerHTML = `<h1>Heroes</h1><div class="panel muted">Loading…</div>`;
+  app.innerHTML = loading("The draft", "Heroes");
   let matches;
-  try { matches = await allMatches(); } catch (e) { app.innerHTML = `<h1>Heroes</h1>${errorBox(e)}`; return; }
+  try { matches = await allMatches(); } catch (e) { app.innerHTML = `${pageHead("The draft", "Heroes")}${errorBox(e)}`; return; }
   const rows = heroStats(matches);
-  app.innerHTML = `<h1>Heroes</h1>${rows.length ? `<div id="t"></div>` : `<div class="panel muted">No games yet.</div>`}`;
+  app.innerHTML = `${pageHead("The draft", "Heroes", rows.length ? `${rows.length} heroes picked across ${matches.length} ${matches.length === 1 ? "game" : "games"}.` : "")}
+    ${rows.length ? `<div id="t" class="reveal"></div>` : `<div class="panel empty"><strong>No picks yet</strong><a href="#/upload">Upload a scrim</a> to fill the draft table.</div>`}`;
   if (!rows.length) return;
   sortableTable(document.getElementById("t"), [
-    ["hero", "Hero", (v) => esc(v), "l"], ["picks", "Picks"], ["pick_rate", "Pick rate", pct], ["wins", "Wins"],
-    ["win_rate", "Win %", pct], ["avg_damage", "Avg hero dmg", fmt], ["avg_kda", "Avg KDA"],
+    ["hero", "Hero", (v) => esc(v), "l"], ["picks", "Picks", null, "", "gold"], ["pick_rate", "Pick rate", pct], ["wins", "Wins"],
+    ["win_rate", "Win %", pct, "", "jade"], ["avg_damage", "Avg hero dmg", fmt, "", "ember"], ["avg_kda", "Avg KDA"],
   ], rows, "picks");
 }
 

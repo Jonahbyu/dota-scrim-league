@@ -3,21 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dota Scrim League</title>
-  <meta name="description" content="Upload Dota 2 scrim screenshots; see league standings, player and hero stats.">
+  <title>Scrim League</title>
+  <meta name="description" content="Paste Dota 2 post-game screenshots; league standings, player and hero stats.">
+  <meta name="theme-color" content="#0c0b0a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@600;800;900&family=Epilogue:wght@400;500;600;700&family=Martian+Mono:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <a class="brand" href="#/">Scrim League</a>
+  <!-- Atmosphere: the river band and grain sit behind everything. -->
+  <div class="river" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="top">
+    <a class="brand" href="#/">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="brand-word">Scrim<b>League</b></span>
+    </a>
     <nav>
-      <a href="#/upload" data-nav="upload">Upload</a>
       <a href="#/" data-nav="matches">Matches</a>
       <a href="#/players" data-nav="players">Players</a>
       <a href="#/heroes" data-nav="heroes">Heroes</a>
+      <a href="#/upload" data-nav="upload" class="nav-cta">Upload</a>
     </nav>
   </header>
   <main id="app"></main>
+  <footer class="foot">
+    <span>Stats read from post-game screenshots, checked by the uploader.</span>
+    <span>Not affiliated with Valve.</span>
+  </footer>
   <datalist id="hero-list"></datalist>
   <datalist id="player-list"></datalist>
   <script type="module" src="app.js"></script>
