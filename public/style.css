@@ -321,6 +321,49 @@ td.bar.ember { --bar: rgba(255, 90, 54, .55); }
 .card .s { font-size: 13px; color: var(--dust); }
 .card .s b { color: var(--bone); font-weight: 600; }
 
+/* ---------- tier list ---------- */
+.segs { margin-bottom: 18px; gap: 0; }
+button.seg { clip-path: none; margin-right: -1px; padding: 10px 16px; }
+button.seg.on { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+.tier-board { display: grid; gap: 8px; }
+.tier-band { display: grid; grid-template-columns: 92px 1fr; background: var(--stone); border: 1px solid var(--seam); min-height: 108px; }
+.tier-letter {
+  display: grid; place-items: center; font: 900 64px/1 var(--display); color: var(--ink);
+  background: var(--tc); clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+}
+.t-S { --tc: var(--gold); }
+.t-A { --tc: var(--jade); }
+.t-B { --tc: #b9c6c0; }
+.t-C { --tc: #8a8074; }
+.t-D { --tc: var(--ember); }
+.tier-band.t-S { border-color: rgba(232, 182, 76, .45); box-shadow: inset 0 0 60px rgba(232, 182, 76, .06); }
+.tier-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px 12px 18px; align-content: flex-start; }
+.tier-empty { color: var(--dim); align-self: center; font: 12px var(--mono); }
+.chip {
+  width: 188px; padding: 10px 12px; background: var(--stone-2); border: 1px solid var(--seam-2);
+  border-left: 3px solid var(--tc); transition: transform .12s, border-color .12s; cursor: default;
+}
+.tier-band .chip { border-left-color: var(--tc); }
+.chip:hover { transform: translateY(-2px); border-color: var(--dust); border-left-color: var(--tc); }
+.chip-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.chip-name { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-name a { color: var(--bone); }
+.chip-rating { font: 900 22px/1 var(--display); color: var(--tc); }
+.chip-meta { font-size: 11px; color: var(--dust); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 3px 0 7px; min-height: 14px; }
+.chip-foot { display: flex; gap: 8px; font: 400 10px/1 var(--mono); color: var(--dust); letter-spacing: .04em; }
+.role-tag { text-transform: uppercase; letter-spacing: .1em; color: var(--bone); }
+.chip.support .role-tag { color: var(--jade); }
+.chip.core .role-tag { color: var(--gold); }
+details.how { margin-top: 22px; background: var(--stone); border: 1px solid var(--seam); padding: 14px 18px; }
+details.how summary { cursor: pointer; font: 600 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+details.how p { color: var(--dust); font-size: 14px; max-width: 80ch; margin: 12px 0 0; }
+details.how b { color: var(--bone); }
+@media (max-width: 720px) {
+  .tier-band { grid-template-columns: 56px 1fr; }
+  .tier-letter { font-size: 40px; }
+  .chip { width: 100%; }
+}
+
 /* ---------- misc ---------- */
 dialog { background: var(--stone); border: 1px solid var(--seam-2); padding: 6px; max-width: 95vw; }
 dialog img { max-width: 92vw; max-height: 88vh; display: block; }

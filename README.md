@@ -1,11 +1,35 @@
 ﻿# Dota Scrim League
 
-A for-fun league site for Dota 2 scrims. Players paste two post-game screenshots, the site
-reads the stats out of them **in the browser** (Tesseract OCR — no AI, no API keys), the
-uploader checks and fixes the numbers, and the game is saved to the league.
+**Live: https://jonahbyu.github.io/dota-scrim-league/**
 
-Static site: GitHub Pages hosts `public/` (published to the `gh-pages` branch with `npm run deploy`), data lives in Firestore (the shared
-`pistachio-kitchen` Firebase project, under `scrimLeague/`).
+A for-fun stats site for Dota 2 scrims and our AD2L division.
+
+- **Scrims** — paste two post-game screenshots; the stats are read **in your browser**
+  (Tesseract OCR — no AI, no API keys), you check them, and the game is saved.
+- **AD2L S48 Champion** — switch league in the top-left: standings, every ticketed game
+  with full stats, players and heroes, pulled from PlayOn + OpenDota.
+- **Tier list** — every player with 3+ games, ranked S–D by in-season performance
+  against same-role players plus win rate (see "Tier list" below).
+- Match pages with standouts (damage per net worth, kill participation, damage share),
+  sortable player and hero leaderboards.
+
+Static site: GitHub Pages serves `public/` from the `gh-pages` branch (`npm run deploy`).
+Scrim data lives in Firestore (the shared `pistachio-kitchen` Firebase project, under
+`scrimLeague/`); AD2L data is a static file rebuilt by `npm run ad2l:sync`.
+
+## Tier list
+
+`public/lib/tiers.js`, same for both leagues:
+
+- **Role** per game from net worth: a team's top 3 are cores, the other 2 supports
+  (approximation — positions aren't in the data). A player's role is the one they played most.
+- **Impact, 70%** — per-minute stats as z-scores against same-role players only.
+  Cores: GPM, damage/min, KDA, last hits/min, XPM, kill participation. Supports: kill
+  participation, KDA, XPM, healing, damage. Deaths count against both.
+- **Winning, 30%** — win rate shrunk toward 50% as if everyone also had 6 even games
+  (same idea as the drafter's Bayesian prior, lighter because it's one season).
+- **Tiers** by rank among eligible players: S top 10%, A 20%, B 30%, C 25%, D 15%.
+  Needs 3+ games. PlayOn medal badges are shown, not scored.
 
 ## Uploading a game
 

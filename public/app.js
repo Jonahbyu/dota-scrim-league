@@ -1,6 +1,7 @@
 import { HEROES } from "./lib/heroes.js";
 import { validateMatch } from "./lib/validate.js";
 import { withDerived, playerLeaderboard, heroStats } from "./lib/stats.js";
+import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
 import { submitMatch, listMatches, getMatch } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
@@ -286,13 +287,13 @@ const SOURCES = {
     key: "scrim", kicker: "The ledger", load: allMatches,
     link: (m) => `#/match/${m.id}`, base: "#/",
     empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
-    nav: [["#/", "matches", "Matches"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/", "matches", "Matches"], ["#/tiers", "tiers", "Tiers"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
   ad2l: {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: async () => (await ad2lData()).games,
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/games",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"]],
   },
 };
 
@@ -497,6 +498,57 @@ async function renderHeroes(src) {
   ], rows, "picks");
 }
 
+// ---------- Tier list ----------
+
+let tierRole = "all";
+async function renderTiers(src) {
+  app.innerHTML = loading(src.kicker, "Tier list");
+  let matches;
+  try { matches = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Tier list")}${errorBox(e)}`; return; }
+  const list = tierList(matches);
+  const draw = () => {
+    const show = (p) => tierRole === "all" || p.role === tierRole;
+    const chip = (p, i) => {
+      const rank = rankLabel(p.rank_tier);
+      const tip = `Rating ${p.rating} · impact vs ${p.role}s ${p.impact >= 0 ? "+" : ""}${p.impact.toFixed(2)} · adjusted win rate ${Math.round(p.win_shrunk * 100)}% · top heroes: ${p.top_heroes.join(", ")}`;
+      const name = p.account_id ? `<a href="https://www.opendota.com/players/${p.account_id}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
+      return `<div class="chip ${p.role}" style="--i:${i}" title="${esc(tip)}">
+        <div class="chip-top"><span class="chip-name">${name}</span><span class="chip-rating">${p.rating}</span></div>
+        <div class="chip-meta">${p.team ? esc(p.team) : ""}${p.standin ? " · stand-in" : ""}</div>
+        <div class="chip-foot"><span class="role-tag">${p.role === "core" ? "Core" : "Support"}</span><span>${p.wins}–${p.games - p.wins}</span>${rank ? `<span>${esc(rank)}</span>` : ""}</div>
+      </div>`;
+    };
+    const bands = list.tiers.map(({ tier, players }) => {
+      const shown = players.filter(show);
+      return `<div class="tier-band t-${tier}">
+        <div class="tier-letter">${tier}</div>
+        <div class="tier-chips reveal">${shown.length ? shown.map(chip).join("") : `<div class="tier-empty">—</div>`}</div>
+      </div>`;
+    }).join("");
+    const tab = (k, label) => `<button type="button" class="seg${tierRole === k ? " on" : ""}" data-role="${k}">${label}</button>`;
+    document.getElementById("tiers").innerHTML = `
+      <div class="row segs">${tab("all", "Everyone")}${tab("core", "Cores")}${tab("support", "Supports")}</div>
+      <div class="tier-board">${bands}</div>
+      ${list.unranked.length ? `<h2>Not enough games yet</h2>
+        <p class="table-note">Needs ${MIN_GAMES}+ games to be ranked: ${list.unranked.map((p) => `${esc(p.name)} (${p.games})`).join(", ")}.</p>` : ""}`;
+    document.querySelectorAll(".seg").forEach((b) => (b.onclick = () => { tierRole = b.dataset.role; draw(); }));
+  };
+  app.innerHTML = `
+    ${pageHead(src.kicker, "Tier list", list.eligible
+      ? `${list.eligible} players ranked from ${matches.length} ${src.key === "ad2l" ? "ticketed games" : "games"} this season. Hover a player for the breakdown.`
+      : "")}
+    ${list.eligible ? `<div id="tiers"></div>
+      <details class="how">
+        <summary>How it's scored</summary>
+        <p><b>Role.</b> Each game, a team's top three by net worth count as cores and the other two as supports; a player's role is the one they played most. It's an approximation — positions aren't in the data.</p>
+        <p><b>Impact (70%).</b> Per-minute stats compared only with same-role players. Cores: GPM, damage/min, KDA, last hits/min, XPM, kill participation. Supports: kill participation, KDA, XPM, healing, damage. Deaths count against both.</p>
+        <p><b>Winning (30%).</b> Win rate pulled toward 50% as if everyone had also played ${K_PRIOR} even games, so a hot 3–0 start doesn't outrank a 6–2 season.</p>
+        <p><b>Tiers</b> by rank among everyone eligible: S top 10%, A next 20%, B next 30%, C next 25%, D last 15%. Rating is the percentile (0–100). Medal badges come from PlayOn and aren't scored. Needs ${MIN_GAMES}+ games.</p>
+      </details>`
+    : `<div class="panel empty"><strong>Not enough games yet</strong>Players need ${MIN_GAMES}+ games to be ranked.${src.key === "scrim" ? ` <a href="#/upload">Upload more scrims</a>.` : ""}</div>`}`;
+  if (list.eligible) draw();
+}
+
 // ---------- League switcher + router ----------
 
 const leagueBtn = document.getElementById("league-btn");
@@ -521,6 +573,7 @@ function route() {
     const gameId = /^#\/ad2l\/game\/(\d+)$/.exec(h)?.[1];
     if (gameId) { section = "games"; page = () => renderMatch(gameId, src); }
     else if (h.startsWith("#/ad2l/games")) { section = "games"; page = () => renderMatches(src); }
+    else if (h.startsWith("#/ad2l/tiers")) { section = "tiers"; page = () => renderTiers(src); }
     else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
     else { section = "standings"; page = renderStandings; }
@@ -528,6 +581,7 @@ function route() {
     const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];
     if (matchId) { section = "matches"; page = () => renderMatch(matchId, src); }
     else if (h.startsWith("#/upload")) { section = "upload"; page = renderUpload; }
+    else if (h.startsWith("#/tiers")) { section = "tiers"; page = () => renderTiers(src); }
     else if (h.startsWith("#/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
     else { section = "matches"; page = () => renderMatches(src); }

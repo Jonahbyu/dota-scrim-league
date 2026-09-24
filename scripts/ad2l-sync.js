@@ -100,7 +100,8 @@ function parseRoster(html) {
     if (!acct) continue;
     const name = decode(main.match(/\/players\/\d+"[^>]*>([^<]+)<\/a>/)?.[1] ?? `account ${acct[1]}`);
     const alts = altAt >= 0 ? [...block.slice(altAt).matchAll(/dotabuff\.com\/players\/(\d+)/g)].map((m) => Number(m[1])) : [];
-    players.push({ name, account_ids: [Number(acct[1]), ...new Set(alts)], captain: main.includes("(Captain)") });
+    const rank = main.match(/data-rank="(\d+)"/); // same 0-80 scale as OpenDota rank_tier
+    players.push({ name, account_ids: [Number(acct[1]), ...new Set(alts)], captain: main.includes("(Captain)"), rank_tier: rank ? Number(rank[1]) : null });
   }
   return players;
 }
@@ -118,7 +119,7 @@ for (const [id, name] of season.teams) {
 }
 const owner = new Map(); // account id -> { team, player name }
 // `main` is the player's main account: smurf games count for the same person.
-for (const t of teams) for (const p of t.players) for (const a of p.account_ids) owner.set(a, { team: t.id, name: p.name, main: p.account_ids[0] });
+for (const t of teams) for (const p of t.players) for (const a of p.account_ids) owner.set(a, { team: t.id, name: p.name, main: p.account_ids[0], rank_tier: p.rank_tier });
 console.log(`  rosters: ${teams.reduce((s, t) => s + t.players.length, 0)} players, ${owner.size} accounts incl. smurfs`);
 
 const series = [];
@@ -177,6 +178,7 @@ for (const id of [...candidates].sort()) {
       player_key: String(owner.get(p.account_id)?.main ?? p.account_id ?? `${d.match_id}-${p.player_slot}`),
       team_name: teamName(p.isRadiant ? rad : dire),
       standin: owner.get(p.account_id)?.team !== (p.isRadiant ? rad : dire),
+      rank_tier: owner.get(p.account_id)?.rank_tier ?? p.rank_tier ?? null,
       tag: null,
       hero: heroes[p.hero_id] ?? `hero ${p.hero_id}`,
       level: p.level, kills: p.kills, deaths: p.deaths, assists: p.assists,
@@ -192,7 +194,7 @@ const out = {
   playon_season_id: SEASON_ID,
   league_id: LEAGUE_ID,
   updated: new Date().toISOString(),
-  teams: teams.map((t) => ({ id: t.id, name: t.name, players: t.players.map((p) => ({ name: p.name, captain: p.captain, account_id: p.account_ids[0] })) })),
+  teams: teams.map((t) => ({ id: t.id, name: t.name, players: t.players.map((p) => ({ name: p.name, captain: p.captain, account_id: p.account_ids[0], rank_tier: p.rank_tier })) })),
   series,
   games,
 };
