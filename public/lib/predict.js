@@ -257,7 +257,12 @@ const HALF_LIFE = 14 * 86400; // league games lose half their weight every two w
 // bans on the opponents' remaining pools. Each pick gives a still-unpicked player a hero
 // from their own pool; the first picks favour heroes that get contested a lot (grab them
 // before they're banned), the last picks are pure comfort.
-export function predictDraft(d, first, second, since, now = Date.now() / 1000) {
+// Game 2: pass game 1's steps and the team that won it as prev = { steps, winner }. Across
+// S48, a third of the game 1 winner's heroes were banned in game 2 (a tenth of the loser's),
+// and teams re-picked their own game 1 heroes about 12% of the time (winners) and 6% (losers).
+export const G2_BAN = { winner: 0.06, loser: 0.02 };
+export const G2_REPICK = { winner: 0.5, loser: 0.3 };
+export function predictDraft(d, first, second, since, now = Date.now() / 1000, prev = null) {
   const w = (t) => 0.5 ** (Math.max(0, now - (t ?? now)) / HALF_LIFE);
   const drafted = d.games.filter((g) => g.draft?.length);
   const sideOf = (g, id) => (g.team_a_id === id ? "a" : g.team_b_id === id ? "b" : null);
@@ -312,6 +317,9 @@ export function predictDraft(d, first, second, since, now = Date.now() / 1000) {
   const allHeroes = new Set([...contest.keys(), ...side.X.left.flatMap((p) => p.heroes), ...side.Y.left.flatMap((p) => p.heroes)]);
   const why = (p, h) => [p.league.get(h) ? `${p.league.get(h)} league game${p.league.get(h) === 1 ? "" : "s"}` : "", p.pub.get(h) ? `${p.pub.get(h)} recent pub${p.pub.get(h) === 1 ? "" : "s"}` : ""].filter(Boolean).join(", ");
 
+  // hero -> team id that picked it in game 1
+  const g1 = new Map((prev?.steps ?? []).filter((x) => x.kind === "pick" && x.hero).map((x) => [x.hero, x.team.id]));
+  const role = (id) => (id === prev?.winner ? "winner" : "loser");
   const steps = [];
   CM_ORDER.forEach(([who, kind, phase], i) => {
     const us = side[who], them = side[who === "X" ? "Y" : "X"];
@@ -323,8 +331,9 @@ export function predictDraft(d, first, second, since, now = Date.now() / 1000) {
         if (taken.has(h)) continue;
         const threatBy = them.left.map((p) => ({ p, v: p.share(h) })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
         const threat = threatBy.reduce((a, x) => a + x.v, 0);
-        const score = wHabit * us.habit(h, phase) + wThreat * threat + wMeta * metaRate(h, phase);
-        if (!best || score > best.score) best = { h, score, threatBy, habit: us.habit(h, phase), meta: metaRate(h, phase) };
+        const g1b = g1.get(h) === them.team.id ? G2_BAN[role(them.team.id)] : 0;
+        const score = wHabit * us.habit(h, phase) + wThreat * threat + wMeta * metaRate(h, phase) + g1b;
+        if (!best || score > best.score) best = { h, score, threatBy, habit: us.habit(h, phase), meta: metaRate(h, phase), g1b };
       }
       if (!best) return;
       taken.add(best.h);
@@ -334,6 +343,7 @@ export function predictDraft(d, first, second, since, now = Date.now() / 1000) {
         [wThreat * threat, threat >= 0.05 && best.threatBy[0] ? `${best.threatBy[0].p.player.name} plays it (${why(best.threatBy[0].p, best.h)})` : ""],
         [wHabit * best.habit, best.habit >= 0.1 ? `${us.team.name} ban it a lot` : ""],
         [wMeta * best.meta, best.meta >= 0.08 ? `a common phase ${phase} ban` : ""],
+        [best.g1b, best.g1b ? `${them.team.name} played it in game 1${role(them.team.id) === "winner" ? " and won" : ""}` : ""],
       ].filter(([, t]) => t).sort((a, b) => b[0] - a[0]).map(([, t]) => t);
       steps.push({ ...base, hero: best.h, why: reasons.join(" · ") || "best ban left" });
     } else {
@@ -341,7 +351,7 @@ export function predictDraft(d, first, second, since, now = Date.now() / 1000) {
       let best = null;
       for (const p of us.left) for (const h of p.heroes) {
         if (taken.has(h)) continue;
-        const score = p.share(h) * (1 + early * contestRate(h));
+        const score = p.share(h) * (1 + early * contestRate(h)) * (g1.get(h) === us.team.id ? G2_REPICK[role(us.team.id)] : 1);
         if (!best || score > best.score) best = { p, h, score };
       }
       if (!best) {
