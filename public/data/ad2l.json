@@ -2,7 +2,7 @@
  "season": "S48 Champion League - Amateur Dota 2 League",
  "playon_season_id": 675,
  "league_id": 20077,
- "updated": "2026-09-24T07:14:42.141Z",
+ "updated": "2026-09-24T14:10:23.529Z",
  "teams": [
   {
    "id": 15012,
@@ -569,6 +569,153 @@
  ],
  "games": [
   {
+   "series_id": 20709,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Tusk"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Death Prophet"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Timbersaw"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Jakiro"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Sniper"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Shadow Demon"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Puck"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Mars"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Viper"
+    }
+   ],
    "id": "9003995661",
    "match_id": 9003995661,
    "start_time": 1789698525,
@@ -805,6 +952,153 @@
    ]
   },
   {
+   "series_id": 20708,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Slark"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Dazzle"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Pudge"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Marci"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Phoenix"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Ursa"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Naga Siren"
+    }
+   ],
    "id": "9003994980",
    "match_id": 9003994980,
    "start_time": 1789698419,
@@ -1041,6 +1335,153 @@
    ]
   },
   {
+   "series_id": 20710,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Windranger"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Chen"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Nyx Assassin"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Disruptor"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Demon"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Enigma"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Kunkka"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Viper"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Earthshaker"
+    }
+   ],
    "id": "9003987125",
    "match_id": 9003987125,
    "start_time": 1789697619,
@@ -1277,6 +1718,153 @@
    ]
   },
   {
+   "series_id": 20711,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Elder Titan"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Oracle"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Tidehunter"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Timbersaw"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Ursa"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Windranger"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Queen of Pain"
+    }
+   ],
    "id": "9003986680",
    "match_id": 9003986680,
    "start_time": 1789697545,
@@ -1513,6 +2101,153 @@
    ]
   },
   {
+   "series_id": 20708,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Slark"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Silencer"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Lion"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Techies"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Spectre"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Magnus"
+    }
+   ],
    "id": "9003953773",
    "match_id": 9003953773,
    "start_time": 1789693953,
@@ -1749,6 +2484,153 @@
    ]
   },
   {
+   "series_id": 20710,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Windranger"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Mirana"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Disruptor"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Kunkka"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Luna"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Queen of Pain"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Naga Siren"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Doom"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Terrorblade"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Death Prophet"
+    }
+   ],
    "id": "9003951599",
    "match_id": 9003951599,
    "start_time": 1789693769,
@@ -1985,6 +2867,153 @@
    ]
   },
   {
+   "series_id": 20709,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Tusk"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Lich"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Largo"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Timbersaw"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Spectre"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Pudge"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Puck"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Queen of Pain"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Doom"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    }
+   ],
    "id": "9003951722",
    "match_id": 9003951722,
    "start_time": 1789693764,
@@ -2221,6 +3250,153 @@
    ]
   },
   {
+   "series_id": 20711,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Tusk"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Windranger"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Puck"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    }
+   ],
    "id": "9003948687",
    "match_id": 9003948687,
    "start_time": 1789693473,
@@ -2457,6 +3633,153 @@
    ]
   },
   {
+   "series_id": 20707,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Ogre Magi"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Tiny"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Storm Spirit"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Doom"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Puck"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Pudge"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Void Spirit"
+    }
+   ],
    "id": "9001062621",
    "match_id": 9001062621,
    "start_time": 1789525629,
@@ -2693,6 +4016,153 @@
    ]
   },
   {
+   "series_id": 20707,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Ogre Magi"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Disruptor"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Lich"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Sand King"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Grimstroke"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Windranger"
+    }
+   ],
    "id": "9001016956",
    "match_id": 9001016956,
    "start_time": 1789520916,
@@ -2929,6 +4399,153 @@
    ]
   },
   {
+   "series_id": 20691,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Brewmaster"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Doom"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Beastmaster"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Techies"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Timbersaw"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Demon"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Spectre"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Weaver"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    }
+   ],
    "id": "8992700240",
    "match_id": 8992700240,
    "start_time": 1789093421,
@@ -3165,6 +4782,153 @@
    ]
   },
   {
+   "series_id": 20692,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Enchantress"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Death Prophet"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Magnus"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Queen of Pain"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Tiny"
+    }
+   ],
    "id": "8992686586",
    "match_id": 8992686586,
    "start_time": 1789092059,
@@ -3401,6 +5165,153 @@
    ]
   },
   {
+   "series_id": 20691,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Mirana"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Silencer"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Windranger"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Lion"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Storm Spirit"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Viper"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Brewmaster"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Pudge"
+    }
+   ],
    "id": "8992658936",
    "match_id": 8992658936,
    "start_time": 1789089176,
@@ -3637,6 +5548,153 @@
    ]
   },
   {
+   "series_id": 20690,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Windranger"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Tusk"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Disruptor"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Bristleback"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Kunkka"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Arc Warden"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Queen of Pain"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Puck"
+    }
+   ],
    "id": "8992656781",
    "match_id": 8992656781,
    "start_time": 1789088969,
@@ -3873,6 +5931,153 @@
    ]
   },
   {
+   "series_id": 20692,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Puck"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Mirana"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Tiny"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Grimstroke"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Lion"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Pangolier"
+    }
+   ],
    "id": "8992656715",
    "match_id": 8992656715,
    "start_time": 1789088939,
@@ -4109,6 +6314,153 @@
    ]
   },
   {
+   "series_id": 20689,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Chen"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Void Spirit"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Lich"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Pugna"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Bane"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Invoker"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Sven"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Luna"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Chaos Knight"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Spectre"
+    }
+   ],
    "id": "8992655413",
    "match_id": 8992655413,
    "start_time": 1789088807,
@@ -4345,6 +6697,153 @@
    ]
   },
   {
+   "series_id": 20688,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Marci"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Storm Spirit"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Tusk"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Chaos Knight"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Void Spirit"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Leshrac"
+    }
+   ],
    "id": "8986818442",
    "match_id": 8986818442,
    "start_time": 1788748171,
@@ -4581,6 +7080,153 @@
    ]
   },
   {
+   "series_id": 20617,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Spectre"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Mars"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Shadow Demon"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Slardar"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Dark Seer"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Ember Spirit"
+    }
+   ],
    "id": "8986809238",
    "match_id": 8986809238,
    "start_time": 1788747268,
@@ -4817,6 +7463,153 @@
    ]
   },
   {
+   "series_id": 20688,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Marci"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Storm Spirit"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Invoker"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Muerta"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Timbersaw"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Necrophos"
+    }
+   ],
    "id": "8986769836",
    "match_id": 8986769836,
    "start_time": 1788743429,
@@ -5053,6 +7846,153 @@
    ]
   },
   {
+   "series_id": 20617,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Oracle"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Shadow Demon"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Mirana"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Windranger"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Tidehunter"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Spectre"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Mars"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Timbersaw"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    }
+   ],
    "id": "8986768943",
    "match_id": 8986768943,
    "start_time": 1788743334,
@@ -5289,6 +8229,153 @@
    ]
   },
   {
+   "series_id": 20615,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Wraith King"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Nyx Assassin"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Tusk"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Faceless Void"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Mars"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Ogre Magi"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Naga Siren"
+    }
+   ],
    "id": "8981544546",
    "match_id": 8981544546,
    "start_time": 1788488805,
@@ -5525,6 +8612,153 @@
    ]
   },
   {
+   "series_id": 20618,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Slardar"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Primal Beast"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Ogre Magi"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Beastmaster"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Riki"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Sven"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Earthshaker"
+    }
+   ],
    "id": "8981544239",
    "match_id": 8981544239,
    "start_time": 1788488799,
@@ -5761,6 +8995,153 @@
    ]
   },
   {
+   "series_id": 20616,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Witch Doctor"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Disruptor"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Mirana"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Slark"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Kunkka"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Lion"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Tusk"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Windranger"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Queen of Pain"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    }
+   ],
    "id": "8981542874",
    "match_id": 8981542874,
    "start_time": 1788488704,
@@ -5997,6 +9378,153 @@
    ]
   },
   {
+   "series_id": 20614,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Bane"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Lich"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Slark"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Chen"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Viper"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Luna"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Terrorblade"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Pangolier"
+    }
+   ],
    "id": "8981533032",
    "match_id": 8981533032,
    "start_time": 1788487767,
@@ -6233,6 +9761,153 @@
    ]
   },
   {
+   "series_id": 20615,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Wraith King"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Storm Spirit"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Luna"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Brewmaster"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Tidehunter"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Lifestealer"
+    }
+   ],
    "id": "8981495544",
    "match_id": 8981495544,
    "start_time": 1788484196,
@@ -6469,6 +10144,153 @@
    ]
   },
   {
+   "series_id": 20614,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Bane"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Marci"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Razor"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Tiny"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Slark"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Invoker"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Windranger"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Keeper of the Light"
+    }
+   ],
    "id": "8981494682",
    "match_id": 8981494682,
    "start_time": 1788484055,
@@ -6705,6 +10527,153 @@
    ]
   },
   {
+   "series_id": 20616,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Witch Doctor"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Disruptor"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Slark"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Kunkka"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Dark Seer"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Sniper"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Lion"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Zeus"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Death Prophet"
+    }
+   ],
    "id": "8981494560",
    "match_id": 8981494560,
    "start_time": 1788484049,
@@ -6941,6 +10910,153 @@
    ]
   },
   {
+   "series_id": 20618,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Slardar"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Primal Beast"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Ogre Magi"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Grimstroke"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Riki"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Ursa"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Sven"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Spectre"
+    }
+   ],
    "id": "8981493032",
    "match_id": 8981493032,
    "start_time": 1788483893,
@@ -7177,6 +11293,153 @@
    ]
   },
   {
+   "series_id": 20597,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Magnus"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Mirana"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Tiny"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Dark Seer"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Oracle"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Meepo"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Luna"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Void Spirit"
+    }
+   ],
    "id": "8969566909",
    "match_id": 8969566909,
    "start_time": 1787884397,
@@ -7413,6 +11676,153 @@
    ]
   },
   {
+   "series_id": 20599,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Slardar"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Chen"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Pudge"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Invoker"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Kunkka"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Sven"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Slark"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Terrorblade"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Queen of Pain"
+    }
+   ],
    "id": "8969561736",
    "match_id": 8969561736,
    "start_time": 1787883936,
@@ -7649,6 +12059,153 @@
    ]
   },
   {
+   "series_id": 20596,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Phoenix"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Windranger"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Timbersaw"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Shadow Demon"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Queen of Pain"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Luna"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Monkey King"
+    }
+   ],
    "id": "8969553038",
    "match_id": 8969553038,
    "start_time": 1787883213,
@@ -7885,6 +12442,153 @@
    ]
   },
   {
+   "series_id": 20600,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Magnus"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Viper"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Slark"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Tidehunter"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Muerta"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Kunkka"
+    }
+   ],
    "id": "8969543828",
    "match_id": 8969543828,
    "start_time": 1787882501,
@@ -8121,6 +12825,153 @@
    ]
   },
   {
+   "series_id": 20599,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Slardar"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Chen"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Pudge"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Razor"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Bane"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Wraith King"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Slark"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Lina"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Tinker"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    }
+   ],
    "id": "8969512486",
    "match_id": 8969512486,
    "start_time": 1787879607,
@@ -8357,6 +13208,153 @@
    ]
   },
   {
+   "series_id": 20596,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Phoenix"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Kez"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Mirana"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Spectre"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Ogre Magi"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Puck"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Queen of Pain"
+    }
+   ],
    "id": "8969508769",
    "match_id": 8969508769,
    "start_time": 1787879279,
@@ -8593,6 +13591,153 @@
    ]
   },
   {
+   "series_id": 20597,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "a",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "a",
+     "hero": "Invoker"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "b",
+     "hero": "Dark Willow"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "a",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "b",
+     "hero": "Magnus"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "a",
+     "hero": "Tiny"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "b",
+     "hero": "Rubick"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "b",
+     "hero": "Spectre"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "a",
+     "hero": "Puck"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "a",
+     "hero": "Meepo"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "a",
+     "hero": "Kunkka"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "b",
+     "hero": "Brewmaster"
+    }
+   ],
    "id": "8969506253",
    "match_id": 8969506253,
    "start_time": 1787879063,
@@ -8829,6 +13974,153 @@
    ]
   },
   {
+   "series_id": 20600,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Lone Druid"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Clockwerk"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Disruptor"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Bane"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Tidehunter"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Kez"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Doom"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Brewmaster"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Slark"
+    }
+   ],
    "id": "8969505381",
    "match_id": 8969505381,
    "start_time": 1787878983,
@@ -9065,6 +14357,153 @@
    ]
   },
   {
+   "series_id": 20598,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Tusk"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Axe"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Underlord"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Undying"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Lion"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Phoenix"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Oracle"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Rubick"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Grimstroke"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Ringmaster"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Tidehunter"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Windranger"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Sven"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Clinkz"
+    }
+   ],
    "id": "8966051408",
    "match_id": 8966051408,
    "start_time": 1787710008,
@@ -9301,6 +14740,153 @@
    ]
   },
   {
+   "series_id": 20598,
+   "draft": [
+    {
+     "order": 0,
+     "pick": false,
+     "side": "b",
+     "hero": "Axe"
+    },
+    {
+     "order": 1,
+     "pick": false,
+     "side": "b",
+     "hero": "Underlord"
+    },
+    {
+     "order": 2,
+     "pick": false,
+     "side": "a",
+     "hero": "Tusk"
+    },
+    {
+     "order": 3,
+     "pick": false,
+     "side": "a",
+     "hero": "Crystal Maiden"
+    },
+    {
+     "order": 4,
+     "pick": false,
+     "side": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "order": 5,
+     "pick": false,
+     "side": "a",
+     "hero": "Treant Protector"
+    },
+    {
+     "order": 6,
+     "pick": false,
+     "side": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "order": 7,
+     "pick": true,
+     "side": "b",
+     "hero": "Undying"
+    },
+    {
+     "order": 8,
+     "pick": true,
+     "side": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "order": 9,
+     "pick": false,
+     "side": "b",
+     "hero": "Invoker"
+    },
+    {
+     "order": 10,
+     "pick": false,
+     "side": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "order": 11,
+     "pick": false,
+     "side": "a",
+     "hero": "Phoenix"
+    },
+    {
+     "order": 12,
+     "pick": true,
+     "side": "a",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "order": 13,
+     "pick": true,
+     "side": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "order": 14,
+     "pick": true,
+     "side": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "order": 15,
+     "pick": true,
+     "side": "a",
+     "hero": "Warlock"
+    },
+    {
+     "order": 16,
+     "pick": true,
+     "side": "a",
+     "hero": "Gyrocopter"
+    },
+    {
+     "order": 17,
+     "pick": true,
+     "side": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "order": 18,
+     "pick": false,
+     "side": "b",
+     "hero": "Puck"
+    },
+    {
+     "order": 19,
+     "pick": false,
+     "side": "a",
+     "hero": "Tidehunter"
+    },
+    {
+     "order": 20,
+     "pick": false,
+     "side": "b",
+     "hero": "Lina"
+    },
+    {
+     "order": 21,
+     "pick": false,
+     "side": "a",
+     "hero": "Storm Spirit"
+    },
+    {
+     "order": 22,
+     "pick": true,
+     "side": "b",
+     "hero": "Ogre Magi"
+    },
+    {
+     "order": 23,
+     "pick": true,
+     "side": "a",
+     "hero": "Queen of Pain"
+    }
+   ],
    "id": "8966009932",
    "match_id": 8966009932,
    "start_time": 1787706656,

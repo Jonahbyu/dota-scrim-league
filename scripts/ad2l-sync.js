@@ -160,7 +160,15 @@ for (const id of [...candidates].sort()) {
   const rad = sideTeam(true), dire = sideTeam(false);
   if (rad == null || dire == null || rad === dire) continue;
   const teamName = (id) => teams.find((t) => t.id === id).name;
+  // Which PlayOn series this game belongs to: same two teams, closest scheduled time.
+  const seriesOf = series
+    .filter((s) => (s.home === rad && s.away === dire) || (s.home === dire && s.away === rad))
+    .sort((x, y) => Math.abs((x.time ?? 0) - d.start_time) - Math.abs((y.time ?? 0) - d.start_time))[0];
   games.push({
+    series_id: seriesOf?.id ?? null,
+    // Captains Mode draft in order; OpenDota team 0 = Radiant = side "a".
+    draft: (d.picks_bans ?? []).sort((x, y) => x.order - y.order)
+      .map((pb) => ({ order: pb.order, pick: pb.is_pick, side: pb.team === 0 ? "a" : "b", hero: heroes[pb.hero_id] ?? `hero ${pb.hero_id}` })),
     id: String(d.match_id),
     match_id: d.match_id,
     start_time: d.start_time,

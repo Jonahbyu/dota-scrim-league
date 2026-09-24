@@ -37,8 +37,9 @@ const data = {
 };
 const id = await matchId(data);
 
+// The browser key only accepts requests from our sites (HTTP referrer restriction).
 const auth = await (await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`, {
-  method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ returnSecureToken: true }),
+  method: "POST", headers: { "content-type": "application/json", referer: "http://localhost:3000/" }, body: JSON.stringify({ returnSecureToken: true }),
 })).json();
 const val = (v) => v === null ? { nullValue: null } : typeof v === "string" ? { stringValue: v }
   : Number.isInteger(v) ? { integerValue: String(v) } : Array.isArray(v) ? { arrayValue: { values: v.map(val) } }

@@ -9,8 +9,9 @@ const COL = "scrimLeague/data/matches";
 const TEST_ID = "00000000000000000000000000000001";
 
 async function anonToken() {
+  // The browser key only accepts requests from our sites (HTTP referrer restriction).
   const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${KEY}`, {
-    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ returnSecureToken: true }),
+    method: "POST", headers: { "content-type": "application/json", referer: "http://localhost:3000/" }, body: JSON.stringify({ returnSecureToken: true }),
   });
   const j = await r.json();
   if (!j.idToken) throw new Error("anonymous sign-in failed: " + JSON.stringify(j));
