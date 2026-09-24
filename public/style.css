@@ -176,6 +176,8 @@ code { font: 12px var(--mono); color: var(--gold); }
 .notice b { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; display: block; margin-bottom: 6px; }
 .notice ul { margin: 0; padding-left: 18px; }
 .notice li + li { margin-top: 3px; }
+.notice.names strong { color: var(--bone, #f1ead8); }
+.notice.names button.small { margin-left: 8px; padding: 2px 8px; font-size: 11px; }
 
 /* ---------- upload: evidence slots ---------- */
 .slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
@@ -326,6 +328,29 @@ td.bar.ember { --bar: rgba(255, 90, 54, .55); }
 .week-btn { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--seam-2); color: var(--bone); }
 .week-btn:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
 .week-btn.off { color: var(--dim); border-color: var(--seam); }
+/* week picker: every week, top right of the Weekly page */
+.week-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px 40px; flex-wrap: wrap; margin-bottom: 28px; }
+.week-top .page-head { margin-bottom: 0; }
+.week-pick { max-width: min(100%, 560px); }
+.week-pick-label { font: 600 11px/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; text-align: right; }
+.week-chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.week-chip {
+  display: grid; grid-template-rows: auto auto; grid-template-columns: auto auto; column-gap: 8px; align-items: baseline;
+  padding: 7px 10px 6px; min-width: 64px; border: 1px solid var(--seam-2); color: var(--bone); background: var(--stone);
+  transition: border-color .15s, color .15s, transform .15s;
+}
+.week-chip .wn { grid-row: span 2; font: 800 24px/1 var(--display); }
+.week-chip .wd { font: 600 10px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dust); }
+.week-chip .wc { font: 400 10px/1.2 var(--mono); color: var(--dim); }
+.week-chip:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; transform: translateY(-1px); }
+.week-chip.on { border-color: var(--gold); background: var(--gold); color: var(--ink); }
+.week-chip.on .wd, .week-chip.on .wc { color: var(--ink); }
+@media (max-width: 720px) {
+  .week-pick { max-width: 100%; }
+  .week-pick-label { text-align: left; }
+  .week-chips { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .week-chip { flex: none; }
+}
 .hero-img { width: 48px; height: 27px; object-fit: cover; display: inline-block; vertical-align: middle; background: var(--stone-2); }
 .hero-img.missing { display: inline-grid; place-items: center; font: 600 10px var(--mono); color: var(--dust); }
 .card.hl { overflow: hidden; }

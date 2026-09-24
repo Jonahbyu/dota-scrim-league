@@ -13,7 +13,7 @@ export function canonicalHero(name) {
   return byKey.get(key(name)) ?? null;
 }
 
-function levenshtein(a, b) {
+export function levenshtein(a, b) {
   let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
   for (let i = 1; i <= a.length; i++) {
     const cur = [i];

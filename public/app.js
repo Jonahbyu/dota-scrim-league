@@ -4,6 +4,7 @@ import { withDerived, playerLeaderboard, heroStats, hasDetails } from "./lib/sta
 import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
 import { heroImg } from "./lib/hero-meta.js";
 import { listTeams, teamHistory } from "./lib/teams.js";
+import { buildPlayerIndex, matchPlayers } from "./lib/players.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
@@ -45,7 +46,7 @@ function errorBox(e) {
 // ---------- Upload + review ----------
 
 const engine = createBrowserEngine();
-const upload = { images: [], draft: null, check: null, notes: [], busy: false, progress: "", message: null, isPrivate: false };
+const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false };
 // Private uploads only need a valid result; public ones need every player too.
 const checkDraft = (d) => validateMatch(d, { resultOnly: upload.isPrivate });
 
@@ -85,6 +86,7 @@ async function runParse() {
     });
     upload.draft = match;
     upload.notes = notes;
+    upload.names = await fixNames(match);
     upload.check = checkDraft(match);
     upload.message = { kind: "ok", text: "Done. Check every value against your screenshots: red boxes couldn't be read." };
   } catch (e) {
@@ -93,6 +95,31 @@ async function runParse() {
   }
   upload.busy = false;
   renderUpload();
+}
+
+// Known players: the AD2L Champion rosters (plus stand-ins) and names from saved scrims.
+async function playerIndex() {
+  const [ad2l, scrims] = await Promise.all([ad2lData().catch(() => null), allMatches().catch(() => [])]);
+  return buildPlayerIndex(ad2l, scrims);
+}
+
+// Fix clear misreads of known names in place; return every match for the review form
+// (fixed ones to show what changed, loose ones as suggestions to accept or ignore).
+async function fixNames(match) {
+  const found = matchPlayers(match.players, await playerIndex());
+  for (const f of found) if (f.sure) match.players[f.i].name = f.to;
+  return found;
+}
+
+function namesHtml(names) {
+  if (!names.length) return "";
+  const fixed = names.filter((n) => n.sure), maybe = names.filter((n) => !n.sure);
+  const team = (n) => n.teams.length ? ` <span class="muted">(${esc(n.teams.join(" / "))})</span>` : "";
+  return `<div class="notice ok names"><b>Known players:</b><ul>
+    ${fixed.map((n) => `<li>Read “${esc(n.from)}”, matched to <strong>${esc(n.to)}</strong>${team(n)}</li>`).join("")}
+    ${maybe.map((n, k) => `<li>“${esc(n.from)}” might be <strong>${esc(n.to)}</strong>${team(n)}
+      <button class="small" data-name-fix="${k}">Use ${esc(n.to)}</button></li>`).join("")}
+  </ul></div>`;
 }
 
 function revalidate() {
@@ -152,6 +179,7 @@ function draftHtml(d) {
         <label>Game mode<input data-path="game_mode" value="${esc(d.game_mode)}"></label>
       </div>
     </div>
+    ${namesHtml(upload.names)}
     ${upload.notes.length ? `<div class="notice warn"><b>Reader notes:</b><ul>${upload.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></div>` : ""}
     <div class="table-wrap edit" style="margin-top:12px">
       <table>
@@ -210,7 +238,7 @@ async function saveDraft() {
       return;
     }
     for (const img of upload.images) URL.revokeObjectURL(img.url);
-    Object.assign(upload, { images: [], draft: null, check: null, notes: [], message: null });
+    Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null });
     await allMatches(true);
     location.hash = `#/match/${res.id}`;
   } catch (e) {
@@ -264,14 +292,22 @@ function renderUpload() {
   zoom.onclick = () => zoom.close();
 
   document.getElementById("parse").onclick = runParse;
-  document.getElementById("manual").onclick = () => { upload.draft = blankDraft(); upload.notes = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
+  document.getElementById("manual").onclick = () => { upload.draft = blankDraft(); upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
   const clear = document.getElementById("clear");
   if (clear) clear.onclick = () => { for (const i of upload.images) URL.revokeObjectURL(i.url); upload.images = []; renderUpload(); };
 
   if (upload.draft) {
     document.getElementById("save").onclick = saveDraft;
     document.getElementById("private").onchange = (e) => { upload.isPrivate = e.target.checked; upload.check = checkDraft(upload.draft); renderUpload(); };
-    document.getElementById("discard").onclick = () => { upload.draft = null; upload.check = null; upload.notes = []; renderUpload(); };
+    document.getElementById("discard").onclick = () => { upload.draft = null; upload.check = null; upload.notes = []; upload.names = []; renderUpload(); };
+    const maybe = upload.names.filter((n) => !n.sure);
+    app.querySelectorAll("[data-name-fix]").forEach((b) => b.onclick = () => {
+      const n = maybe[Number(b.dataset.nameFix)];
+      upload.draft.players[n.i].name = n.to;
+      upload.names = upload.names.map((x) => x === n ? { ...x, sure: true } : x);
+      upload.check = checkDraft(upload.draft);
+      renderUpload();
+    });
   }
 }
 
@@ -654,6 +690,21 @@ async function renderWeek(src, back = 0) {
   const inWeek = games.filter((m) => weekStart(m.createdAt).getTime() === weeks[back]).sort((a, b) => a.createdAt - b.createdAt);
   const base = src.key === "ad2l" ? "#/ad2l/week" : "#/week";
   const navBtn = (to, label, on) => on ? `<a class="week-btn" href="${base}/${to}">${label}</a>` : `<span class="week-btn off">${label}</span>`;
+  // Every week with games, oldest first. Numbered from the first week, so a week with no
+  // games shows up as a skipped number.
+  const WEEK_MS = 7 * 864e5;
+  const first = weeks[weeks.length - 1];
+  const counts = new Map();
+  for (const m of games) { const w = weekStart(m.createdAt).getTime(); counts.set(w, (counts.get(w) ?? 0) + 1); }
+  const picker = `<nav class="week-pick" aria-label="Weeks">
+    <div class="week-pick-label">Week</div>
+    <div class="week-chips">${weeks.map((w, i) => ({ w, i })).reverse().map(({ w, i }) => {
+      const n = Math.round((w - first) / WEEK_MS) + 1, c = counts.get(w);
+      return `<a class="week-chip${i === back ? " on" : ""}" href="${base}/${i}" ${i === back ? 'aria-current="page"' : ""}
+        title="Week of ${shortDate(new Date(w))} · ${c} game${c === 1 ? "" : "s"}">
+        <span class="wn">${n}</span><span class="wd">${shortDate(new Date(w))}</span><span class="wc">${c}g</span></a>`;
+    }).join("")}</div>
+  </nav>`;
 
   let body;
   if (ad2l) {
@@ -679,7 +730,10 @@ async function renderWeek(src, back = 0) {
   const detailed = inWeek.filter(hasDetails);
   const hl = detailed.length ? weekHighlights(detailed) : [];
   app.innerHTML = `
-    ${pageHead(src.kicker, "Weekly recap", `Week of ${shortDate(start)} – ${shortDate(end)} · ${inWeek.length} game${inWeek.length === 1 ? "" : "s"}${src.key === "ad2l" ? " · drafts in pick/ban order" : ""}`)}
+    <div class="week-top">
+      ${pageHead(src.kicker, "Weekly recap", `Week of ${shortDate(start)} – ${shortDate(end)} · ${inWeek.length} game${inWeek.length === 1 ? "" : "s"}${src.key === "ad2l" ? " · drafts in pick/ban order" : ""}`)}
+      ${picker}
+    </div>
     <div class="week-nav">${navBtn(back + 1, "← Earlier week", back < weeks.length - 1)}${navBtn(back - 1, "Later week →", back > 0)}</div>
     ${hl.length ? `<h2>Highlights</h2>
     <div class="cards reveal">${hl.map(([k, v, s, hero], i) => `<div class="card hl" style="--i:${i}">${portrait(hero, "card-hero")}<div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>` : ""}
@@ -921,9 +975,9 @@ function route() {
 }
 
 document.getElementById("hero-list").innerHTML = HEROES.map((h) => `<option value="${esc(h)}">`).join("");
-// Known player names help fix OCR misreads in the review form.
-allMatches().then((ms) => {
-  const names = [...new Set(ms.flatMap((m) => m.players.map((p) => p.name)))].sort();
+// Known player names (scrims + AD2L Champion) help fix OCR misreads in the review form.
+playerIndex().then((idx) => {
+  const names = idx.map((e) => e.name).sort((a, b) => a.localeCompare(b));
   document.getElementById("player-list").innerHTML = names.map((n) => `<option value="${esc(n)}">`).join("");
 }).catch(() => {});
 app.addEventListener("input", (e) => { if (upload.draft && e.target.closest(".edit")) onDraftInput(e); });

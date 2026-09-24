@@ -60,6 +60,12 @@ Scrim data lives in Firestore (the shared `pistachio-kitchen` Firebase project, 
 2. Open the **Scoreboard** tab, snip it, Ctrl+V again. Don't hover over anything — tooltips cover numbers.
 3. Click **Read screenshots**, fix anything red or flagged, **Save to league**.
 
+Player names are checked against every name the site knows: the AD2L Champion rosters
+(plus stand-ins from the division's games) and names from earlier scrims. Close misreads
+are fixed automatically ("Icarus<" → Icarus, "MERCURY" → Merc-Ury) and listed so you can
+see what changed; looser resemblances ("Daddy Kaleb" ~ Kaleb) are offered as a one-click
+suggestion, since an in-game name can differ from a roster name on purpose.
+
 The same game uploaded by both teams is detected and saved once.
 
 ## What's read, and how well
@@ -124,10 +130,15 @@ cd ../Cookbook && npx firebase deploy --only firestore:rules --project pistachio
 Rules are limited to 1000 evaluated expressions per request; per-player checks are packed
 tight to fit (see the comment in the rules file). Re-run the dry test after any change.
 
-## Admin
+## Editing and deleting
 
-Matches can't be edited or deleted from the site. To remove one:
+- **Delete:** open the game and press **Delete this scrim**. The button shows for whoever
+  uploaded it, in the browser they uploaded from (the upload is tied to that browser's
+  anonymous sign-in). The league admin can delete any game from the command line:
 
-```
-npx firebase firestore:delete scrimLeague/data/matches/<id> --project pistachio-kitchen
-```
+  ```
+  npx firebase firestore:delete scrimLeague/data/matches/<id> --project pistachio-kitchen
+  ```
+
+- **Edit:** there's no edit. Saved games are locked so nobody can quietly change a result.
+  To fix a mistake, delete the game and upload it again.
