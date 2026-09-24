@@ -1,6 +1,6 @@
 import { HEROES } from "./lib/heroes.js";
 import { validateMatch } from "./lib/validate.js";
-import { withDerived, playerLeaderboard, heroStats, hasDetails, playerKey, playerHistory, heroHistory, heroSlug, hasMapStats, mapSummary } from "./lib/stats.js";
+import { withDerived, playerLeaderboard, heroStats, hasDetails, playerKey, playerHistory, heroHistory, heroSlug, hasMapStats, mapSummary, draftSlotRecord } from "./lib/stats.js";
 import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
 import { heroImg } from "./lib/hero-meta.js";
 import { listTeams, teamHistory, teamSlug, sideOf } from "./lib/teams.js";
@@ -8,6 +8,7 @@ import { hasTimeline, swings, teamTimeline, teamObjectives, goldCurves, byPlayer
 import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
 import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.js";
 import { buildPlayerIndex, matchPlayers } from "./lib/players.js";
+import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
@@ -403,7 +404,7 @@ const SOURCES = {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: async () => (await ad2lData()).games,
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/games",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"]],
   },
 };
 
@@ -810,6 +811,7 @@ async function renderPlayer(src, key) {
     ${wardSection(collectWards(matches, byPlayer(key)), s.name, gamesWith(matches, byPlayer(key)))}
     <h2>Hero pool</h2>
     <div class="hero-chips">${h.heroes.map((x) => `<div class="hero-chip" title="KDA ${x.kda.toFixed(2)}">${portrait(x.hero)}<span>${heroLink(src, x.hero)}</span><b>${x.wins}–${x.games - x.wins}</b></div>`).join("")}</div>
+    ${draftSlotHtml(draftSlotRecord(matches, byPlayer(key)), src, s.name)}
     <h2>Every game</h2>
     <div id="t"></div>
     <p class="table-note">Newest first. Sort with the menu or any column header; the arrow opens the game.</p>`;
@@ -841,14 +843,97 @@ async function renderHeroes(src) {
   try { matches = (await src.load()).filter(hasDetails); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Heroes")}${errorBox(e)}`; return; }
   const rows = heroStats(matches);
   app.innerHTML = `${pageHead(src.kicker, "Heroes", rows.length ? `${rows.length} heroes picked across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Click a hero for who plays it and how they do; sort with the menu or any column header.` : "")}
-    ${rows.length ? `<div id="t" class="reveal"></div>` : `<div class="panel empty"><strong>No picks yet</strong>${src.empty}</div>`}`;
+    ${rows.length ? `${minBar("Show heroes picked at least", "times", MIN_DEFAULT(matches))}<div id="t" class="reveal"></div>` : `<div class="panel empty"><strong>No picks yet</strong>${src.empty}</div>`}`;
   if (!rows.length) return;
-  sortableTable(document.getElementById("t"), [
+  wireMinBar(rows, (r) => r.picks, (shown) => sortableTable(document.getElementById("t"), [
     ["hero", "Hero", (v) => `<span class="hero-cell">${portrait(v)}${heroLink(src, v)}</span>`, "l"], ["picks", "Picks", null, "", "gold"], ["pick_rate", "Pick rate", pct], ["wins", "Wins"],
     ["win_rate", "Win %", pct, "", "jade"],
     ...(rows.some((r) => r.contest_rate != null) ? [["bans", "Bans"], ["ban_rate", "Ban %", pct], ["contest_rate", "Contest %", pct, "", "gold"]] : []),
     ["avg_damage", "Avg hero dmg", fmt, "", "ember"], ["avg_kda", "Avg KDA"],
-  ], rows, "picks", { toolbar: true });
+  ], shown, "picks", { toolbar: true }));
+}
+
+// "Show at least N" filter above a table, so a hero picked once at 100% doesn't top the list.
+const MIN_DEFAULT = (matches) => (matches.length >= 20 ? 3 : 2);
+const minBar = (before, after, def) => `<div class="min-bar"><label>${before} <select id="min-n">${[1, 2, 3, 5, 10].map((n) => `<option value="${n}" ${n === def ? "selected" : ""}>${n}</option>`).join("")}</select> ${after}</label><span class="min-note" id="min-note"></span></div>`;
+function wireMinBar(rows, count, draw) {
+  const sel = document.getElementById("min-n"), note = document.getElementById("min-note");
+  const go = () => {
+    const min = +sel.value, shown = rows.filter((r) => count(r) >= min);
+    note.textContent = shown.length < rows.length ? `${rows.length - shown.length} of ${rows.length} hidden (under ${min})` : "";
+    draw(shown);
+  };
+  sel.onchange = go;
+  go();
+}
+
+// ---------- Draft (AD2L Captains Mode) ----------
+
+const SLOT_NAMES = ["1st pick", "2nd pick", "3rd pick", "4th pick", "Last pick"];
+const SLOT_PHASE = [1, 2, 2, 2, 3];
+
+// Record by the team's pick number for one player or hero: does it only win as a last pick?
+function draftSlotHtml(rec, src, who) {
+  if (!rec) return "";
+  const wl = (w, g) => `${w}–${g - w}`;
+  const last = rec.slots[4], early = rec.slots.slice(0, 4).reduce((a, r) => ({ games: a.games + r.games, wins: a.wins + r.wins }), { games: 0, wins: 0 });
+  const gap = last.games >= 2 && early.games >= 2 ? last.win_rate - early.wins / early.games : null;
+  const verdict = gap == null ? "" : gap >= 0.3 ? ` <b class="s-a">Wins far more as a last pick.</b>` : gap <= -0.3 ? ` <b class="s-b">Does worse as a last pick.</b>` : "";
+  return `<h2>By draft pick</h2>
+    <p class="table-note wm-intro">Which of the team's five picks ${esc(who)} came in, from ${rec.games} drafted game${rec.games === 1 ? "" : "s"}.
+      Last pick ${last.games ? `${wl(last.wins, last.games)} (${pct(last.win_rate)})` : "never"} · picks 1–4 ${early.games ? `${wl(early.wins, early.games)} (${pct(early.wins / early.games)})` : "never"}.${verdict}</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th class="l">Pick</th><th>Draft phase</th><th>Games</th><th>W–L</th><th>Win %</th><th class="l">Heroes</th></tr></thead>
+      <tbody>${rec.slots.map((r, i) => `<tr${r.games ? "" : ' class="muted"'}><td class="l">${SLOT_NAMES[i]}</td><td>${SLOT_PHASE[i]}</td><td>${r.games}</td><td>${r.games ? wl(r.wins, r.games) : "—"}</td>
+        <td class="${r.win_rate >= 0.6 && r.games >= 2 ? "best" : ""}">${pct(r.win_rate)}</td>
+        <td class="l wrap">${r.heroes.map((x) => `${heroLink(src, x.hero)}${x.n > 1 ? ` ×${x.n}` : ""}`).join(", ") || "—"}</td></tr>`).join("")}</tbody>
+    </table></div>`;
+}
+
+// One hero's bans and picks by draft phase.
+function heroPhaseHtml(row, drafted) {
+  if (!row) return "";
+  const wl = (w, g) => (g ? `${w}–${g - w}` : "—");
+  return `<h2>Draft phases</h2>
+    <p class="table-note wm-intro">When ${esc(row.hero)} gets banned or picked across ${drafted} Captains Mode drafts. Phase 1 = the opening 7 bans and first 2 picks; phase 2 = 3 bans, 6 picks; phase 3 = the last 4 bans and last 2 picks.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th class="l">Phase</th><th>Bans</th><th>Picks</th><th>W–L when picked</th><th>Win %</th></tr></thead>
+      <tbody>${[0, 1, 2].map((i) => `<tr><td class="l">Phase ${i + 1}</td><td>${row.bans[i]}</td><td>${row.picks[i]}</td><td>${wl(row.pick_wins[i], row.picks[i])}</td><td>${pct(row.pick_win_rate[i])}</td></tr>`).join("")}
+        <tr class="total"><td class="l">Total</td><td>${row.ban_total}</td><td>${row.pick_total}</td><td>${wl(row.pick_wins.reduce((a, b) => a + b, 0), row.pick_total)}</td><td>${pct(row.win_rate)}</td></tr></tbody>
+    </table></div>`;
+}
+
+async function renderDraft(src) {
+  app.innerHTML = loading(src.kicker, "Draft");
+  let matches;
+  try { matches = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Draft")}${errorBox(e)}`; return; }
+  const a = draftAnalysis(matches);
+  if (!a.games) { app.innerHTML = `${pageHead(src.kicker, "Draft")}<div class="panel empty"><strong>No drafts</strong>Drafts come from AD2L replays.</div>`; return; }
+  const H = a.heroes;
+  const most = (f) => [...H].sort((x, y) => f(y) - f(x) || y.contested - x.contested)[0];
+  const b1 = most((h) => h.bans[0]), p1 = most((h) => h.picks[0]), lp = most((h) => h.last_picks);
+  const bestLast = H.filter((h) => h.last_picks >= 3).sort((x, y) => y.last_pick_wins / y.last_picks - x.last_pick_wins / x.last_picks || y.last_picks - x.last_picks)[0];
+  const card = (k, v, t, i, small = false) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v${small ? " small" : ""}">${v}</div><div class="s">${t}</div></div>`;
+  app.innerHTML = `${pageHead(src.kicker, "Draft", `Bans and picks by draft phase over ${a.games} Captains Mode drafts. Phase 1 = the opening 7 bans and first 2 picks, phase 2 = 3 bans and 6 picks, phase 3 = the last 4 bans and 2 last picks.`)}
+    <div class="cards reveal">
+      ${card("First pick", `${a.first_pick.wins}–${a.first_pick.games - a.first_pick.wins}`, `team with first pick won ${pct(a.first_pick.win_rate)} of games`, 0)}
+      ${card("Top phase 1 ban", heroLink(src, b1.hero), `${b1.bans[0]} first-phase bans · ${pct(b1.p1_ban_share)} of its bans`, 1, true)}
+      ${card("Top phase 1 pick", heroLink(src, p1.hero), `${p1.picks[0]} first-phase picks · ${p1.pick_wins[0]}–${p1.picks[0] - p1.pick_wins[0]}`, 2, true)}
+      ${card("Most last-picked", heroLink(src, lp.hero), `${lp.last_picks} last picks · ${lp.last_pick_wins}–${lp.last_picks - lp.last_pick_wins}`, 3, true)}
+      ${bestLast ? card("Best last pick", heroLink(src, bestLast.hero), `${bestLast.last_pick_wins}–${bestLast.last_picks - bestLast.last_pick_wins} as a last pick (3+ games)`, 4, true) : ""}
+    </div>
+    <h2>Every hero by phase</h2>
+    ${minBar("Show heroes picked or banned at least", "times", MIN_DEFAULT(matches))}
+    <div id="t"></div>
+    <p class="table-note">B1–B3 = bans in phase 1–3; P1–P3 = picks, with the win % when picked in that phase (P3 = last picks). “1st-phase ban share” = how many of its bans came in the opening phase: high means teams remove it on sight.</p>`;
+  const rows = H.map((h) => ({ ...h, b1: h.bans[0], b2: h.bans[1], b3: h.bans[2], p1: h.picks[0], p2: h.picks[1], p3: h.picks[2], w1: h.pick_win_rate[0], w2: h.pick_win_rate[1], w3: h.pick_win_rate[2] }));
+  wireMinBar(rows, (r) => r.contested, (shown) => sortableTable(document.getElementById("t"), [
+    ["hero", "Hero", (v) => `<span class="hero-cell">${portrait(v)}${heroLink(src, v)}</span>`, "l"],
+    ["contest_rate", "Contest %", pct, "", "gold"],
+    ["b1", "B1", null, "", "ember"], ["b2", "B2"], ["b3", "B3"], ["p1_ban_share", "1st-phase ban share", pct],
+    ["p1", "P1", null, "", "jade"], ["w1", "P1 win %", pct], ["p2", "P2"], ["w2", "P2 win %", pct], ["p3", "P3 (last)"], ["w3", "P3 win %", pct],
+    ["win_rate", "Win % overall", pct, "", "jade"],
+  ], shown, "contest_rate", { toolbar: true }));
 }
 
 // ---------- Hero page ----------
@@ -900,6 +985,8 @@ async function renderHero(src, slug) {
   app.innerHTML = `${head}
     <div class="cards reveal">${cards.map(([k, v, t], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
     ${hl.length ? `<h2>Highlights</h2><div class="cards reveal">${hl.map(([k, v, t], i) => `<div class="card hl" style="--i:${i}"><div class="k">${k}</div><div class="v small">${v}</div><div class="s">${t}</div></div>`).join("")}</div>` : ""}
+    ${(() => { const da = draftAnalysis(matches); return heroPhaseHtml(da.heroes.find((x) => x.hero === hero), da.games); })()}
+    ${draftSlotHtml(draftSlotRecord(matches, byHero(hero)), src, hero)}
     ${goldCurveSection(matches, byHero(hero), hero)}
     ${wardSection(collectWards(matches, byHero(hero)), hero, gamesWith(matches, byHero(hero)))}
     <h2>Teams</h2>
@@ -1231,12 +1318,19 @@ async function renderTeams(src, slug) {
       </section>
     </div>
     ${h.heroes.length ? `<h2>Hero pool</h2><div class="hero-chips">${heroChips(h.heroes, (x) => `${x.wins}–${x.picks - x.wins}`)}</div>` : ""}
-    ${h.drafted ? `
-      <div class="team-cols">
-        <section><h2>They ban</h2><div class="hero-chips">${heroChips(h.bans, (x) => `×${x.n}`)}</div></section>
-        <section><h2>Banned against them</h2><div class="hero-chips">${heroChips(h.banned_against, (x) => `×${x.n}`)}</div></section>
-      </div>
-      <p class="table-note">From ${h.drafted} drafted game${h.drafted === 1 ? "" : "s"}. Hero pool shows win–loss on each hero.</p>` : ""}
+    ${(() => {
+      const ph = h.drafted ? teamDraftPhases(h.games.map(({ m }) => ({ m, side: sideOf(m, team) })).filter((g) => g.side)) : null;
+      if (!ph) return "";
+      const chips = (list, count) => list.length ? `<div class="hero-chips">${list.slice(0, 6).map((x) => `<div class="hero-chip">${portrait(x.hero)}<span>${heroLink(src, x.hero)}</span><b>${count(x)}</b></div>`).join("")}</div>` : `<span class="muted">—</span>`;
+      const row = (label, lists, count) => `<div class="ph-row"><div class="ph-label">${label}</div>${lists.map((l, i) => `<div class="ph-cell"><div class="ph-head">Phase ${i + 1}</div>${chips(l, count)}</div>`).join("")}</div>`;
+      return `<h2>Draft by phase</h2>
+        <div class="phase-grid reveal">
+          ${row("They ban", ph.bans, (x) => `×${x.n}`)}
+          ${row("Banned against them", ph.against, (x) => `×${x.n}`)}
+          ${row("They pick", ph.picks, (x) => `${x.wins}–${x.n - x.wins}`)}
+        </div>
+        <p class="table-note">From ${ph.drafted} drafted game${ph.drafted === 1 ? "" : "s"}. Phase 1 = opening 7 bans and first 2 picks, phase 2 = 3 bans and 6 picks, phase 3 = last 4 bans and last 2 picks. Picks show win–loss.</p>`;
+    })()}
     ${teamObjectivesHtml(h, team)}
     ${teamGoldHtml(h, team, src)}
     ${(() => { const gs = h.games.map(({ m }) => m), mine = (p, m) => p.team === sideOf(m, team);
@@ -1339,6 +1433,7 @@ function route() {
     else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/hero/")) { section = "heroes"; page = () => renderHero(src, h.slice("#/ad2l/hero/".length)); }
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
+    else if (h.startsWith("#/ad2l/draft")) { section = "draft"; page = () => renderDraft(src); }
     else { section = "standings"; page = renderStandings; }
   } else {
     const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];

@@ -678,3 +678,16 @@ figure.wardmap { margin: 0 0 8px; padding: 14px; background: var(--stone); borde
 .wm-who { font: 800 15px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--bone); margin-bottom: 4px; }
 .wm-note { margin: 0; font-size: 11px; color: var(--dim); }
 @media (max-width: 760px) { .wm-body { grid-template-columns: 1fr; } }
+
+/* ---------- min-games filter, draft phases ---------- */
+.min-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 12px; font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dust); }
+.min-bar select { background: var(--ink); color: var(--bone); border: 1px solid var(--seam-2); padding: 6px 8px; font: 13px var(--mono); margin: 0 4px; }
+.min-note { color: var(--dim); letter-spacing: .08em; }
+.phase-grid { display: grid; gap: 1px; background: var(--seam); border: 1px solid var(--seam); }
+.ph-row { display: grid; grid-template-columns: 160px repeat(3, minmax(0, 1fr)); gap: 1px; }
+.ph-row > div { background: var(--stone); padding: 12px; }
+.ph-label { font: 800 15px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--bone); display: flex; align-items: center; }
+.ph-head { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+.ph-cell .hero-chips { gap: 6px; }
+tr.muted td { color: var(--dim); }
+@media (max-width: 900px) { .ph-row { grid-template-columns: 1fr; } }
