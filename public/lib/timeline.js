@@ -104,3 +104,35 @@ export function goldCurves(games, match) {
 
 export const byPlayer = (key) => (p) => playerKey(p) === key;
 export const byHero = (hero) => (p) => p.hero === hero;
+
+// Team view of objectives and map play: Roshans and Tormentors taken (and first Roshan),
+// plus the team's wards, dewards and stacks per game. Games without replay data are skipped.
+export function teamObjectives(games, sideOf) {
+  const rows = [];
+  for (const m of games) {
+    const side = sideOf(m);
+    if (!side || !Array.isArray(m.objectives)) continue;
+    const mine = m.players.filter((p) => p.team === side && p.obs_placed != null);
+    if (!mine.length) continue;
+    const obj = (type, s) => m.objectives.filter((o) => o.type === type && o.side === s).length;
+    const firstRosh = m.objectives.filter((o) => o.type === "roshan").sort((a, b) => a.time - b.time)[0];
+    const sum = (f) => mine.reduce((s, p) => s + (p[f] ?? 0), 0);
+    rows.push({
+      won: m.winner === side,
+      roshans: obj("roshan", side), roshans_against: obj("roshan", side === "a" ? "b" : "a"),
+      tormentors: obj("tormentor", side), tormentors_against: obj("tormentor", side === "a" ? "b" : "a"),
+      first_rosh: firstRosh ? firstRosh.side === side : null,
+      obs: sum("obs_placed"), sen: sum("sen_placed"), dewards: sum("obs_killed") + sum("sen_killed"), stacks: sum("camps_stacked"),
+    });
+  }
+  if (!rows.length) return null;
+  const n = rows.length, avg = (f) => rows.reduce((s, r) => s + r[f], 0) / n, tot = (f) => rows.reduce((s, r) => s + r[f], 0);
+  const withRosh = rows.filter((r) => r.first_rosh != null), tookFirst = withRosh.filter((r) => r.first_rosh);
+  return {
+    games: n,
+    roshans: tot("roshans"), roshans_against: tot("roshans_against"),
+    tormentors: tot("tormentors"), tormentors_against: tot("tormentors_against"),
+    first_rosh: { games: withRosh.length, taken: tookFirst.length, wins: tookFirst.filter((r) => r.won).length },
+    obs_pg: avg("obs"), sen_pg: avg("sen"), dewards_pg: avg("dewards"), stacks_pg: avg("stacks"),
+  };
+}

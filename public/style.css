@@ -369,6 +369,15 @@ figure.chart.focus path.line.on { opacity: 1; stroke-width: 3; }
 .chart-legend .lg-item.s-ref2 { color: var(--dust); }
 .chart-legend .lg-item:hover { text-decoration: underline; }
 .swing-story { margin: 8px 0 0; color: var(--dust); }
+figure.chart .obj line { stroke-width: 1; stroke-dasharray: 2 4; opacity: .55; }
+figure.chart .obj circle { stroke: var(--ink); stroke-width: 1.5; }
+figure.chart .obj text { font: 700 9px var(--mono); fill: var(--ink); stroke: none; }
+.obj-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.obj-chip { font: 500 11px var(--mono); padding: 5px 9px; border: 1px solid var(--seam-2); background: var(--stone); }
+.obj-chip b { font-weight: 700; margin-right: 4px; }
+.obj-chip.s-a { border-left: 3px solid var(--jade); }
+.obj-chip.s-b { border-left: 3px solid var(--ember); }
+tr.total td { font-weight: 600; color: var(--dust); border-top: 1px solid var(--seam-2); }
 .swing-story b { color: var(--bone); }
 
 /* hero names that open the hero page */

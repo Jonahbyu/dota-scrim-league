@@ -28,7 +28,9 @@ function figure(svg, data, caption) {
 
 // Team A's gold lead per minute as a two-colour area (A above zero, B below), XP lead as a
 // dashed line, and a marker on each side's biggest lead.
-export function leadChart(adv, { xp = null, nameA = "Team A", nameB = "Team B", id = "lead" } = {}) {
+// objectives: [{ type: "roshan" | "tormentor", time (s), side }] drawn as R / T markers,
+// team A's along the top edge and team B's along the bottom.
+export function leadChart(adv, { xp = null, nameA = "Team A", nameB = "Team B", id = "lead", objectives = null } = {}) {
   const n = adv.length;
   const max = niceMax(Math.max(...adv.map(Math.abs), ...(xp ?? []).map(Math.abs)));
   const x = xOf(n), y = (v) => T + (1 - (v + max) / (2 * max)) * (H - T - B), y0 = y(0);
@@ -54,9 +56,15 @@ export function leadChart(adv, { xp = null, nameA = "Team A", nameB = "Team B", 
     <line class="zero" x1="${L}" x2="${W - R}" y1="${y0}" y2="${y0}"/>
     <path class="lead-line" d="${path(adv, x, y)}"/>
     ${xp ? `<path class="xp-line" d="${path(xp, x, y)}"/>` : ""}
-    ${peak(1)}${peak(-1)}`;
+    ${peak(1)}${peak(-1)}
+    ${(objectives ?? []).filter((o) => o.type === "roshan" || o.type === "tormentor").map((o) => {
+      const cx = L + Math.min(o.time / 60 / Math.max(n - 1, 1), 1) * (W - L - R), cy = o.side === "a" ? T + 26 : H - B - 22;
+      const name = o.type === "roshan" ? "Roshan" : "Tormentor";
+      return `<g class="obj s-${o.side}"><title>${name} — ${attr(o.side === "a" ? nameA : nameB)} at ${Math.floor(o.time / 60)}:${String(o.time % 60).padStart(2, "0")}</title>
+        <line x1="${cx}" x2="${cx}" y1="${T}" y2="${H - B}"/><circle cx="${cx}" cy="${cy}" r="8"/><text x="${cx}" y="${cy + 3.5}" text-anchor="middle">${o.type === "roshan" ? "R" : "T"}</text></g>`;
+    }).join("")}`;
   return figure(svg, { kind: "lead", n, x: [L, W - R], nameA, nameB, series: [{ label: "Gold", values: adv }, ...(xp ? [{ label: "XP", values: xp }] : [])] },
-    `Hover for the lead at any minute. Solid: gold lead${xp ? "; dashed: XP lead" : ""}.`);
+    `Hover for the lead at any minute. Solid: gold lead${xp ? "; dashed: XP lead" : ""}${objectives?.length ? "; R = Roshan, T = Tormentor (top: " + attr(nameA) + ", bottom: " + attr(nameB) + ")" : ""}.`);
 }
 
 // Several lines on one 0-based axis (gold over time). series: { label, values, cls, dash?, strong? }

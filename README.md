@@ -31,6 +31,13 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   ahead/behind at 20', comebacks and throws (5k+ leads). Player and hero pages: average
   gold curve against the division's average core and support. Weekly: biggest comeback.
   Data is OpenDota's parsed-replay gold (total gold earned, like OpenDota's own graph).
+- **Map & objectives** (AD2L, from parsed replays) — per game: lane / neutral / ancient creep
+  kills, camps stacked, observers and sentries placed, dewards, Roshan and Tormentor last hits,
+  and a timeline of who took each Roshan and Tormentor (also marked on the gold chart).
+  Per-game averages on the Players table and player pages; team pages show Roshans and
+  Tormentors taken vs given up, first-Roshan rate, and wards / dewards / stacks per game;
+  Weekly adds most wards, stacks and dewards. Hero pages and the Heroes table show ban
+  and contest rate (picked or banned per drafted game).
 - **Hero pages** — click any hero: record, pick and ban rates, average draft slot (AD2L),
   best team and player on it, biggest games, a teams table (picks, W–L, win % on the hero,
   who played it, bans for and against), a players table and every game it was in.

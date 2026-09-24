@@ -182,6 +182,14 @@ for (const id of [...candidates].sort()) {
     // team A's net-worth and XP lead (negative = team B ahead).
     gold_adv: Array.isArray(d.radiant_gold_adv) ? d.radiant_gold_adv : null,
     xp_adv: Array.isArray(d.radiant_xp_adv) ? d.radiant_xp_adv : null,
+    // Roshan and Tormentor kills with the minute and the side that took them
+    // (OpenDota team 2 = Radiant = "a", 3 = Dire = "b"); aegis = who picked it up.
+    objectives: Array.isArray(d.objectives) ? d.objectives.flatMap((o) => {
+      const type = { CHAT_MESSAGE_ROSHAN_KILL: "roshan", CHAT_MESSAGE_MINIBOSS_KILL: "tormentor", CHAT_MESSAGE_AEGIS: "aegis", CHAT_MESSAGE_AEGIS_STOLEN: "aegis_stolen" }[o.type];
+      if (!type) return [];
+      const side = o.team === 2 ? "a" : o.team === 3 ? "b" : o.player_slot != null ? (o.player_slot < 128 ? "a" : "b") : null;
+      return [{ type, minute: Math.floor(o.time / 60), time: o.time, side }];
+    }) : null,
     players: [...d.players].sort((x, y) => x.player_slot - y.player_slot).map((p) => ({
       team: p.isRadiant ? "a" : "b",
       name: owner.get(p.account_id)?.name ?? p.personaname ?? (p.account_id ? `account ${p.account_id}` : "anonymous"),
@@ -198,6 +206,16 @@ for (const id of [...candidates].sort()) {
       gpm: p.gold_per_min, xpm: p.xp_per_min, hero_damage: p.hero_damage ?? 0, hero_healing: p.hero_healing ?? 0,
       // Gold at each minute (OpenDota gold_t), for per-player and per-hero curves.
       gold_t: Array.isArray(p.gold_t) ? p.gold_t : null,
+      // Map play from the parsed replay (null if unparsed). Creep kills split lane / neutral
+      // / ancient as OpenDota reports them; dewards = enemy observers + sentries killed.
+      lane_kills: p.lane_kills ?? null, neutral_kills: p.neutral_kills ?? null, ancient_kills: p.ancient_kills ?? null,
+      camps_stacked: p.camps_stacked ?? null,
+      obs_placed: p.obs_placed ?? null, sen_placed: p.sen_placed ?? null,
+      obs_killed: p.observer_kills ?? null, sen_killed: p.sentry_kills ?? null,
+      // From the per-unit kill counts: OpenDota's own roshan_kills field disagreed with the
+      // Roshan kill events and Aegis pickups in 12 of 38 S48 games; these always agree.
+      roshan_kills: p.killed ? (p.killed.npc_dota_roshan ?? 0) : null,
+      tormentor_kills: p.killed ? (p.killed.npc_dota_miniboss ?? 0) : null,
     })),
   });
 }

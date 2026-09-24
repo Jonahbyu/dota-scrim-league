@@ -51,12 +51,37 @@ export function withDerived(match) {
 // One player across games: AD2L players by main account (smurfs included), scrim players by name.
 export const playerKey = (p) => p.player_key ?? p.name.trim().toLowerCase();
 
+// Map-play fields from parsed replays (AD2L). Scrim screenshots don't have them, so they're
+// only averaged over games that do (`map_games`) and are null otherwise.
+export const MAP_FIELDS = ["lane_kills", "neutral_kills", "ancient_kills", "camps_stacked", "obs_placed", "sen_placed", "obs_killed", "sen_killed", "roshan_kills", "tormentor_kills"];
+export const hasMapStats = (p) => p.obs_placed != null;
+
+// Totals of the map-play fields over some player-games, as per-game averages (plus the
+// raw Roshan / Tormentor totals, which are small numbers people count).
+export function mapSummary(playerGames) {
+  const g = playerGames.filter(hasMapStats);
+  if (!g.length) return null;
+  const t = Object.fromEntries(MAP_FIELDS.map((f) => [f, g.reduce((s, p) => s + (p[f] ?? 0), 0)]));
+  const per = (v) => v / g.length;
+  const creeps = t.lane_kills + t.neutral_kills;
+  return {
+    map_games: g.length,
+    lane_pg: per(t.lane_kills), neutral_pg: per(t.neutral_kills), ancient_pg: per(t.ancient_kills),
+    neutral_share: creeps ? t.neutral_kills / creeps : null,
+    stacks_pg: per(t.camps_stacked),
+    obs_pg: per(t.obs_placed), sen_pg: per(t.sen_placed),
+    dewards_pg: per(t.obs_killed + t.sen_killed),
+    roshans: t.roshan_kills, tormentors: t.tormentor_kills,
+  };
+}
+const NO_MAP = { map_games: 0, lane_pg: null, neutral_pg: null, ancient_pg: null, neutral_share: null, stacks_pg: null, obs_pg: null, sen_pg: null, dewards_pg: null, roshans: null, tormentors: null };
+
 export function playerLeaderboard(matches) {
   const rows = new Map();
   for (const m of matches) {
     for (const p of m.players) {
       const key = playerKey(p);
-      const r = rows.get(key) ?? { key, account_id: p.account_id ?? null, name: p.name, teams: {}, games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, gold: 0, xp: 0, minutes: 0, damage: 0, net_worth: 0, kp: [], heroes: new Set() };
+      const r = rows.get(key) ?? { key, account_id: p.account_id ?? null, name: p.name, teams: {}, games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, gold: 0, xp: 0, minutes: 0, damage: 0, net_worth: 0, kp: [], heroes: new Set(), played: [] };
       // Count roster games and stand-in games per team separately.
       if (p.team_name) {
         const t = (r.teams[p.team_name] ??= { roster: 0, standin: 0 });
@@ -71,6 +96,7 @@ export function playerLeaderboard(matches) {
       r.damage += p.hero_damage; r.net_worth += p.net_worth;
       if (teamScore) r.kp.push((p.kills + p.assists) / teamScore);
       r.heroes.add(p.hero);
+      r.played.push(p);
       rows.set(key, r);
     }
   }
@@ -100,6 +126,7 @@ export function playerLeaderboard(matches) {
     dmg_per_1k_nw: r.net_worth ? Math.round((r.damage / r.net_worth) * 1000) : null,
     avg_kp: r.kp.length ? r.kp.reduce((s, x) => s + x, 0) / r.kp.length : null,
     heroes: [...r.heroes].sort().join(", "),
+    ...(mapSummary(r.played) ?? NO_MAP),
   }));
 }
 
@@ -202,6 +229,13 @@ export function heroHistory(matches, hero) {
 }
 
 export function heroStats(matches) {
+  // Drafts (AD2L Captains Mode): bans, and contest rate = picked or banned, per drafted game.
+  const drafted = matches.filter((m) => m.draft?.length);
+  const bans = new Map(), contested = new Map();
+  for (const m of drafted) {
+    for (const s of m.draft) if (!s.pick) bans.set(s.hero, (bans.get(s.hero) ?? 0) + 1);
+    for (const h of new Set(m.draft.map((s) => s.hero))) contested.set(h, (contested.get(h) ?? 0) + 1);
+  }
   const rows = new Map();
   for (const m of matches) {
     for (const p of m.players) {
@@ -221,5 +255,8 @@ export function heroStats(matches) {
     win_rate: r.wins / r.picks,
     avg_damage: Math.round(r.damage / r.picks),
     avg_kda: Math.round((r.kda / r.picks) * 100) / 100,
+    bans: drafted.length ? bans.get(r.hero) ?? 0 : null,
+    ban_rate: drafted.length ? (bans.get(r.hero) ?? 0) / drafted.length : null,
+    contest_rate: drafted.length ? (contested.get(r.hero) ?? 0) / drafted.length : null,
   }));
 }

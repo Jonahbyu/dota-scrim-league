@@ -58,3 +58,49 @@ test("roles and gold curves", () => {
   assert.equal(c.support[2], 1400);
   assert.equal(hasTimeline({ gold_adv: [0] }), false);
 });
+
+import { teamObjectives } from "../public/lib/timeline.js";
+import { mapSummary, heroStats } from "../public/lib/stats.js";
+
+test("teamObjectives: Roshans, Tormentors, first Roshan and map play per team", () => {
+  const mp = (team, obs) => ({ team, obs_placed: obs, sen_placed: 2, obs_killed: 1, sen_killed: 1, camps_stacked: 3 });
+  const g = (winner, objectives) => ({ winner, objectives, players: [mp("a", 5), mp("a", 1), mp("b", 4), mp("b", 0)] });
+  const games = [
+    g("a", [{ type: "roshan", side: "b", time: 900 }, { type: "roshan", side: "a", time: 1800 }, { type: "tormentor", side: "a", time: 1300 }]),
+    g("a", [{ type: "roshan", side: "a", time: 1200 }]),
+    { winner: "b", players: [] }, // no replay data: skipped
+  ];
+  const t = teamObjectives(games, () => "a");
+  assert.equal(t.games, 2);
+  assert.equal(t.roshans, 2); assert.equal(t.roshans_against, 1);
+  assert.equal(t.tormentors, 1);
+  assert.deepEqual(t.first_rosh, { games: 2, taken: 1, wins: 1 });
+  assert.equal(t.obs_pg, 6); assert.equal(t.dewards_pg, 4); assert.equal(t.stacks_pg, 6);
+});
+
+test("mapSummary averages over games that have map data only", () => {
+  const s = mapSummary([
+    { obs_placed: 4, sen_placed: 6, obs_killed: 2, sen_killed: 1, camps_stacked: 5, lane_kills: 100, neutral_kills: 50, ancient_kills: 10, roshan_kills: 1, tormentor_kills: 0 },
+    { obs_placed: 2, sen_placed: 2, obs_killed: 0, sen_killed: 1, camps_stacked: 1, lane_kills: 100, neutral_kills: 150, ancient_kills: 0, roshan_kills: 0, tormentor_kills: 1 },
+    { obs_placed: null },
+  ]);
+  assert.equal(s.map_games, 2);
+  assert.equal(s.obs_pg, 3); assert.equal(s.dewards_pg, 2); assert.equal(s.stacks_pg, 3);
+  assert.equal(s.neutral_share, 0.5);
+  assert.equal(s.roshans, 1); assert.equal(s.tormentors, 1);
+  assert.equal(mapSummary([{ obs_placed: null }]), null);
+});
+
+test("heroStats contest rate = picked or banned per drafted game", () => {
+  const P = (team, hero) => ({ team, hero, kills: 1, deaths: 1, assists: 1, hero_damage: 1 });
+  const m = (draft) => ({ winner: "a", players: [P("a", "Pudge"), P("b", "Lina")], draft });
+  const rows = heroStats([
+    m([{ pick: true, side: "a", hero: "Pudge" }, { pick: false, side: "b", hero: "Lina" }, { pick: true, side: "b", hero: "Lina" }]),
+    m([{ pick: false, side: "a", hero: "Pudge" }]),
+  ]);
+  const pudge = rows.find((r) => r.hero === "Pudge");
+  assert.equal(pudge.contest_rate, 1);
+  assert.equal(pudge.bans, 1);
+  assert.equal(pudge.ban_rate, 0.5);
+  assert.equal(rows.find((r) => r.hero === "Lina").contest_rate, 0.5); // ban + pick in one game counts once
+});
