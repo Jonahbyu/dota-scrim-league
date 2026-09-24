@@ -15,3 +15,6 @@ data/tessdata/
 
 # Sync caches (PlayOn pages, OpenDota match details)
 .cache/
+
+# Generated at deploy time from the FIREBASE_WEB_API_KEY secret (scripts/write-firebase-config.js).
+public/firebase-config.js

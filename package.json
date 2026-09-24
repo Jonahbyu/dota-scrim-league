@@ -9,8 +9,8 @@
     "ocr:check": "node scripts/ocr-check.js",
     "ocr:robustness": "node scripts/ocr-robustness.js",
     "rules:test": "node scripts/rules-dry-test.cjs",
-    "deploy": "node scripts/deploy-pages.cjs",
-    "ad2l:sync": "node scripts/ad2l-sync.js"
+    "ad2l:sync": "node scripts/ad2l-sync.js",
+    "config:write": "node scripts/write-firebase-config.js"
   },
   "devDependencies": {
     "firebase-tools": "^15.31.0",

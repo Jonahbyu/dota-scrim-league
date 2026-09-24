@@ -1,6 +1,6 @@
-﻿# Dota Scrim League
+﻿# Dota 2 Scrim Circuit Tracker
 
-**Live: https://jonahbyu.github.io/dota-scrim-league/**
+**Live: https://dota2scrimcircuittracker.github.io/**
 
 A for-fun stats site for Dota 2 scrims and our AD2L division.
 
@@ -10,10 +10,22 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   with full stats, players and heroes, pulled from PlayOn + OpenDota.
 - **Tier list** — every player with 3+ games, ranked S–D by in-season performance
   against same-role players plus win rate (see "Tier list" below).
+- **Weekly recap** — one week at a time: highlights (player of the week, biggest damage,
+  best KDA, top GPM, most kills) and every game with lineups and MVP. AD2L games also show
+  the full Captains Mode draft in pick/ban order, grouped by series. (Scrims have no draft:
+  it isn't on the post-game screen.)
 - Match pages with standouts (damage per net worth, kill participation, damage share),
   sortable player and hero leaderboards.
 
-Static site: GitHub Pages serves `public/` from the `gh-pages` branch (`npm run deploy`).
+Static site: every push to `main` deploys `public/` to GitHub Pages via GitHub Actions
+(`.github/workflows/pages.yml`).
+
+**Firebase key:** `public/firebase-config.js` is not committed. The Actions workflow writes
+it from the `FIREBASE_WEB_API_KEY` repository secret; locally, run
+`FIREBASE_WEB_API_KEY=... npm run config:write` once. It's a public web key by design (the
+browser receives it), so what actually protects the project is the key's website
+restriction (only our GitHub Pages sites and localhost — `scripts/restrict-api-key.cjs`)
+and the Firestore rules.
 Scrim data lives in Firestore (the shared `pistachio-kitchen` Firebase project, under
 `scrimLeague/`); AD2L data is a static file rebuilt by `npm run ad2l:sync`.
 
@@ -59,7 +71,7 @@ It's a static file, `public/data/ad2l.json`, rebuilt with:
 
 ```
 npm run ad2l:sync     # ~3 min first run; cached after that
-npm run deploy        # after committing
+git commit -am "Update AD2L data" && git push   # Actions redeploys the site
 ```
 
 How it finds games (all public data, no keys): PlayOn gives the division's teams,

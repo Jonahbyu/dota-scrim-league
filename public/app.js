@@ -2,6 +2,7 @@ import { HEROES } from "./lib/heroes.js";
 import { validateMatch } from "./lib/validate.js";
 import { withDerived, playerLeaderboard, heroStats } from "./lib/stats.js";
 import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
+import { heroImg } from "./lib/hero-meta.js";
 import { submitMatch, listMatches, getMatch } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
@@ -287,13 +288,13 @@ const SOURCES = {
     key: "scrim", kicker: "The ledger", load: allMatches,
     link: (m) => `#/match/${m.id}`, base: "#/",
     empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
-    nav: [["#/", "matches", "Matches"], ["#/tiers", "tiers", "Tiers"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/", "matches", "Matches"], ["#/week", "week", "Weekly"], ["#/tiers", "tiers", "Tiers"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
   ad2l: {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: async () => (await ad2lData()).games,
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/games",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"]],
   },
 };
 
@@ -498,6 +499,135 @@ async function renderHeroes(src) {
   ], rows, "picks");
 }
 
+// ---------- Weekly recap ----------
+
+// Weeks run Monday 00:00 → Sunday (local time).
+function weekStart(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+const shortDate = (d) => d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+// A game's MVP: the winning-side player with the best average of damage share, kill
+// participation and net-worth share.
+function gameMvp(m) {
+  const nwTotal = (t) => m.teamTotals[t].net_worth || 1;
+  const rate = (p) => ((p.dmg_share ?? 0) + (p.kill_participation ?? 0) + p.net_worth / nwTotal(p.team)) / 3;
+  return m.players.filter((p) => p.team === m.winner).sort((a, b) => rate(b) - rate(a))[0];
+}
+
+function weekHighlights(games) {
+  const all = games.flatMap((m) => m.players.map((p) => ({ p, m })));
+  const best = (score) => all.reduce((top, x) => (!top || score(x) > score(top) ? x : top), null);
+  const mvps = {};
+  for (const m of games) {
+    const p = gameMvp(m);
+    const k = p.player_key ?? p.name.toLowerCase();
+    (mvps[k] ??= { p, n: 0 }).n++;
+  }
+  const pow = Object.values(mvps).sort((a, b) => b.n - a.n)[0];
+  const gamesOf = (p) => games.filter((m) => m.players.some((q) => (q.player_key ?? q.name) === (p.player_key ?? p.name))).length;
+  const dmg = best(({ p }) => p.hero_damage);
+  const kda = best(({ p }) => (p.kills + p.assists) / Math.max(p.deaths, 1));
+  const gpm = best(({ p }) => p.gpm);
+  const kills = best(({ p }) => p.kills);
+  const vs = (m) => `${esc(m.team_a)} vs ${esc(m.team_b)}`;
+  return [
+    ["Player of the week", esc(pow.p.name), `${pow.n} MVP${pow.n === 1 ? "" : "s"} in ${gamesOf(pow.p)} game${gamesOf(pow.p) === 1 ? "" : "s"}`, pow.p.hero],
+    ["Biggest damage game", fmt(dmg.p.hero_damage), `<b>${esc(dmg.p.name)}</b> · ${esc(dmg.p.hero)} · ${vs(dmg.m)}`, dmg.p.hero],
+    ["Best KDA", `${kda.p.kills}/${kda.p.deaths}/${kda.p.assists}`, `<b>${esc(kda.p.name)}</b> · ${esc(kda.p.hero)} · ${vs(kda.m)}`, kda.p.hero],
+    ["Top GPM", fmt(gpm.p.gpm), `<b>${esc(gpm.p.name)}</b> · ${esc(gpm.p.hero)} · ${vs(gpm.m)}`, gpm.p.hero],
+    ["Most kills", fmt(kills.p.kills), `<b>${esc(kills.p.name)}</b> · ${esc(kills.p.hero)} · ${vs(kills.m)}`, kills.p.hero],
+  ];
+}
+
+const portrait = (hero, cls = "") => {
+  const src = heroImg(hero);
+  return src ? `<img class="hero-img ${cls}" src="${src}" alt="${esc(hero)}" title="${esc(hero)}" loading="lazy">` : `<span class="hero-img ${cls} missing" title="${esc(hero)}">${esc(hero.slice(0, 2))}</span>`;
+};
+
+function draftStrip(m) {
+  if (!m.draft?.length) return `<p class="draft-none">Draft order isn't on the post-game screen, so scrims show lineups only.</p>`;
+  return `<div class="draft" aria-label="Draft order">${m.draft.map((s, i) => `
+    <div class="draft-step ${s.pick ? "pick" : "ban"} side-${s.side}" title="${i + 1}. ${s.side === "a" ? esc(m.team_a) : esc(m.team_b)} ${s.pick ? "picks" : "bans"} ${esc(s.hero)}">
+      ${portrait(s.hero)}<span class="draft-n">${i + 1}</span>
+    </div>`).join("")}</div>
+    <div class="draft-legend"><span class="lg a">${esc(m.team_a)}</span><span class="lg b">${esc(m.team_b)}</span><span class="lg ban">Ban</span><span class="lg pick">Pick</span></div>`;
+}
+
+function gamePanel(m, src, label) {
+  const mvp = gameMvp(m);
+  const lineup = (t) => m.players.filter((p) => p.team === t).map((p) => `
+    <li class="${p === mvp ? "mvp" : ""}">${portrait(p.hero)}
+      <span class="lu-name">${esc(p.name)}${p === mvp ? ' <span class="mvp-tag">MVP</span>' : ""}</span>
+      <span class="lu-kda">${p.kills}/${p.deaths}/${p.assists}</span>
+      <span class="lu-nw">${fmt(p.net_worth)}</span>
+    </li>`).join("");
+  return `<article class="game-panel">
+    <header class="gp-head">
+      <span class="gp-label">${label}</span>
+      <span class="gp-result"><b class="${m.winner === "a" ? "w" : ""}">${esc(m.team_a)}</b> <span class="gp-score">${m.score_a}–${m.score_b}</span> <b class="${m.winner === "b" ? "w" : ""}">${esc(m.team_b)}</b></span>
+      <span class="gp-meta">${dur(m.duration_sec)} · ${esc(m.winner === "a" ? m.team_a : m.team_b)} win · <a href="${src.link(m)}">Full stats →</a></span>
+    </header>
+    ${draftStrip(m)}
+    <div class="lineups">
+      <ul class="lineup a"><li class="lu-head">${esc(m.team_a)}${m.winner === "a" ? ' <span class="win-badge">Win</span>' : ""}</li>${lineup("a")}</ul>
+      <ul class="lineup b"><li class="lu-head">${esc(m.team_b)}${m.winner === "b" ? ' <span class="win-badge">Win</span>' : ""}</li>${lineup("b")}</ul>
+    </div>
+  </article>`;
+}
+
+async function renderWeek(src, back = 0) {
+  app.innerHTML = loading(src.kicker, "Weekly recap");
+  let games, ad2l = null;
+  try {
+    games = await src.load();
+    if (src.key === "ad2l") ad2l = await ad2lData();
+  } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Weekly recap")}${errorBox(e)}`; return; }
+  const weeks = [...new Set(games.map((m) => weekStart(m.createdAt).getTime()))].sort((a, b) => b - a);
+  if (!weeks.length) {
+    app.innerHTML = `${pageHead(src.kicker, "Weekly recap")}<div class="panel empty"><strong>No games yet</strong>${src.empty}</div>`;
+    return;
+  }
+  back = Math.min(Math.max(0, back), weeks.length - 1);
+  const start = new Date(weeks[back]);
+  const end = new Date(start); end.setDate(end.getDate() + 6);
+  const inWeek = games.filter((m) => weekStart(m.createdAt).getTime() === weeks[back]).sort((a, b) => a.createdAt - b.createdAt);
+  const base = src.key === "ad2l" ? "#/ad2l/week" : "#/week";
+  const navBtn = (to, label, on) => on ? `<a class="week-btn" href="${base}/${to}">${label}</a>` : `<span class="week-btn off">${label}</span>`;
+
+  let body;
+  if (ad2l) {
+    // Group games under their PlayOn series.
+    const bySeries = new Map();
+    for (const m of inWeek) (bySeries.get(m.series_id) ?? bySeries.set(m.series_id, []).get(m.series_id)).push(m);
+    const tname = Object.fromEntries(ad2l.teams.map((t) => [t.id, t.name]));
+    body = [...bySeries.entries()].map(([sid, gs], i) => {
+      const s = ad2l.series.find((x) => x.id === sid);
+      const head = s
+        ? `<span>${esc(tname[s.home])}</span> <span class="series-score">${s.home_score ?? "?"}–${s.away_score ?? "?"}</span> <span>${esc(tname[s.away])}</span>`
+        : `${esc(gs[0].team_a)} vs ${esc(gs[0].team_b)}`;
+      return `<section class="series" style="--i:${i}">
+        <h2 class="series-head">${head}</h2>
+        ${gs.map((m, j) => gamePanel(m, src, `Game ${j + 1}`)).join("")}
+      </section>`;
+    }).join("");
+  } else {
+    body = `<div class="reveal">${inWeek.map((m, i) => `<div style="--i:${i}">${gamePanel(m, src, when(m.createdAt))}</div>`).join("")}</div>`;
+  }
+
+  const hl = weekHighlights(inWeek);
+  app.innerHTML = `
+    ${pageHead(src.kicker, "Weekly recap", `Week of ${shortDate(start)} – ${shortDate(end)} · ${inWeek.length} game${inWeek.length === 1 ? "" : "s"}${src.key === "ad2l" ? " · drafts in pick/ban order" : ""}`)}
+    <div class="week-nav">${navBtn(back + 1, "← Earlier week", back < weeks.length - 1)}${navBtn(back - 1, "Later week →", back > 0)}</div>
+    <h2>Highlights</h2>
+    <div class="cards reveal">${hl.map(([k, v, s, hero], i) => `<div class="card hl" style="--i:${i}">${portrait(hero, "card-hero")}<div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>
+    <h2>${src.key === "ad2l" ? "Series" : "Games"}</h2>
+    ${body}`;
+}
+
 // ---------- Tier list ----------
 
 let tierRole = "all";
@@ -573,6 +703,7 @@ function route() {
     const gameId = /^#\/ad2l\/game\/(\d+)$/.exec(h)?.[1];
     if (gameId) { section = "games"; page = () => renderMatch(gameId, src); }
     else if (h.startsWith("#/ad2l/games")) { section = "games"; page = () => renderMatches(src); }
+    else if (h.startsWith("#/ad2l/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
     else if (h.startsWith("#/ad2l/tiers")) { section = "tiers"; page = () => renderTiers(src); }
     else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
@@ -581,6 +712,7 @@ function route() {
     const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];
     if (matchId) { section = "matches"; page = () => renderMatch(matchId, src); }
     else if (h.startsWith("#/upload")) { section = "upload"; page = renderUpload; }
+    else if (h.startsWith("#/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[2] ?? 0) || 0); }
     else if (h.startsWith("#/tiers")) { section = "tiers"; page = () => renderTiers(src); }
     else if (h.startsWith("#/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
