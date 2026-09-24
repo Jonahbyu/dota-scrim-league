@@ -24,6 +24,12 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   game's heroes.
 - **Deleting** — whoever uploaded a scrim can delete it from the browser they uploaded it
   in; the league admin can delete any.
+- **Player pages** — click any player name: record, KDA, GPM, damage, kill participation,
+  tier, best games, hero pool (W–L per hero) and every game they played (sortable).
+- **Strength of schedule** (AD2L standings) — RPI-style: opponents' game win % (without
+  their games against you) and their opponents' win %, plus how tough the remaining
+  schedule is. Team names link to team pages everywhere on the site.
+- Every table sorts: click a column header (↕), or use the "Sort by" menu on player tables.
 - Match pages with standouts (damage per net worth, kill participation, damage share),
   sortable player and hero leaderboards.
 

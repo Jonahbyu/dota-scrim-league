@@ -48,12 +48,15 @@ export function withDerived(match) {
 // smurfs merge and same-named players on different teams don't), else by name
 // (case-insensitive, scrims). Rates use totals across games, not averages of per-game
 // rates, so a short game doesn't count as much as a long one.
+// One player across games: AD2L players by main account (smurfs included), scrim players by name.
+export const playerKey = (p) => p.player_key ?? p.name.trim().toLowerCase();
+
 export function playerLeaderboard(matches) {
   const rows = new Map();
   for (const m of matches) {
     for (const p of m.players) {
-      const key = p.player_key ?? p.name.trim().toLowerCase();
-      const r = rows.get(key) ?? { name: p.name, teams: {}, games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, gold: 0, xp: 0, minutes: 0, damage: 0, net_worth: 0, kp: [], heroes: new Set() };
+      const key = playerKey(p);
+      const r = rows.get(key) ?? { key, account_id: p.account_id ?? null, name: p.name, teams: {}, games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, gold: 0, xp: 0, minutes: 0, damage: 0, net_worth: 0, kp: [], heroes: new Set() };
       // Count roster games and stand-in games per team separately.
       if (p.team_name) {
         const t = (r.teams[p.team_name] ??= { roster: 0, standin: 0 });
@@ -82,6 +85,8 @@ export function playerLeaderboard(matches) {
     return { team: t.sort((a, b) => b[1].standin - a[1].standin)[0][0], standin: true, standin_games };
   };
   return [...rows.values()].map((r) => ({
+    key: r.key,
+    account_id: r.account_id,
     name: r.name,
     ...teamOf(r),
     games: r.games,
@@ -96,6 +101,36 @@ export function playerLeaderboard(matches) {
     avg_kp: r.kp.length ? r.kp.reduce((s, x) => s + x, 0) / r.kp.length : null,
     heroes: [...r.heroes].sort().join(", "),
   }));
+}
+
+// Everything about one player: their leaderboard line, every game (newest first) and the
+// heroes they played. Null if they have no games with details.
+export function playerHistory(matches, key) {
+  const mine = matches.filter(hasDetails).flatMap((m) => {
+    const p = m.players.find((q) => playerKey(q) === key);
+    return p ? [{ m, p, won: p.team === m.winner }] : [];
+  });
+  if (!mine.length) return null;
+  const summary = playerLeaderboard(mine.map(({ m, p }) => ({ ...m, players: [p] })))[0];
+  const heroes = new Map();
+  for (const { p, won } of mine) {
+    const h = heroes.get(p.hero) ?? { hero: p.hero, games: 0, wins: 0, kills: 0, deaths: 0, assists: 0 };
+    h.games++; if (won) h.wins++;
+    h.kills += p.kills; h.deaths += p.deaths; h.assists += p.assists;
+    heroes.set(p.hero, h);
+  }
+  const best = (f) => mine.reduce((a, b) => (f(b) > f(a) ? b : a));
+  return {
+    summary,
+    games: [...mine].sort((a, b) => (b.m.createdAt ?? 0) - (a.m.createdAt ?? 0)),
+    heroes: [...heroes.values()].map((h) => ({ ...h, win_rate: h.wins / h.games, kda: (h.kills + h.assists) / Math.max(h.deaths, 1) }))
+      .sort((a, b) => b.games - a.games || b.wins - a.wins || a.hero.localeCompare(b.hero)),
+    best: {
+      damage: best(({ p }) => p.hero_damage),
+      kda: best(({ p }) => (p.kills + p.assists) / Math.max(p.deaths, 1)),
+      gpm: best(({ p }) => p.gpm),
+    },
+  };
 }
 
 export function heroStats(matches) {

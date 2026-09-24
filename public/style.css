@@ -328,6 +328,29 @@ td.bar.ember { --bar: rgba(255, 90, 54, .55); }
 .week-btn { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--seam-2); color: var(--bone); }
 .week-btn:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
 .week-btn.off { color: var(--dim); border-color: var(--seam); }
+/* player names that open the player page */
+a.player-link, span.player-link { color: inherit; cursor: pointer; text-decoration: none; }
+a.player-link:hover, span.player-link:hover, span.player-link:focus-visible { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+
+/* sortable tables: every header shows it can be sorted */
+th.sortable .sort-ico { display: inline-block; margin-left: 5px; font-size: 10px; color: var(--dim); opacity: .7; }
+th.sortable:hover .sort-ico { color: var(--gold); opacity: 1; }
+th.sorted .sort-ico { color: var(--gold); opacity: 1; }
+.sort-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin: 0 0 10px; font: 600 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dust); }
+.sort-bar label { display: flex; align-items: center; gap: 8px; }
+.sort-bar select { font: 600 12px/1 var(--mono); letter-spacing: .04em; text-transform: none; padding: 7px 8px; }
+.sort-bar .sort-dir { padding: 7px 12px; font-size: 11px; }
+.sort-hint { color: var(--dim); letter-spacing: .06em; }
+
+/* player page */
+.hero-cell { display: inline-flex; align-items: center; gap: 8px; }
+.hero-cell .hero-img { width: 36px; height: 20px; }
+.res { font: 600 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.res.w { color: var(--jade); }
+.res.l { color: var(--ember); }
+a.best-game { color: inherit; text-decoration: none; }
+a.best-game:hover { border-color: var(--gold); text-decoration: none; }
+
 /* team names that open the team page */
 a.team-link, span.team-link { color: inherit; cursor: pointer; text-decoration: none; border-bottom: 1px dotted color-mix(in srgb, currentColor 45%, transparent); }
 a.team-link:hover, span.team-link:hover, span.team-link:focus-visible { color: var(--gold); border-bottom-color: var(--gold); text-decoration: none; }

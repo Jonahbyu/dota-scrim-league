@@ -1,6 +1,6 @@
 import { HEROES } from "./lib/heroes.js";
 import { validateMatch } from "./lib/validate.js";
-import { withDerived, playerLeaderboard, heroStats, hasDetails } from "./lib/stats.js";
+import { withDerived, playerLeaderboard, heroStats, hasDetails, playerKey, playerHistory } from "./lib/stats.js";
 import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
 import { heroImg } from "./lib/hero-meta.js";
 import { listTeams, teamHistory, teamSlug } from "./lib/teams.js";
@@ -40,6 +40,15 @@ function teamLink(src, name, id = null, nested = false) {
   return nested
     ? `<span class="team-link" role="link" tabindex="0" data-href="${href}">${esc(name)}</span>`
     : `<a class="team-link" href="${href}">${esc(name)}</a>`;
+}
+// A player name that opens their page (same nested rule as teamLink).
+const playerHref = (src, key) => `${src.key === "ad2l" ? "#/ad2l/player/" : "#/player/"}${encodeURIComponent(key)}`;
+function playerLink(src, p, nested = false, label = null) {
+  const href = playerHref(src, p.key ?? playerKey(p));
+  const text = label ?? esc(p.name);
+  return nested
+    ? `<span class="player-link" role="link" tabindex="0" data-href="${href}">${text}</span>`
+    : `<a class="player-link" href="${href}">${text}</a>`;
 }
 const loading = (kicker, title) => `${pageHead(kicker, title)}<div class="panel empty">Loading…</div>`;
 
@@ -440,7 +449,7 @@ async function renderMatch(id, src) {
   const highlight = new Set(["kills", "net_worth", "gpm", "hero_damage", "dmg_per_min", "dmg_per_1k_nw", "kill_participation", "hero_healing"]);
   const playerCell = (p) => {
     const label = `${esc(p.name)}${p.tag ? ` <span class="tag">[${esc(p.tag)}]</span>` : ""}`;
-    return p.account_id ? `<a href="https://www.opendota.com/players/${p.account_id}" target="_blank" rel="noopener">${label}</a>` : label;
+    return playerLink(src, p, false, label);
   };
   const rows = (t) => m.players.filter((p) => p.team === t).map((p) => `
     <tr class="team-${t}">
@@ -480,7 +489,7 @@ async function renderMatch(id, src) {
       <div class="banner-meta">${esc(m.game_mode || "Match")} · <b>${dur(m.duration_sec)}</b></div>
     </section>
     <h2>Standouts</h2>
-    <div class="cards reveal">${cards.map(([k, { p, v }], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s"><b>${esc(p.name)}</b> · ${esc(p.hero)}</div></div>`).join("")}
+    <div class="cards reveal">${cards.map(([k, { p, v }], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s"><b>${playerLink(src, p)}</b> · ${esc(p.hero)}</div></div>`).join("")}
       <div class="card" style="--i:4"><div class="k">Team hero damage</div><div class="v pair">${fmt(ta)} <span class="muted">/</span> ${fmt(tb)}</div>
         <div class="s">${(ta > tb) === (m.winner === "a") ? "Winner out-damaged the loser" : "Loser out-damaged the winner"}</div></div>
     </div>
@@ -563,7 +572,9 @@ async function renderStandings() {
 
 // columns: [key, label, format?, class?, bar colour?]. A bar colour draws a thin bar under
 // the value, scaled to the column's highest value.
-function sortableTable(el, columns, rows, sortKey) {
+// With { toolbar: true } a "Sort by" menu and direction toggle sit above the table, for
+// people who don't think to click headers (and for phones, where the table scrolls).
+function sortableTable(el, columns, rows, sortKey, { toolbar = false } = {}) {
   let key = sortKey, dir = -1;
   const max = Object.fromEntries(columns.filter((c) => c[4]).map(([k]) => [k, Math.max(...rows.map((r) => r[k] ?? 0)) || 1]));
   const cell = ([k, , f, cls, bar], r) => {
@@ -577,14 +588,24 @@ function sortableTable(el, columns, rows, sortKey) {
       if (typeof x === "string") return dir * -x.localeCompare(y);
       return dir * ((x ?? -Infinity) - (y ?? -Infinity));
     });
-    el.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr><th class="rank">#</th>${columns.map(([k, label, , cls]) => `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}">${label}${k === key ? (dir < 0 ? " ▾" : " ▴") : ""}</th>`).join("")}</tr></thead>
+    const bar = toolbar ? `<div class="sort-bar">
+        <label>Sort by <select class="sort-key">${columns.filter(([, label]) => label).map(([k, label]) => `<option value="${k}" ${k === key ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+        <button class="sort-dir" type="button">${dir < 0 ? "High → low" : "Low → high"}</button>
+        <span class="sort-hint">or click any column header ↕</span>
+      </div>` : "";
+    el.innerHTML = `${bar}<div class="table-wrap"><table>
+      <thead><tr><th class="rank">#</th>${columns.map(([k, label, , cls]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
+        aria-sort="${k === key ? (dir < 0 ? "descending" : "ascending") : "none"}">${label}<span class="sort-ico">${k === key ? (dir < 0 ? "▾" : "▴") : "↕"}</span></th>` : "<th></th>").join("")}</tr></thead>
       <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " top" : ""}">${String(i + 1).padStart(2, "0")}</td>${columns.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
     </table></div>`;
     el.querySelectorAll("th.sortable").forEach((th) => (th.onclick = () => {
       if (th.dataset.k === key) dir = -dir; else { key = th.dataset.k; dir = -1; }
       draw();
     }));
+    if (toolbar) {
+      el.querySelector(".sort-key").onchange = (e) => { key = e.target.value; dir = -1; draw(); };
+      el.querySelector(".sort-dir").onclick = () => { dir = -dir; draw(); };
+    }
   };
   draw();
 }
@@ -594,7 +615,7 @@ async function renderPlayers(src) {
   let matches;
   try { matches = (await src.load()).filter(hasDetails); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Players")}${errorBox(e)}`; return; }
   const data = playerLeaderboard(matches);
-  app.innerHTML = `${pageHead(src.kicker, "Players", data.length ? `${data.length} players across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Click a column to sort.` : "")}
+  app.innerHTML = `${pageHead(src.kicker, "Players", data.length ? `${data.length} players across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Sort by any stat with the menu or by clicking a column header; click a name for that player's page.` : "")}
     ${data.length ? `<div id="t" class="reveal"></div>
     <p class="table-note">GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. ${src.key === "ad2l" ? "Players are matched by their PlayOn name (smurfs included)." : "Players are matched by name."} Bars compare against the column's best.</p>`
     : `<div class="panel empty"><strong>No players yet</strong>${src.empty}</div>`}`;
@@ -602,11 +623,80 @@ async function renderPlayers(src) {
   const teamCol = src.key === "ad2l"
     ? [["team", "Team", (v, r) => `${v ? teamLink(src, v) : ""}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l"]] : [];
   sortableTable(document.getElementById("t"), [
-    ["name", "Player", (v) => esc(v), "l"], ...teamCol, ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
+    ["name", "Player", (v, r) => playerLink(src, r), "l"], ...teamCol, ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
     ["kills", "K"], ["deaths", "D"], ["assists", "A"], ["kda", "KDA", (v) => v.toFixed(2), "", "jade"],
     ["avg_gpm", "GPM", null, "", "gold"], ["avg_xpm", "XPM"], ["dmg_per_min", "Dmg/min", fmt, "", "ember"], ["dmg_per_1k_nw", "Dmg per 1k NW", fmt, "", "ember"],
     ["avg_kp", "Avg KP", pct], ["heroes", "Heroes", (v) => esc(v), "l"],
-  ], data, "games");
+  ], data, "games", { toolbar: true });
+}
+
+// ---------- Player page ----------
+
+async function renderPlayer(src, key) {
+  app.innerHTML = loading(src.kicker, "Player");
+  let matches;
+  try { matches = await src.load(); if (src.key === "ad2l") await ad2lData(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Player")}${errorBox(e)}`; return; }
+  const h = playerHistory(matches, key);
+  const back = `<div class="kicker" style="margin-bottom:16px"><a href="${src.key === "ad2l" ? "#/ad2l/players" : "#/players"}">← All players</a></div>`;
+  if (!h) { app.innerHTML = `${back}<div class="panel empty"><strong>No games found for this player</strong>Private scrims don't include players.</div>`; return; }
+  const s = h.summary;
+
+  // Tier-list line, if they have enough games.
+  const tl = tierList(matches.filter(hasDetails));
+  const tierOf = tl.tiers.flatMap(({ tier, players }) => players.map((p) => ({ ...p, tier }))).find((p) => p.key === key);
+  const roster = src.key === "ad2l" ? ad2lCache.teams.flatMap((t) => t.players.map((p) => ({ ...p, team: t }))).find((p) => String(p.account_id) === key) : null;
+  const rank = rankLabel(roster?.rank_tier ?? tierOf?.rank_tier);
+  const sub = [
+    s.team ? `${teamLink(src, s.team, roster?.team.id ?? null)}${s.standin ? " · stand-in" : ""}` : "",
+    roster?.captain ? "Captain" : "",
+    rank ? esc(rank) : "",
+    src.key === "ad2l" ? `<a href="https://www.opendota.com/players/${encodeURIComponent(key)}" target="_blank" rel="noopener">OpenDota ↗</a>` : "",
+  ].filter(Boolean).join(" · ");
+
+  const cards = [
+    ["Record", `${s.wins}–${s.games - s.wins}`, `${pct(s.win_rate)} win rate · ${s.games} game${s.games === 1 ? "" : "s"}`],
+    ["KDA", s.kda.toFixed(2), `${(s.kills / s.games).toFixed(1)} / ${(s.deaths / s.games).toFixed(1)} / ${(s.assists / s.games).toFixed(1)} per game`],
+    ["GPM", fmt(s.avg_gpm), `${fmt(s.avg_xpm)} XPM`],
+    ["Damage / min", fmt(s.dmg_per_min), `${fmt(s.dmg_per_1k_nw)} per 1k net worth`],
+    ["Kill participation", pct(s.avg_kp), "average per game"],
+    tierOf ? ["Tier", `${tierOf.tier}`, `${tierOf.role === "core" ? "Core" : "Support"} · rating ${tierOf.rating}`]
+      : ["Tier", "—", `needs ${MIN_GAMES}+ games`],
+  ];
+  const vsOf = ({ m, p }) => (p.team === "a" ? { name: m.team_b, id: m.team_b_id } : { name: m.team_a, id: m.team_a_id });
+  const bestCard = (label, g, value, i) => `<a class="card hl best-game" style="--i:${i}" href="${src.link(g.m)}">${portrait(g.p.hero, "card-hero")}
+    <div class="k">${label}</div><div class="v">${value}</div>
+    <div class="s">${esc(g.p.hero)} · vs ${esc(vsOf(g).name)} · ${g.won ? "Won" : "Lost"}</div></a>`;
+
+  app.innerHTML = `
+    ${back}
+    ${pageHead(src.kicker, esc(s.name), sub)}
+    <div class="cards reveal">${cards.map(([k, v, t], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
+    <h2>Best games</h2>
+    <div class="cards reveal">
+      ${bestCard("Most damage", h.best.damage, fmt(h.best.damage.p.hero_damage), 0)}
+      ${bestCard("Best KDA", h.best.kda, `${h.best.kda.p.kills}/${h.best.kda.p.deaths}/${h.best.kda.p.assists}`, 1)}
+      ${bestCard("Top GPM", h.best.gpm, fmt(h.best.gpm.p.gpm), 2)}
+    </div>
+    <h2>Hero pool</h2>
+    <div class="hero-chips">${h.heroes.map((x) => `<div class="hero-chip" title="KDA ${x.kda.toFixed(2)}">${portrait(x.hero)}<span>${esc(x.hero)}</span><b>${x.wins}–${x.games - x.wins}</b></div>`).join("")}</div>
+    <h2>Every game</h2>
+    <div id="t"></div>
+    <p class="table-note">Newest first. Sort with the menu or any column header; the arrow opens the game.</p>`;
+
+  sortableTable(document.getElementById("t"), [
+    ["date", "Date", (v) => when(new Date(v)), "l"],
+    ["hero", "Hero", (v) => `<span class="hero-cell">${portrait(v)}${esc(v)}</span>`, "l"],
+    ["won", "Result", (v) => `<span class="res ${v ? "w" : "l"}">${v ? "Win" : "Loss"}</span>`],
+    ["vs", "Opponent", (v, r) => teamLink(src, v, r.vs_id), "l"],
+    ["kills", "K"], ["deaths", "D"], ["assists", "A"],
+    ["net_worth", "Net worth", fmt, "", "gold"], ["gpm", "GPM"], ["xpm", "XPM"],
+    ["hero_damage", "Hero dmg", fmt, "", "ember"], ["kill_participation", "KP", pct],
+    ["link", "", (v) => `<a href="${v}" title="Open game">→</a>`],
+  ], h.games.map((g) => ({
+    date: g.m.createdAt ? +g.m.createdAt : 0, hero: g.p.hero, won: g.won ? 1 : 0, vs: vsOf(g).name, vs_id: vsOf(g).id ?? null,
+    kills: g.p.kills, deaths: g.p.deaths, assists: g.p.assists, net_worth: g.p.net_worth, gpm: g.p.gpm, xpm: g.p.xpm,
+    hero_damage: g.p.hero_damage, kill_participation: g.p.kill_participation ?? null, link: src.link(g.m),
+  })), "date", { toolbar: true });
 }
 
 async function renderHeroes(src) {
@@ -642,7 +732,7 @@ function gameMvp(m) {
   return m.players.filter((p) => p.team === m.winner).sort((a, b) => rate(b) - rate(a))[0];
 }
 
-function weekHighlights(games) {
+function weekHighlights(games, src) {
   const all = games.flatMap((m) => m.players.map((p) => ({ p, m })));
   const best = (score) => all.reduce((top, x) => (!top || score(x) > score(top) ? x : top), null);
   const mvps = {};
@@ -659,11 +749,11 @@ function weekHighlights(games) {
   const kills = best(({ p }) => p.kills);
   const vs = (m) => `${esc(m.team_a)} vs ${esc(m.team_b)}`;
   return [
-    ["Player of the week", esc(pow.p.name), `${pow.n} MVP${pow.n === 1 ? "" : "s"} in ${gamesOf(pow.p)} game${gamesOf(pow.p) === 1 ? "" : "s"}`, pow.p.hero],
-    ["Biggest damage game", fmt(dmg.p.hero_damage), `<b>${esc(dmg.p.name)}</b> · ${esc(dmg.p.hero)} · ${vs(dmg.m)}`, dmg.p.hero],
-    ["Best KDA", `${kda.p.kills}/${kda.p.deaths}/${kda.p.assists}`, `<b>${esc(kda.p.name)}</b> · ${esc(kda.p.hero)} · ${vs(kda.m)}`, kda.p.hero],
-    ["Top GPM", fmt(gpm.p.gpm), `<b>${esc(gpm.p.name)}</b> · ${esc(gpm.p.hero)} · ${vs(gpm.m)}`, gpm.p.hero],
-    ["Most kills", fmt(kills.p.kills), `<b>${esc(kills.p.name)}</b> · ${esc(kills.p.hero)} · ${vs(kills.m)}`, kills.p.hero],
+    ["Player of the week", playerLink(src, pow.p), `${pow.n} MVP${pow.n === 1 ? "" : "s"} in ${gamesOf(pow.p)} game${gamesOf(pow.p) === 1 ? "" : "s"}`, pow.p.hero],
+    ["Biggest damage game", fmt(dmg.p.hero_damage), `<b>${playerLink(src, dmg.p)}</b> · ${esc(dmg.p.hero)} · ${vs(dmg.m)}`, dmg.p.hero],
+    ["Best KDA", `${kda.p.kills}/${kda.p.deaths}/${kda.p.assists}`, `<b>${playerLink(src, kda.p)}</b> · ${esc(kda.p.hero)} · ${vs(kda.m)}`, kda.p.hero],
+    ["Top GPM", fmt(gpm.p.gpm), `<b>${playerLink(src, gpm.p)}</b> · ${esc(gpm.p.hero)} · ${vs(gpm.m)}`, gpm.p.hero],
+    ["Most kills", fmt(kills.p.kills), `<b>${playerLink(src, kills.p)}</b> · ${esc(kills.p.hero)} · ${vs(kills.m)}`, kills.p.hero],
   ];
 }
 
@@ -694,7 +784,7 @@ function gamePanel(m, src, label) {
   const mvp = gameMvp(m);
   const lineup = (t) => m.players.filter((p) => p.team === t).map((p) => `
     <li class="${p === mvp ? "mvp" : ""}">${portrait(p.hero)}
-      <span class="lu-name">${esc(p.name)}${p === mvp ? ' <span class="mvp-tag">MVP</span>' : ""}</span>
+      <span class="lu-name">${playerLink(src, p)}${p === mvp ? ' <span class="mvp-tag">MVP</span>' : ""}</span>
       <span class="lu-kda">${p.kills}/${p.deaths}/${p.assists}</span>
       <span class="lu-nw">${fmt(p.net_worth)}</span>
     </li>`).join("");
@@ -768,7 +858,7 @@ async function renderWeek(src, back = 0) {
 
   // Highlights only from games with details (private scrims are results only).
   const detailed = inWeek.filter(hasDetails);
-  const hl = detailed.length ? weekHighlights(detailed) : [];
+  const hl = detailed.length ? weekHighlights(detailed, src) : [];
   app.innerHTML = `
     <div class="week-top">
       ${pageHead(src.kicker, "Weekly recap", `Week of ${shortDate(start)} – ${shortDate(end)} · ${inWeek.length} game${inWeek.length === 1 ? "" : "s"}${src.key === "ad2l" ? " · drafts in pick/ban order" : ""}`)}
@@ -875,8 +965,8 @@ async function renderTeams(src, slug) {
 
   const heroChips = (list, count) => list.slice(0, 12).map((x) => `<div class="hero-chip">${portrait(x.hero)}<span>${esc(x.hero)}</span><b>${count(x)}</b></div>`).join("");
   const rosterHtml = roster
-    ? roster.map((p) => `<li>${p.captain ? '<span class="cap" title="Captain">C</span>' : ""}<a href="https://www.opendota.com/players/${p.account_id}" target="_blank" rel="noopener">${esc(p.name)}</a>${rankLabel(p.rank_tier) ? `<span class="tag">${esc(rankLabel(p.rank_tier))}</span>` : ""}</li>`).join("")
-    : h.players.map((p) => `<li>${esc(p.name)}<span class="tag">${p.games} game${p.games === 1 ? "" : "s"}${p.standin ? " · stand-in" : ""}</span></li>`).join("");
+    ? roster.map((p) => `<li>${p.captain ? '<span class="cap" title="Captain">C</span>' : ""}${playerLink(src, { key: String(p.account_id), name: p.name })}${rankLabel(p.rank_tier) ? `<span class="tag">${esc(rankLabel(p.rank_tier))}</span>` : ""}</li>`).join("")
+    : h.players.map((p) => `<li>${playerLink(src, p)}<span class="tag">${p.games} game${p.games === 1 ? "" : "s"}${p.standin ? " · stand-in" : ""}</span></li>`).join("");
 
   app.innerHTML = `
     <div class="kicker" style="margin-bottom:16px"><a href="${base}">← All teams</a></div>
@@ -910,7 +1000,7 @@ async function renderTeams(src, slug) {
     // Only this team's side of each game.
     const ownSide = h.games.filter(({ m }) => hasDetails(m)).map(({ m, side }) => ({ ...m, players: m.players.filter((p) => p.team === side) }));
     sortableTable(document.getElementById("t"), [
-      ["name", "Player", (v) => esc(v), "l"], ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
+      ["name", "Player", (v, r) => playerLink(src, r), "l"], ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
       ["kda", "KDA", (v) => v.toFixed(2), "", "jade"], ["avg_gpm", "GPM", null, "", "gold"], ["dmg_per_min", "Dmg/min", fmt, "", "ember"],
       ["avg_kp", "Avg KP", pct], ["heroes", "Heroes", (v) => esc(v), "l"],
     ], playerLeaderboard(ownSide.map((m) => ({ ...m, players: m.players }))), "games");
@@ -930,7 +1020,7 @@ async function renderTiers(src) {
     const chip = (p, i) => {
       const rank = rankLabel(p.rank_tier);
       const tip = `Rating ${p.rating} · impact vs ${p.role}s ${p.impact >= 0 ? "+" : ""}${p.impact.toFixed(2)} · adjusted win rate ${Math.round(p.win_shrunk * 100)}% · top heroes: ${p.top_heroes.join(", ")}`;
-      const name = p.account_id ? `<a href="https://www.opendota.com/players/${p.account_id}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
+      const name = playerLink(src, p);
       return `<div class="chip ${p.role}" style="--i:${i}" title="${esc(tip)}">
         <div class="chip-top"><span class="chip-name">${name}</span><span class="chip-rating">${p.rating}</span></div>
         <div class="chip-meta">${p.team ? teamLink(src, p.team) : ""}${p.standin ? " · stand-in" : ""}</div>
@@ -949,7 +1039,7 @@ async function renderTiers(src) {
       <div class="row segs">${tab("all", "Everyone")}${tab("core", "Cores")}${tab("support", "Supports")}</div>
       <div class="tier-board">${bands}</div>
       ${list.unranked.length ? `<h2>Not enough games yet</h2>
-        <p class="table-note">Needs ${MIN_GAMES}+ games to be ranked: ${list.unranked.map((p) => `${esc(p.name)} (${p.games})`).join(", ")}.</p>` : ""}`;
+        <p class="table-note">Needs ${MIN_GAMES}+ games to be ranked: ${list.unranked.map((p) => `${playerLink(src, p)} (${p.games})`).join(", ")}.</p>` : ""}`;
     document.querySelectorAll(".seg").forEach((b) => (b.onclick = () => { tierRole = b.dataset.role; draw(); }));
   };
   app.innerHTML = `
@@ -995,6 +1085,7 @@ function route() {
     else if (h.startsWith("#/ad2l/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[3] ?? "")); }
     else if (h.startsWith("#/ad2l/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
     else if (h.startsWith("#/ad2l/tiers")) { section = "tiers"; page = () => renderTiers(src); }
+    else if (h.startsWith("#/ad2l/player/")) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice("#/ad2l/player/".length))); }
     else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
     else { section = "standings"; page = renderStandings; }
@@ -1005,6 +1096,7 @@ function route() {
     else if (h.startsWith("#/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[2] ?? "")); }
     else if (h.startsWith("#/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[2] ?? 0) || 0); }
     else if (h.startsWith("#/tiers")) { section = "tiers"; page = () => renderTiers(src); }
+    else if (h.startsWith("#/player/")) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice("#/player/".length))); }
     else if (h.startsWith("#/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
     else { section = "matches"; page = () => renderMatches(src); }

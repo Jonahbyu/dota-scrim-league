@@ -54,7 +54,7 @@ export function teamHistory(matches, team) {
       h.picks++; if (won) h.wins++;
       heroes.set(p.hero, h);
       const key = p.player_key ?? p.name.trim().toLowerCase();
-      const pl = players.get(key) ?? { name: p.name, games: 0, wins: 0, standin: false };
+      const pl = players.get(key) ?? { key, name: p.name, games: 0, wins: 0, standin: false };
       pl.games++; if (won) pl.wins++; if (p.standin) pl.standin = true;
       players.set(key, pl);
     }
