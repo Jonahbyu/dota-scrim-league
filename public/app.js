@@ -435,7 +435,7 @@ const SOURCES = {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/week",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
   },
 };
 
@@ -651,7 +651,7 @@ async function renderStandings() {
 
   const date = (s) => new Date(s * 1000).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   app.innerHTML = `
-    ${pageHead(kicker, "Standings", `Series results from PlayOn; game stats from ${d.games.length} ticketed games found on OpenDota.
+    ${pageHead(kicker, "Standings", `Series results from PlayOn; game stats from ${d.games.length} ticketed games found on OpenDota. Click a team for its roster, series history and heroes.
       Updated ${new Date(d.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}.`)}
     <div id="t" class="reveal"></div>
     <p class="table-note">Sorted by game wins; official standings and tiebreakers live on
@@ -1531,7 +1531,7 @@ async function renderTeams(src, slug) {
     : h.players.map((p) => `<li>${playerLink(src, p)}<span class="tag">${p.games} game${p.games === 1 ? "" : "s"}${p.standin ? " · stand-in" : ""}</span></li>`).join("");
 
   app.innerHTML = `
-    <div class="kicker" style="margin-bottom:16px"><a href="${base}">← All teams</a></div>
+    <div class="kicker" style="margin-bottom:16px"><a href="${base}">← ${src.key === "ad2l" ? "Standings" : "All teams"}</a></div>
     <header class="page-head reveal">
       <div class="kicker" style="--i:0">${src.kicker} · Team</div>
       <h1 style="--i:1">${esc(team.name)}</h1>
@@ -1655,7 +1655,11 @@ function route() {
     const gameId = /^#\/ad2l\/game\/(\d+|[0-9a-f]{32})$/.exec(h)?.[1];
     if (gameId) { section = "week"; page = () => renderMatch(gameId, src); }
     else if (h.startsWith("#/ad2l/games")) { section = "week"; page = () => renderWeek(src, 0); } // old Games tab: Weekly lists every game
-    else if (h.startsWith("#/ad2l/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[3] ?? "")); }
+    else if (h.startsWith("#/ad2l/teams")) {
+      // Standings doubles as the team list; a team's own page still lives under #/ad2l/teams/<id>.
+      const slug = decodeURIComponent(h.split("/")[3] ?? "");
+      section = "standings"; page = slug ? () => renderTeams(src, slug) : renderStandings;
+    }
     else if (h.startsWith("#/ad2l/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
     else if (h.startsWith("#/ad2l/tiers")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/player/")) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice("#/ad2l/player/".length))); }
