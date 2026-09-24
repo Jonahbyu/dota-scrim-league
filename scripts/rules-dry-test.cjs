@@ -57,6 +57,10 @@ const cases = [
   ["someone else deletes it", del(match(), { uid: "u2" }), "DENY"],
   ["signed-out delete", del(match(), null), "DENY"],
   ["admin deletes any", del(match(), { uid: "admin", token: { email: "jonahbyu@gmail.com" } }), "ALLOW"],
+  ["unticketed AD2L game", { ...req(match()), path: PATH.replace("/matches/", "/ad2l_unticketed/") }, "ALLOW"],
+  ["unticketed, bad shape", { ...req(match({ admin: true })), path: PATH.replace("/matches/", "/ad2l_unticketed/") }, "DENY"],
+  ["unknown collection", { ...req(match()), path: PATH.replace("/matches/", "/anything/") }, "DENY"],
+  ["uploader deletes own unticketed game", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/ad2l_unticketed/") } }, "ALLOW"],
 ];
 
 (async () => {

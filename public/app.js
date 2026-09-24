@@ -7,8 +7,9 @@ import { listTeams, teamHistory, teamSlug, sideOf } from "./lib/teams.js";
 import { hasTimeline, swings, teamTimeline, teamObjectives, goldCurves, byPlayer, byHero, BIG_LEAD } from "./lib/timeline.js";
 import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
 import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.js";
-import { buildPlayerIndex, matchPlayers } from "./lib/players.js";
+import { buildPlayerIndex, matchPlayers, nameKey } from "./lib/players.js";
 import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
+import { asAd2l, guessTeams, teamByName } from "./lib/unticketed.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
@@ -111,9 +112,18 @@ function errorBox(e) {
 // ---------- Upload + review ----------
 
 const engine = createBrowserEngine();
-const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false };
-// Private uploads only need a valid result; public ones need every player too.
-const checkDraft = (d) => validateMatch(d, { resultOnly: upload.isPrivate });
+// league: "scrim" (the ledger) or "ad2l" (an unticketed AD2L division game, same form).
+const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false, league: "scrim" };
+// Private uploads only need a valid result; public ones need every player too. AD2L
+// uploads must name two division teams, so the game lands on the right team pages.
+function checkDraft(d) {
+  const c = validateMatch(d, { resultOnly: upload.isPrivate && upload.league !== "ad2l" });
+  if (upload.league !== "ad2l" || !ad2lCache) return c;
+  const bad = [d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n));
+  if (!bad.length) return c;
+  return { ...c, ok: false, errors: [...(c.errors ?? []), ...bad.map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`)] };
+}
+const ad2lTeamByName = (n) => teamByName(ad2lCache, n);
 
 function blankDraft() {
   const player = (team) => ({ team, name: "", tag: "", hero: "", ...Object.fromEntries(STATS.map(([k]) => [k, null])) });
@@ -135,7 +145,7 @@ function addFiles(files) {
 
 // Snipping Tool: Win+Shift+S, then Ctrl+V anywhere on the upload page.
 document.addEventListener("paste", (e) => {
-  if (!location.hash.startsWith("#/upload") || e.target.closest?.("input")) return;
+  if (!/^#\/(ad2l\/)?upload/.test(location.hash) || e.target.closest?.("input")) return;
   const files = [...(e.clipboardData?.items ?? [])].filter((i) => i.kind === "file").map((i) => i.getAsFile()).filter(Boolean);
   if (files.length) { e.preventDefault(); addFiles(files); }
 });
@@ -152,6 +162,7 @@ async function runParse() {
     upload.draft = match;
     upload.notes = notes;
     upload.names = await fixNames(match);
+    if (upload.league === "ad2l") { await ad2lData(); upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)]; }
     upload.check = checkDraft(match);
     upload.message = { kind: "ok", text: "Done. Check every value against your screenshots: red boxes couldn't be read." };
   } catch (e) {
@@ -230,9 +241,9 @@ function draftHtml(d) {
     <h2>Review</h2>
     <div class="panel edit">
       <div class="fields">
-        <label>Team A (first / left)${textInput("team_a", d.team_a)}</label>
+        <label>Team A (first / left)${textInput("team_a", d.team_a, upload.league === "ad2l" ? 'list="ad2l-teams"' : "")}</label>
         <label>Team A score${numInput("score_a", d.score_a)}</label>
-        <label>Team B (second / right)${textInput("team_b", d.team_b)}</label>
+        <label>Team B (second / right)${textInput("team_b", d.team_b, upload.league === "ad2l" ? 'list="ad2l-teams"' : "")}</label>
         <label>Team B score${numInput("score_b", d.score_b)}</label>
         <label>Winner
           <select data-path="winner" class="${d.winner ? "" : "bad"}">
@@ -256,13 +267,14 @@ function draftHtml(d) {
       </table>
     </div>
     <div id="checks">${checksHtml(upload.check)}</div>
+    ${upload.league === "ad2l" ? `<datalist id="ad2l-teams">${(ad2lCache?.teams ?? []).map((t) => `<option value="${esc(t.name)}">`).join("")}</datalist>` : `
     <label class="private-toggle">
       <input type="checkbox" id="private" ${upload.isPrivate ? "checked" : ""}>
       <span><b>Private — post the result only.</b> Teams, winner, kill score and duration are saved.
         Heroes, players and stats never leave this browser, so nothing about your drafts or lineups is shared.</span>
-    </label>
+    </label>`}
     <div class="row" style="margin-top:12px">
-      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.isPrivate ? "Post private result" : "Save to league"}</button>
+      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.isPrivate ? "Post private result" : upload.league === "ad2l" ? "Save to AD2L" : "Save to league"}</button>
       <button id="discard">Discard</button>
     </div>`;
 }
@@ -296,16 +308,17 @@ async function saveDraft() {
   save.disabled = true;
   save.textContent = "Saving…";
   try {
-    const res = await submitMatch(upload.check.match, { isPrivate: upload.isPrivate });
+    const ad2l = upload.league === "ad2l";
+    const res = await submitMatch(upload.check.match, { isPrivate: ad2l ? false : upload.isPrivate, league: upload.league });
     if (res.duplicateOf) {
-      upload.message = { kind: "warn", text: "This game is already in the league.", link: `#/match/${res.duplicateOf}` };
+      upload.message = { kind: "warn", text: "This game is already in the league.", link: ad2l ? `#/ad2l/game/${res.duplicateOf}` : `#/match/${res.duplicateOf}` };
       renderUpload();
       return;
     }
     for (const img of upload.images) URL.revokeObjectURL(img.url);
     Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null });
-    await allMatches(true);
-    location.hash = `#/match/${res.id}`;
+    if (ad2l) { await ad2lUploaded(true); location.hash = `#/ad2l/game/${res.id}`; }
+    else { await allMatches(true); location.hash = `#/match/${res.id}`; }
   } catch (e) {
     upload.message = { kind: "err", text: `Couldn't save: ${e.message}` };
     renderUpload();
@@ -322,11 +335,14 @@ function renderUpload() {
            <div class="slot-label">${i === 0 ? "Overview or Scoreboard" : "The other one"}</div>
            <div class="slot-hint">Paste · drop · click</div></div></div>`;
   };
-  app.innerHTML = `
-    ${pageHead("Post-game intake", "Upload a scrim",
-      `Snip the post-game <b>overview</b> (hero cards) and the <b>Scoreboard</b> tab with <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>,
+  const how = `Snip the post-game <b>overview</b> (hero cards) and the <b>Scoreboard</b> tab with <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>,
        then press <kbd>Ctrl</kbd>+<kbd>V</kbd> here — once for each. Don't hover over anything while snipping; tooltips cover numbers.
-       Screenshots are read on your computer; only the stats you save are uploaded.`)}
+       Screenshots are read on your computer; only the stats you save are uploaded.`;
+  app.innerHTML = `
+    ${upload.league === "ad2l"
+      ? pageHead(SOURCES.ad2l.kicker, "Upload an unticketed game", `For Champion division games played <b>without a league ticket</b>, which never reach OpenDota's league list, so the site can't find them. ${how}
+         They count on team, player, hero and tier pages, marked “Unticketed”; standings stay PlayOn's. No draft, gold graph or ward data (that only comes from replays).`)
+      : pageHead("Post-game intake", "Upload a scrim", how)}
     <div class="reveal">
       <div class="slots" id="drop" style="--i:3">${slot(0)}${slot(1)}
         <input type="file" id="file" accept="image/*" multiple hidden></div>
@@ -393,6 +409,20 @@ async function ad2lData() {
   return ad2lCache;
 }
 
+// Unticketed AD2L games uploaded from screenshots (Firestore). If the database can't be
+// reached the AD2L view still works from the static file.
+let ad2lUploads = null;
+async function ad2lUploaded(force = false) {
+  if (!ad2lUploads || force) ad2lUploads = await listMatches("ad2l").catch((e) => { console.warn("unticketed games unavailable", e); return []; });
+  return ad2lUploads;
+}
+
+async function ad2lGames() {
+  const d = await ad2lData();
+  const up = (await ad2lUploaded()).filter((u) => !u.private).map((u) => withDerived(asAd2l(u, d)));
+  return up.length ? [...d.games, ...up].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)) : d.games;
+}
+
 const SOURCES = {
   scrim: {
     key: "scrim", kicker: "The ledger", load: allMatches,
@@ -401,10 +431,10 @@ const SOURCES = {
     nav: [["#/", "matches", "Matches"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/tiers", "tiers", "Tiers"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
   ad2l: {
-    key: "ad2l", kicker: "AD2L · S48 Champion", load: async () => (await ad2lData()).games,
+    key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/games",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
   },
 };
 
@@ -415,7 +445,8 @@ async function renderMatches(src) {
   app.innerHTML = loading(src.kicker, title);
   let data;
   try { data = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, title)}${errorBox(e)}`; return; }
-  const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record${src.key === "ad2l" ? " · ticketed league games only" : ""}`;
+  const unt = data.filter((m) => m.unticketed).length;
+  const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record${src.key === "ad2l" ? ` · ${data.length - unt} ticketed (from replays)${unt ? `, ${unt} unticketed (uploaded)` : ""} · <a href="#/ad2l/upload">Upload an unticketed game</a>` : ""}`;
   app.innerHTML = `
     ${pageHead(src.kicker, title, data.length ? count : "")}
     ${data.length ? `<div class="fixtures reveal">${data.map((m, i) => `
@@ -423,7 +454,7 @@ async function renderMatches(src) {
         <div class="fx-team a ${m.winner === "a" ? "" : "lost"}">${teamLink(src, m.team_a, m.team_a_id, true)}${m.winner === "a" ? "<small>Victory</small>" : ""}</div>
         <div class="fx-score">
           <div class="n">${m.score_a}<i>/</i>${m.score_b}</div>
-          <div class="meta">${dur(m.duration_sec)} · ${when(m.createdAt)}${m.private ? ' · <span class="priv">Private</span>' : ""}</div>
+          <div class="meta">${dur(m.duration_sec)} · ${when(m.createdAt)}${m.private ? ' · <span class="priv">Private</span>' : ""}${m.unticketed ? ' · <span class="priv">Unticketed</span>' : ""}</div>
         </div>
         <div class="fx-team b ${m.winner === "b" ? "" : "lost"}">${teamLink(src, m.team_b, m.team_b_id, true)}${m.winner === "b" ? "<small>Victory</small>" : ""}</div>
       </a>`).join("")}</div>`
@@ -434,14 +465,17 @@ async function renderMatch(id, src) {
   app.innerHTML = `<div class="panel empty">Loading…</div>`;
   let raw;
   try {
-    raw = (await src.load().catch(() => [])).find((m) => m.id === id) ?? (src.key === "scrim" ? await getMatch(id) : null);
+    raw = (await src.load().catch(() => [])).find((m) => m.id === id)
+      ?? (src.key === "scrim" ? await getMatch(id) : /^[0-9a-f]{32}$/.test(id) ? await getMatch(id, "ad2l").then((u) => u && withDerived(asAd2l(u, ad2lCache))) : null);
   } catch (e) { app.innerHTML = errorBox(e); return; }
   if (!raw) { app.innerHTML = `<div class="notice err">No such match.</div>`; return; }
   const m = raw.teamTotals || raw.private ? raw : withDerived(raw);
 
   // The uploader (same browser session) can delete their own scrim; the rules check it.
-  const canDelete = src.key === "scrim" && m.uid && m.uid === (await currentUid());
-  const deleteBtn = canDelete ? `<div class="row" style="margin-top:18px"><button class="danger" id="del">Delete this scrim</button></div>` : "";
+  const uploaded = src.key === "scrim" || m.unticketed;
+  const canDelete = uploaded && m.uid && m.uid === (await currentUid());
+  const noun = m.unticketed ? "game" : "scrim";
+  const deleteBtn = canDelete ? `<div class="row" style="margin-top:18px"><button class="danger" id="del">Delete this ${noun}</button></div>` : "";
   const wireDelete = () => {
     const b = document.getElementById("del");
     if (!b) return;
@@ -450,12 +484,12 @@ async function renderMatch(id, src) {
       b.disabled = true;
       b.textContent = "Deleting…";
       try {
-        await deleteMatch(m.id);
-        await allMatches(true);
-        location.hash = "#/";
+        await deleteMatch(m.id, m.unticketed ? "ad2l" : "scrim");
+        if (m.unticketed) { await ad2lUploaded(true); location.hash = "#/ad2l/games"; }
+        else { await allMatches(true); location.hash = "#/"; }
       } catch (e) {
         b.disabled = false;
-        b.textContent = "Delete this scrim";
+        b.textContent = `Delete this ${noun}`;
         app.insertAdjacentHTML("beforeend", `<div class="notice err">Couldn't delete: ${esc(e.message)}</div>`);
       }
     };
@@ -508,12 +542,15 @@ async function renderMatch(id, src) {
   const plate = (t) => {
     const won = m.winner === t;
     return `<div class="plate ${t} ${won ? "" : "lost"}">
-      <div class="top-line"><span class="side">${ad2l ? (t === "a" ? "Radiant" : "Dire") : (t === "a" ? "Team A" : "Team B")}</span>${won ? '<span class="win-badge">Victory</span>' : ""}</div>
+      <div class="top-line"><span class="side">${ad2l && !m.unticketed ? (t === "a" ? "Radiant" : "Dire") : (t === "a" ? "Team A" : "Team B")}</span>${won ? '<span class="win-badge">Victory</span>' : ""}</div>
       <div class="team">${t === "a" ? teamLink(src, m.team_a, m.team_a_id) : teamLink(src, m.team_b, m.team_b_id)}</div>
       <div class="n">${t === "a" ? m.score_a : m.score_b}</div>
     </div>`;
   };
-  const footer = ad2l
+  const footer = m.unticketed
+    ? `Unticketed AD2L game, uploaded ${when(m.createdAt)} from post-game screenshots, so no draft, gold graph or ward data.
+       Wrong? ${canDelete ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`
+    : ad2l
     ? `Played ${when(m.createdAt)} · AD2L S48 ticketed game ${m.match_id} ·
        <a href="https://www.opendota.com/matches/${m.match_id}" target="_blank" rel="noopener">OpenDota</a> ·
        <a href="https://www.dotabuff.com/matches/${m.match_id}" target="_blank" rel="noopener">Dotabuff</a>`
@@ -1423,7 +1460,7 @@ function route() {
 
   let section, page;
   if (isAd2l) {
-    const gameId = /^#\/ad2l\/game\/(\d+)$/.exec(h)?.[1];
+    const gameId = /^#\/ad2l\/game\/(\d+|[0-9a-f]{32})$/.exec(h)?.[1];
     if (gameId) { section = "games"; page = () => renderMatch(gameId, src); }
     else if (h.startsWith("#/ad2l/games")) { section = "games"; page = () => renderMatches(src); }
     else if (h.startsWith("#/ad2l/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[3] ?? "")); }
@@ -1434,11 +1471,12 @@ function route() {
     else if (h.startsWith("#/ad2l/hero/")) { section = "heroes"; page = () => renderHero(src, h.slice("#/ad2l/hero/".length)); }
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
     else if (h.startsWith("#/ad2l/draft")) { section = "draft"; page = () => renderDraft(src); }
+    else if (h.startsWith("#/ad2l/upload")) { section = "upload"; page = async () => { upload.league = "ad2l"; await ad2lData().catch(() => null); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
     else { section = "standings"; page = renderStandings; }
   } else {
     const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];
     if (matchId) { section = "matches"; page = () => renderMatch(matchId, src); }
-    else if (h.startsWith("#/upload")) { section = "upload"; page = renderUpload; }
+    else if (h.startsWith("#/upload")) { section = "upload"; page = () => { upload.league = "scrim"; if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
     else if (h.startsWith("#/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[2] ?? "")); }
     else if (h.startsWith("#/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[2] ?? 0) || 0); }
     else if (h.startsWith("#/tiers")) { section = "tiers"; page = () => renderTiers(src); }

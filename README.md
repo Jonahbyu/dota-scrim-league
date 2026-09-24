@@ -22,6 +22,14 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   count toward team records but not the tier list, player or hero tables. The game ID is
   built from teams + kill score + duration only, so it can't be used to guess a private
   game's heroes.
+- **Unticketed AD2L games** — AD2L → Upload: Champion division games played without a
+  league ticket (so OpenDota's league list never has them) are uploaded from screenshots
+  exactly like a scrim. Team names must be division teams (picked from a list, or filled in
+  from whose roster most players are on); player names are matched to roster accounts so the
+  games count on the same player pages. They show as "Unticketed" and count on team, player,
+  hero, weekly and tier pages; standings stay PlayOn's series scores. No draft, gold or ward
+  data (those come from replays). Stored in Firestore `scrimLeague/data/ad2l_unticketed`,
+  same rules as scrims.
 - **Deleting** — whoever uploaded a scrim can delete it from the browser they uploaded it
   in; the league admin can delete any.
 - **Player pages** — click any player name: record, KDA, GPM, damage, kill participation,

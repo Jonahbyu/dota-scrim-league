@@ -14,7 +14,10 @@ import { parseDuration } from "./validate.js";
 const app = initializeApp(FIREBASE_CONFIG, "scrim-league");
 const auth = getAuth(app);
 const db = getFirestore(app);
-const matches = collection(db, "scrimLeague", "data", "matches");
+// Scrims in `matches`; AD2L division games played without a league ticket, uploaded from
+// screenshots the same way, in `ad2l_unticketed`. Same document shape and rules for both.
+const COLLECTIONS = { scrim: "matches", ad2l: "ad2l_unticketed" };
+const coll = (league = "scrim") => collection(db, "scrimLeague", "data", COLLECTIONS[league]);
 
 export const MAX_MATCHES = 500;
 
@@ -55,10 +58,10 @@ export function toStored(draft, { isPrivate = false } = {}) {
 }
 
 // Returns { id } on success or { duplicateOf: id } if the game is already uploaded.
-export async function submitMatch(draft, { isPrivate = false } = {}) {
+export async function submitMatch(draft, { isPrivate = false, league = "scrim" } = {}) {
   const data = toStored(draft, { isPrivate });
   const id = await matchId(data);
-  const ref = doc(matches, id);
+  const ref = doc(coll(league), id);
   if ((await getDoc(ref)).exists()) return { duplicateOf: id };
   await authReady;
   if (!auth.currentUser) await signInAnonymously(auth);
@@ -75,18 +78,18 @@ export async function submitMatch(draft, { isPrivate = false } = {}) {
 
 // Only the uploader (same browser session) or the league admin may delete; the rules
 // enforce it, this just makes the call.
-export async function deleteMatch(id) {
-  await deleteDoc(doc(matches, id));
+export async function deleteMatch(id, league = "scrim") {
+  await deleteDoc(doc(coll(league), id));
 }
 
 const fromDoc = (d) => ({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate?.() ?? null });
 
-export async function listMatches() {
-  const snap = await getDocs(query(matches, orderBy("createdAt", "desc"), limit(MAX_MATCHES)));
+export async function listMatches(league = "scrim") {
+  const snap = await getDocs(query(coll(league), orderBy("createdAt", "desc"), limit(MAX_MATCHES)));
   return snap.docs.map(fromDoc);
 }
 
-export async function getMatch(id) {
-  const d = await getDoc(doc(matches, id));
+export async function getMatch(id, league = "scrim") {
+  const d = await getDoc(doc(coll(league), id));
   return d.exists() ? fromDoc(d) : null;
 }
