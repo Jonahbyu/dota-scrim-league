@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dota Scrim League</title>
+  <meta name="description" content="Upload Dota 2 scrim screenshots; see league standings, player and hero stats.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="#/">Scrim League</a>
+    <nav>
+      <a href="#/upload" data-nav="upload">Upload</a>
+      <a href="#/" data-nav="matches">Matches</a>
+      <a href="#/players" data-nav="players">Players</a>
+      <a href="#/heroes" data-nav="heroes">Heroes</a>
+    </nav>
+  </header>
+  <main id="app"></main>
+  <datalist id="hero-list"></datalist>
+  <datalist id="player-list"></datalist>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

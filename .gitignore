@@ -1,0 +1,14 @@
+node_modules/
+.env
+
+# Dev-only: debug crops and screenshots served to the local dev server.
+public/_dev/
+scripts/debug/
+
+# Real scrim screenshots and the hand-checked transcription contain other players'
+# gamertags; keep them local. Tests that need them skip when they're missing.
+test-screenshots/
+data/sample-game1.json
+
+# Tesseract language data for Node tests (downloaded automatically, 5 MB).
+data/tessdata/

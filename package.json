@@ -1,0 +1,19 @@
+{
+  "name": "dota-scrim-league",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js",
+    "ocr:check": "node scripts/ocr-check.js",
+    "ocr:robustness": "node scripts/ocr-robustness.js",
+    "rules:test": "node scripts/rules-dry-test.cjs",
+    "deploy": "node scripts/deploy-pages.cjs"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.31.0",
+    "sharp": "^0.35.4",
+    "tesseract.js": "^7.0.0"
+  }
+}

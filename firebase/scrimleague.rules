@@ -1,0 +1,74 @@
+    // ---------- Dota Scrim League ----------
+    //
+    // A separate app in the same project, namespaced under scrimLeague/ so it cannot
+    // collide with recipes, collections or Maze Racer. Source of truth for this block:
+    // the Dota Scrim League repo, firebase/scrimleague.rules (merged in with
+    // scripts/merge-rules.cjs).
+    //
+    // Matches are uploaded by anonymous-auth clients after the uploader reviews what OCR
+    // read from their post-game screenshots, so these rules are the only thing standing
+    // between the league tables and junk. They check shape and plausible values; they do
+    // not (cannot) prove a scoreboard is real.
+    match /scrimLeague/data/matches/{matchId} {
+
+      // Anyone may read: the league tables are the point. The limit bound applies to
+      // `list` because Firestore evaluates it against the query's potential result set.
+      allow get: if true;
+      allow list: if request.query.limit <= 500;
+
+      // BUDGET: Firestore stops evaluating after 1000 expressions per request, and every
+      // field read, operator and literal counts. Ten players with a range check per field
+      // blow straight through it (measured with the rules test API, scripts/rules-dry-test.cjs).
+      // So each check is made to do several jobs at once:
+      //  - keys().size() == 15 plus reading all 15 named fields below proves the exact
+      //    field set without a 15-element hasOnly list;
+      //  - one sum over every stat is `is int`: a string errors (-> deny) and a float fails;
+      //  - one sum of the two name lengths errors unless both are strings, and caps them.
+      // Per-field ranges (no negative kills etc.) are enforced by the upload form, not here;
+      // a hand-crafted request could slip one past, and the admin can delete it.
+      // Re-run the dry test after ANY change here: the valid case sits near the limit.
+      function validPlayer(p, team) {
+        return p.keys().size() == 15
+          && p.team == team
+          && (p.level + p.kills + p.deaths + p.assists + p.net_worth + p.last_hits + p.denies
+              + p.gpm + p.xpm + p.hero_damage + p.hero_healing) is int
+          && p.name.size() + p.hero.size() <= 64
+          && p.level <= 30;
+      }
+
+      function validMatch(d) {
+        // 11 keys, every one of them read here or in the create rule.
+        return d.keys().size() == 11
+          && d.v == 1
+          && d.team_a.size() + d.team_b.size() <= 80
+          && d.team_a.lower() != d.team_b.lower()
+          && d.score_a + d.score_b is int
+          && d.score_a + d.score_b <= 400
+          && d.winner in ['a', 'b']
+          && d.duration_sec is int && d.duration_sec >= 120 && d.duration_sec <= 14400
+          && d.game_mode.size() <= 40
+          // Five a side, team A first: the order the upload form always sends.
+          && d.players.size() == 10
+          && validPlayer(d.players[0], 'a') && validPlayer(d.players[1], 'a')
+          && validPlayer(d.players[2], 'a') && validPlayer(d.players[3], 'a')
+          && validPlayer(d.players[4], 'a') && validPlayer(d.players[5], 'b')
+          && validPlayer(d.players[6], 'b') && validPlayer(d.players[7], 'b')
+          && validPlayer(d.players[8], 'b') && validPlayer(d.players[9], 'b');
+      }
+
+      // The document ID is a hash of the game (teams, duration, heroes), computed by the
+      // client, so two uploads of the same game collide on one ID. Create-only plus that
+      // collision is what stops the same scrim being counted twice. uid pins who uploaded
+      // it; createdAt must be the server's clock, not the client's.
+      allow create: if request.auth != null
+        && matchId.matches('[0-9a-f]{32}')
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && validMatch(request.resource.data);
+
+      // A saved result is never edited from the site; mistakes are fixed by the admin.
+      allow update: if false;
+
+      // Only the league admin can remove a match (e.g. a fake or mistaken upload).
+      allow delete: if request.auth != null && request.auth.token.email == "jonahbyu@gmail.com";
+    }

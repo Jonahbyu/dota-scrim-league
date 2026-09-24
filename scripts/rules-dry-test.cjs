@@ -1,0 +1,68 @@
+// Evaluate the merged rules against simulated requests with the Firebase Rules test API
+// (projects.test) — nothing is deployed. Usage: node scripts/rules-dry-test.cjs <firestore.rules>
+const fs = require("fs");
+const { requireAuth } = require("firebase-tools/lib/requireAuth");
+const { Client } = require("firebase-tools/lib/apiv2");
+
+const source = fs.readFileSync(process.argv[2], "utf8");
+const PATH = "/databases/(default)/documents/scrimLeague/data/matches/00000000000000000000000000000001";
+const NOW = "2026-09-24T04:00:00Z";
+
+const player = (i) => ({
+  team: i < 5 ? "a" : "b", name: `Rules Test Player ${i + 1}`, tag: null, hero: "Kez",
+  level: 20, kills: 2, deaths: 2, assists: 5, net_worth: 15000, last_hits: 200, denies: 5,
+  gpm: 450, xpm: 600, hero_damage: 15000, hero_healing: 0,
+});
+const match = (extra = {}) => ({
+  v: 1, team_a: "Rules Test A", team_b: "Rules Test B", score_a: 10, score_b: 10, winner: "a",
+  duration_sec: 2400, game_mode: "Captains Mode", players: [...Array(10)].map((_, i) => player(i)),
+  uid: "u1", createdAt: NOW, ...extra,
+});
+const req = (data, auth = { uid: "u1" }) => ({ auth, method: "create", path: PATH, time: NOW, resource: { data } });
+
+const withPlayer = (i, change) => ({ ...match(), players: match().players.map((p, j) => (j === i ? change({ ...p }) : p)) });
+const cases = [
+  ["valid match", req(match()), "ALLOW"],
+  ["valid, long names + max level + big numbers", req(withPlayer(9, (p) => ({ ...p, name: "N".repeat(32), hero: "Vengeful Spirit", level: 30, hero_damage: 150000, tag: "TAG" }))), "ALLOW"],
+  ["no auth", req(match(), null), "DENY"],
+  ["someone else's uid", req(match({ uid: "u2" })), "DENY"],
+  ["client createdAt", req(match({ createdAt: "2020-01-01T00:00:00Z" })), "DENY"],
+  ["extra top-level field", req(match({ admin: true })), "DENY"],
+  ["v missing", req((() => { const m = match(); delete m.v; return m; })()), "DENY"],
+  ["same team twice", req(match({ team_b: "rules test a" })), "DENY"],
+  ["winner 'c'", req(match({ winner: "c" })), "DENY"],
+  ["duration 30s", req(match({ duration_sec: 30 })), "DENY"],
+  ["score as string", req(match({ score_a: "10" })), "DENY"],
+  ["9 players", req({ ...match(), players: match().players.slice(0, 9) }), "DENY"],
+  ["level 99", req(withPlayer(3, (p) => ({ ...p, level: 99 }))), "DENY"],
+  ["kills as string", req(withPlayer(0, (p) => ({ ...p, kills: "9" }))), "DENY"],
+  ["gpm as float", req(withPlayer(2, (p) => ({ ...p, gpm: 450.5 }))), "DENY"],
+  ["extra player field", req(withPlayer(1, (p) => ({ ...p, mmr: 5000 }))), "DENY"],
+  ["missing player field", req(withPlayer(1, (p) => { delete p.denies; return p; })), "DENY"],
+  ["team B slot marked a", req(withPlayer(6, (p) => ({ ...p, team: "a" }))), "DENY"],
+  ["hero name 100 chars", req(withPlayer(5, (p) => ({ ...p, hero: "H".repeat(100) }))), "DENY"],
+  ["name is a number", req(withPlayer(4, (p) => ({ ...p, name: 42 }))), "DENY"],
+];
+
+(async () => {
+  const acct = require("firebase-tools/lib/auth").getGlobalDefaultAccount();
+  await requireAuth({ project: "pistachio-kitchen", user: acct.user, tokens: acct.tokens });
+  const c = new Client({ urlPrefix: "https://firebaserules.googleapis.com", apiVersion: "v1" });
+  const body = {
+    source: { files: [{ name: "firestore.rules", content: source }] },
+    testSuite: {
+      testCases: cases.map(([, request, expectation]) => ({ request, expectation, expressionReportLevel: "VISITED" })),
+    },
+  };
+  const res = (await c.post("/projects/pistachio-kitchen:test", body)).body;
+  for (const issue of res.issues ?? []) console.log("ISSUE:", issue.severity, issue.description, JSON.stringify(issue.sourcePosition));
+  res.testResults?.forEach((r, i) => {
+    console.log(`${r.state === "SUCCESS" ? "PASS" : "FAIL"}  ${cases[i][0]} (want ${cases[i][2]})`);
+    if (r.state !== "SUCCESS") {
+      console.log("   debug:", JSON.stringify(r.debugMessages ?? []).slice(0, 600));
+      const falses = (r.visitedExpressions ?? []).filter((e) => e.value?.boolValue === false).slice(0, 12);
+      for (const e of falses) console.log("   false at line", e.sourcePosition?.line, "col", e.sourcePosition?.column);
+      if (r.errorPosition) console.log("   error at", JSON.stringify(r.errorPosition));
+    }
+  });
+})().catch((e) => { console.error("FAILED:", e.message, JSON.stringify(e.context?.body ?? "").slice(0, 800)); process.exit(1); });
