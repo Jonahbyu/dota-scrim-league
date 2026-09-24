@@ -1,0 +1,22 @@
+{
+  "team_a": "Damage over Time",
+  "team_b": "SWM.Twinks",
+  "score_a": 34,
+  "score_b": 9,
+  "winner": "a",
+  "duration": "34:12",
+  "game_mode": "Captains Mode",
+  "notes": "Hand-transcribed from test-screenshots/game2-*.png. Scoreboard is scrolled right (damage, death losses, PICK), no items. The overview lists mag before Princess; the scoreboard lists Princess first.",
+  "players": [
+    { "team": "a", "name": "Fav", "tag": "P1PSQ", "hero": "Windranger", "level": 22, "kills": 15, "deaths": 1, "assists": 12, "net_worth": 23589, "last_hits": 287, "denies": 14, "gpm": 703, "xpm": 774, "hero_damage": 30151, "hero_healing": 0, "pick": 6 },
+    { "team": "a", "name": "han", "tag": "M0CHI", "hero": "Kunkka", "level": 17, "kills": 1, "deaths": 2, "assists": 19, "net_worth": 14206, "last_hits": 158, "denies": 4, "gpm": 436, "xpm": 495, "hero_damage": 16003, "hero_healing": 3048, "pick": 7 },
+    { "team": "a", "name": "red alert", "tag": "DMG?", "hero": "Death Prophet", "level": 20, "kills": 9, "deaths": 0, "assists": 14, "net_worth": 18930, "last_hits": 227, "denies": 0, "gpm": 571, "xpm": 683, "hero_damage": 24452, "hero_healing": 0, "pick": 8 },
+    { "team": "a", "name": "Merc-Ury", "tag": "DMG?", "hero": "Rubick", "level": 16, "kills": 6, "deaths": 3, "assists": 19, "net_worth": 11024, "last_hits": 60, "denies": 3, "gpm": 344, "xpm": 420, "hero_damage": 10531, "hero_healing": 410, "pick": 9 },
+    { "team": "a", "name": "Icarus", "tag": "DMG?", "hero": "Disruptor", "level": 15, "kills": 2, "deaths": 4, "assists": 22, "net_worth": 10549, "last_hits": 19, "denies": 3, "gpm": 300, "xpm": 395, "hero_damage": 9660, "hero_healing": 0, "pick": 10 },
+    { "team": "b", "name": "SickNasty", "tag": "xegGx", "hero": "Enchantress", "level": 13, "kills": 0, "deaths": 9, "assists": 2, "net_worth": 7649, "last_hits": 89, "denies": 3, "gpm": 273, "xpm": 310, "hero_damage": 6647, "hero_healing": 1066, "pick": 5 },
+    { "team": "b", "name": "twamonkey", "tag": "xegGx", "hero": "Terrorblade", "level": 17, "kills": 2, "deaths": 5, "assists": 2, "net_worth": 14672, "last_hits": 302, "denies": 7, "gpm": 469, "xpm": 485, "hero_damage": 7029, "hero_healing": 0, "pick": 4 },
+    { "team": "b", "name": "Cev", "tag": "TMT", "hero": "Necrophos", "level": 18, "kills": 2, "deaths": 7, "assists": 0, "net_worth": 15049, "last_hits": 294, "denies": 5, "gpm": 471, "xpm": 552, "hero_damage": 19842, "hero_healing": 2789, "pick": 1 },
+    { "team": "b", "name": "Princess", "tag": "Seal", "hero": "Centaur Warrunner", "level": 15, "kills": 1, "deaths": 8, "assists": 5, "net_worth": 11274, "last_hits": 188, "denies": 10, "gpm": 356, "xpm": 392, "hero_damage": 9583, "hero_healing": 0, "pick": 3 },
+    { "team": "b", "name": "mag", "tag": "OBih", "hero": "Hoodwink", "level": 15, "kills": 4, "deaths": 5, "assists": 3, "net_worth": 8423, "last_hits": 87, "denies": 0, "gpm": 273, "xpm": 382, "hero_damage": 16563, "hero_healing": 0, "pick": 2 }
+  ]
+}

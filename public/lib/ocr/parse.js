@@ -27,11 +27,27 @@ export async function parseScreenshots(engine, inputs, { onProgress } = {}) {
   if (!overview) notes.push("Missing the overview screenshot: K/D/A, net worth, score and duration need filling in.");
   if (!scoreboard) notes.push("Missing the Scoreboard tab screenshot: names, heroes, LH/DN, GPM/XPM, heal and hero damage need filling in.");
 
+  // Line overview cards up with scoreboard rows, per team: a scoreboard name found in exactly
+  // one card's (noisy) name text pins that card; unpinned cards keep their order.
+  const key = (t) => (t ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const order = [...Array(10).keys()];
+  if (overview && scoreboard) for (const base of [0, 5]) {
+    const cards = [0, 1, 2, 3, 4].map((j) => key(overview.players[base + j]?.nameRaw));
+    const slot = [0, 1, 2, 3, 4].map((j) => {
+      const n = key(scoreboard.players[base + j]?.name);
+      const hits = n.length >= 3 ? cards.flatMap((c, ci) => (c.includes(n) ? [ci] : [])) : [];
+      return hits.length === 1 ? hits[0] : null;
+    });
+    if (new Set(slot.filter((x) => x != null)).size !== slot.filter((x) => x != null).length) continue;
+    const free = [0, 1, 2, 3, 4].filter((ci) => !slot.includes(ci));
+    slot.forEach((ci, j) => { order[base + j] = base + (ci ?? free.shift()); });
+  }
+
   const pick = (...vals) => vals.find((v) => v != null && v !== "") ?? null;
   const players = [];
   for (let i = 0; i < 10; i++) {
     const s = scoreboard?.players[i] ?? {};
-    const o = overview?.players[i] ?? {};
+    const o = overview?.players[order[i]] ?? {};
     const hero = s.heroRaw ? matchHero(s.heroRaw) : null;
     if (s.heroRaw && !hero) notes.push(`Row ${i + 1}: couldn't match hero text "${s.heroRaw}".`);
     players.push({
@@ -45,6 +61,7 @@ export async function parseScreenshots(engine, inputs, { onProgress } = {}) {
       last_hits: s.last_hits ?? null, denies: s.denies ?? null,
       gpm: s.gpm ?? null, xpm: s.xpm ?? null,
       hero_damage: s.hero_damage ?? null, hero_healing: s.hero_healing ?? null,
+      pick: s.pick ?? null,
     });
   }
 

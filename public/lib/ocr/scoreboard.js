@@ -5,15 +5,23 @@ import { matchHero } from "../heroes.js";
 // column header (x) and each team's "ITEMS" header (y), scaled by the LH→HERO distance.
 const REF_SPAN = 584; // HERO.x0 - LH.x0
 const REF_PITCH = 63.5; // row height
+const SCORE_TO_LH = 1265; // LH.x0 - "SCORE:".x0
 
 const norm = (s) => s.toUpperCase().replace(/[^A-Z]/g, "");
 
 export function isScoreboard(words) {
-  return words.some((w) => w.conf > 50 && ["GPM", "ITEMS", "BACKPACK"].includes(norm(w.text)));
+  // Column headers from both layouts: unscrolled (ITEMS, BACKPACK…) and scrolled right to
+  // PICK (DAMAGE, REDUCED…). GPM alone is gold text that OCR reads with low confidence.
+  return words.some((w) => w.conf > 50 && ["GPM", "XPM", "ITEMS", "BACKPACK", "SCOREBOARD", "REDUCED", "OUTPOSTS"].includes(norm(w.text)));
 }
 
 // Column-header words and their x offset from "LH" in the reference screenshot.
-const HEADER_X = { ITEMS: -995, BACKPACK: -599, NEUTRAL: -385, CHOICES: -303, BUFFS: -115, LH: 0, GPM: 119, HEAL: 382, HERO: 584 };
+// The right-hand ones (BUILDING…TIME) only show when the table is scrolled right to PICK;
+// they were measured on a 2300x1045 screenshot of that view and converted to this scale.
+const HEADER_X = {
+  ITEMS: -995, BACKPACK: -599, NEUTRAL: -385, CHOICES: -303, BUFFS: -115, LH: 0, GPM: 119, XPM: 290, HEAL: 382, HERO: 584,
+  BUILDING: 676, RAW: 840, REDUCED: 935, GOLD: 1107, TIME: 1219,
+};
 
 // Fit x = lhX + k·ref from whichever header words OCR found. Try every pair, keep the fit
 // most other words agree with, so one misread word can't skew it.
@@ -70,7 +78,13 @@ export function findAnchors(words, image) {
     headers = ys[0] < image.height * 0.35 ? [ys[0], ys[0] + 6 * pitch] : [ys[0] - 6 * pitch, ys[0]];
   }
   const winner = words.find((w) => norm(w.text) === "WINNER");
-  return { k, pitch, lhX, headers, winnerY: winner?.y0 ?? null };
+  // The name panel on the left stays put when the table is scrolled sideways (to show
+  // DAMAGE / DEATH LOSSES / PICK), so its x comes from the "SCORE:" label, not from LH.
+  // Unscrolled (ITEMS etc. on screen), the fixed offsets from LH are exact, so keep them.
+  const scrolled = !inliers.some((w) => w.ref < 0);
+  const scoreWords = words.filter((w) => w.conf > 35 && norm(w.text) === "SCORE" && w.x0 < lhX);
+  const leftX = scrolled && scoreWords.length ? Math.min(...scoreWords.map((w) => w.x0)) : null;
+  return { k, pitch, lhX, headers, winnerY: winner?.y0 ?? null, leftX };
 }
 
 const digits = (s) => (/\d/.test(s) ? Number(s.replace(/\D/g, "")) : null);
@@ -94,6 +108,10 @@ export async function readScoreboard(engine, image, words) {
   if (a.error) return { error: a.error };
   const { k, pitch, lhX, headers } = a;
   const R = (x0, y0, x1, y1) => ({ x0: lhX + x0 * k, y0, x1: lhX + x1 * k, y1 });
+  // Name-panel cells, given as offsets from LH in the reference (unscrolled) layout, where
+  // "SCORE:" sits 1265 px left of LH.
+  const L = a.leftX == null ? R : (x0, y0, x1, y1) => ({ x0: a.leftX + (x0 + SCORE_TO_LH) * k, y0, x1: a.leftX + (x1 + SCORE_TO_LH) * k, y1 });
+  const inImage = (r) => r.x0 >= 0 && r.x1 <= image.width;
   // Upscale so text ends up the same size whatever the screenshot resolution.
   const scale = Math.max(2, Math.round(3 / k));
   // Each cell is read with its fixed cutoff (best on crisp, true-colour screenshots) and a
@@ -116,8 +134,8 @@ export async function readScoreboard(engine, image, words) {
   const teams = [];
   for (let t = 0; t < 2; t++) {
     const h = headers[t];
-    const name = await read(R(-1268, h - 12 * k, -1105, h + 10 * k), { threshold: 120, name: `t${t}_name` });
-    const score = await read(R(-1268, h + 8 * k, -1175, h + 30 * k), { threshold: 120, name: `t${t}_score` });
+    const name = await read(L(-1268, h - 22 * k, -1105, h + 8 * k), { threshold: 120, name: `t${t}_name` });
+    const score = await read(L(-1268, h + 8 * k, -1175, h + 30 * k), { threshold: 120, name: `t${t}_score` });
     teams.push({ name: name.text, score: digits(score.text.split(":").pop()) });
   }
 
@@ -130,9 +148,9 @@ export async function readScoreboard(engine, image, words) {
       const [hy0, hy1] = [cy + 4 * k, cy + 26 * k];
       const [vy0, vy1] = [cy - 14 * k, cy + 16 * k];
 
-      const name = await readName(engine, image, R(-1234, ny0, -1045, ny1), { scale, name: `${n}_name` });
-      const hero = await read(R(-1215, hy0, -1040, hy1), { whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' -", threshold: 110, name: `${n}_hero` }, (t) => matchHero(t) != null);
-      const lvl = await read(R(-1240, hy0, -1216, hy1), { whitelist: "0123456789", threshold: 140, rel: 0.65, name: `${n}_level` }, (t) => level(t) != null);
+      const name = await readName(engine, image, L(-1234, ny0, -1045, ny1), { scale, name: `${n}_name` });
+      const hero = await read(L(-1215, hy0, -1040, hy1), { whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' -", threshold: 110, name: `${n}_hero` }, (t) => matchHero(t) != null);
+      const lvl = await read(L(-1240, hy0, -1216, hy1), { whitelist: "0123456789", threshold: 140, rel: 0.65, name: `${n}_level` }, (t) => level(t) != null);
       // LH/DN: fixed and relative; if they disagree, the relative one (colour-proof) wins
       // when it's complete. Otsu if neither parses.
       const lhdnRect = R(-14, vy0, 106, vy1);
@@ -147,6 +165,10 @@ export async function readScoreboard(engine, image, words) {
       const xpm = await read(R(280, vy0, 356, vy1), { ...NUM, name: `${n}_xpm` }, isNum);
       const heal = await read(R(372, vy0, 450, vy1), { ...NUM, name: `${n}_heal` }, isNum);
       const dmg = await read(R(580, vy0, 665, vy1), { ...NUM, name: `${n}_dmg` }, isNum);
+      // PICK (draft order, 1–10): only on screen when the table is scrolled all the way right.
+      const pickRect = R(1318, vy0, 1378, vy1);
+      const pick = inImage(pickRect) ? await read(pickRect, { whitelist: "0123456789", threshold: 140, rel: 0.65, name: `${n}_pick` }, (t) => { const v = digits(t); return v >= 1 && v <= 10; }) : null;
+      const pickN = pick ? digits(pick.text) : null;
 
       players.push({
         name: cleanName(name.text),
@@ -156,9 +178,14 @@ export async function readScoreboard(engine, image, words) {
         last_hits: lhdn[0] ?? null, denies: lhdn[1] ?? null,
         gpm: digits(gpm.text), xpm: digits(xpm.text),
         hero_healing: digits(heal.text), hero_damage: digits(dmg.text),
+        pick: pickN >= 1 && pickN <= 10 ? pickN : null,
       });
     }
   }
+
+  // Pick order is only trusted as a full, unique 1–10 set.
+  const picks = players.map((p) => p.pick);
+  if (picks.some((p) => p == null) || new Set(picks).size !== 10) for (const p of players) p.pick = null;
 
   let winner = null;
   if (a.winnerY != null) winner = Math.abs(a.winnerY - headers[0]) < Math.abs(a.winnerY - headers[1]) ? "a" : "b";

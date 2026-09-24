@@ -1,4 +1,4 @@
-﻿import { readRegion, readNumberGroups, columnProfile, rowProfile, runs } from "./core.js";
+﻿import { readRegion, readNumberGroups, readName, columnProfile, rowProfile, runs } from "./core.js";
 
 // Post-game overview screen (10 hero cards). Layout was measured on a 1989x839 screenshot
 // and is expressed relative to the detected cards, scaled by card pitch, so different
@@ -44,7 +44,11 @@ export async function readOverview(engine, image) {
     const c = cards[i];
     const nw = await read(R(c.x0 + 62 * k, top + 467 * k, c.x1 - 4 * k, top + 494 * k), { whitelist: "0123456789,", threshold: 110, speckle: 0.002, name: `p${i}_nw` });
     const kda = await readNumberGroups(engine, image, R(c.x0 + 10 * k, top + 496 * k, c.x1 - 10 * k, top + 528 * k), { count: 3, scale, threshold: 150, name: `p${i}_kda` });
-    players.push({ net_worth: toNetWorth(nw.text), kda: kda.length === 3 ? kda : null });
+    // Name across the card's top; hero art behind it makes this noisy, so it's only used to
+    // line cards up with scoreboard rows (the two screens don't always list players in the
+    // same order).
+    const name = await readName(engine, image, R(c.x0 + 4 * k, top + 8 * k, c.x1 - 4 * k, top + 44 * k), { scale, name: `p${i}_name` });
+    players.push({ nameRaw: name.text, net_worth: toNetWorth(nw.text), kda: kda.length === 3 ? kda : null });
   }
 
   // "Victory" is appended to the winning team's name.
