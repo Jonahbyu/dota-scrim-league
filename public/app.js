@@ -12,7 +12,8 @@ import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
 import { asAd2l, guessTeams, openGames, sameTeams, teamByName } from "./lib/unticketed.js";
 import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks, modelCall, TIE_EDGE, predictDraft } from "./lib/predict.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
-import { submitMatch, listMatches, getMatch, deleteMatch, moveMatch, currentUid, listPredictions, savePrediction, isAdmin, adminSignIn, adminSignOut } from "./lib/store.js";
+import { submitMatch, editMatch, listMatches, getMatch, deleteMatch, moveMatch, currentUid, listPredictions, savePrediction, listFixtures, addFixture, moveFixture, deleteFixture } from "./lib/store.js";
+import { settle, asSeries, scrimRatings, fixtureOdds, fixtureCall, fixtureBacktest, outcomes, outcomeLabel } from "./lib/fixtures.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
 
@@ -116,7 +117,13 @@ const engine = createBrowserEngine();
 // league: "scrim" (the ledger) or "ad2l" (an unticketed AD2L division game, same form).
 const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false, league: "scrim", seriesId: null,
   // Private result form (scrims): no screenshots or players, just the result.
-  quick: false, teams: [], newTeam: { a: false, b: false } };
+  quick: false, teams: [], newTeam: { a: false, b: false },
+  // Editing a saved upload: { id, league, back, title }. Same form; saves in place (editMatch).
+  editing: null,
+  // A scheduled scrim this upload is the result of (Predict tab): { id, team_a, team_b,
+  // start, best_of, game }. Only fills in team names and says which scrim; the game is
+  // matched to the scrim by teams and time, not by this.
+  fixture: null, fixtureQuick: false };
 // Private uploads only need a valid result; public ones need every player too. AD2L
 // uploads must name two division teams, so the game lands on the right team pages.
 function checkDraft(d) {
@@ -124,7 +131,8 @@ function checkDraft(d) {
   if (upload.league !== "ad2l" || !ad2lCache) return c;
   const errors = [d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n)).map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`);
   // Unticketed uploads must fill a game the league is missing (see seriesPickHtml).
-  if (!ad2lMissing().length) errors.push("No AD2L games are missing right now, so there's nothing to upload.");
+  if (upload.editing) { /* an edit keeps the series it was saved in */ }
+  else if (!ad2lMissing().length) errors.push("No AD2L games are missing right now, so there's nothing to upload.");
   else if (!upload.seriesId) errors.push("Pick which game this is under “Which game is this?” at the top of the review.");
   const s = upload.seriesId && ad2lCache.series.find((x) => x.id === upload.seriesId);
   if (s && d.team_a && d.team_b && !sameTeams(ad2lCache, s, d.team_a, d.team_b)) errors.push("The teams don't match the series picked under “Which game is this?”.");
@@ -149,6 +157,41 @@ function guessSeries(d) {
   upload.seriesId = hits.length === 1 ? hits[0] : null;
 }
 const ad2lTeamByName = (n) => teamByName(ad2lCache, n);
+
+// The league's shared password for deleting or moving someone else's upload. It only gates
+// the buttons (anyone reading this file can see it); remembered for this tab.
+const EDIT_PASSWORD = "ad2l";
+let editOk = false; // fallback when session storage is blocked
+const editUnlocked = () => { try { return editOk || sessionStorage.getItem("scrim-edit") === "1"; } catch { return editOk; } };
+function unlockEdit(pw) {
+  if ((pw ?? "").trim().toLowerCase() !== EDIT_PASSWORD) return false;
+  editOk = true;
+  try { sessionStorage.setItem("scrim-edit", "1"); } catch {}
+  return true;
+}
+const lockEdit = () => { editOk = false; try { sessionStorage.removeItem("scrim-edit"); } catch {} };
+
+const fixtureKey = (a, b) => [a, b].map((n) => (n ?? "").trim().toLowerCase()).sort().join("|");
+// Does the review form already name the scheduled scrim's two teams (either side)?
+const fixtureNamed = (d) => !upload.fixture || fixtureKey(d.team_a, d.team_b) === fixtureKey(upload.fixture.team_a, upload.fixture.team_b);
+// Blank team names get the scheduled ones.
+function fillFixtureTeams(d) {
+  const f = upload.fixture;
+  if (!f || upload.league !== "scrim" || d.team_a || d.team_b) return;
+  d.team_a = f.team_a;
+  d.team_b = f.team_b;
+}
+function fixtureBanner() {
+  const f = upload.fixture;
+  if (!f || upload.league !== "scrim") return "";
+  const d = upload.draft;
+  const sides = d && !upload.quick && !fixtureNamed(d) ? `
+    <div class="fx-sides">In-game names don't match the schedule. Which team was on the left (Radiant)?
+      <button type="button" data-fx-side="ab">${esc(f.team_a)}</button>
+      <button type="button" data-fx-side="ba">${esc(f.team_b)}</button></div>` : "";
+  return `<div class="notice ok fx-banner">Result for <b>${esc(f.team_a)} vs ${esc(f.team_b)}</b> · ${esc(fxWhen(new Date(f.start)))} · Bo${f.best_of}, game ${f.game}.
+    <button type="button" class="linkish" id="fx-clear">Not this scrim</button>${sides}</div>`;
+}
 
 function blankDraft() {
   const player = (team) => ({ team, name: "", tag: "", hero: "", ...Object.fromEntries(STATS.map(([k]) => [k, null])) });
@@ -187,6 +230,7 @@ async function runParse() {
     upload.draft = match;
     upload.notes = notes;
     upload.names = await fixNames(match);
+    fillFixtureTeams(match);
     if (upload.league === "ad2l") { await ad2lData(); await ad2lUploaded(); upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)]; guessSeries(match); }
     upload.check = checkDraft(match);
     upload.message = { kind: "ok", text: "Done. Check every value against your screenshots: red boxes couldn't be read." };
@@ -265,7 +309,7 @@ function draftHtml(d) {
 
   return `
     <h2>Review</h2>
-    ${upload.league === "ad2l" ? seriesPickHtml() : ""}
+    ${upload.league === "ad2l" && !upload.editing ? seriesPickHtml() : ""}
     <div class="panel edit">
       <div class="fields">
         <label>Team A (first / left)${textInput("team_a", d.team_a, upload.league === "ad2l" ? 'list="ad2l-teams"' : "")}</label>
@@ -294,15 +338,15 @@ function draftHtml(d) {
       </table>
     </div>
     <div id="checks">${checksHtml(upload.check)}</div>
-    ${upload.league === "ad2l" ? `<datalist id="ad2l-teams">${(ad2lCache?.teams ?? []).map((t) => `<option value="${esc(t.name)}">`).join("")}</datalist>` : `
+    ${upload.league === "ad2l" ? `<datalist id="ad2l-teams">${(ad2lCache?.teams ?? []).map((t) => `<option value="${esc(t.name)}">`).join("")}</datalist>` : upload.editing ? "" : `
     <label class="private-toggle">
       <input type="checkbox" id="private" ${upload.isPrivate ? "checked" : ""}>
       <span><b>Private — post the result only.</b> Teams, winner, kill score and duration are saved.
         Heroes, players and stats never leave this browser, so nothing about your drafts or lineups is shared.</span>
     </label>`}
     <div class="row" style="margin-top:12px">
-      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.isPrivate ? "Post private result" : upload.league === "ad2l" ? "Save to AD2L" : "Save to league"}</button>
-      <button id="discard">Discard</button>
+      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.editing ? "Save changes" : upload.isPrivate ? "Post private result" : upload.league === "ad2l" ? "Save to AD2L" : "Save to league"}</button>
+      <button id="discard">${upload.editing ? "Cancel" : "Discard"}</button>
     </div>`;
 }
 
@@ -336,13 +380,13 @@ function privateHtml(d) {
   const name = (t) => esc(d[`team_${t}`] || `Team ${t.toUpperCase()}`);
   return `
     <h2>Private result</h2>
-    <ol class="how-steps">
+    ${upload.editing ? "" : `<ol class="how-steps">
       <li><b>Pick both teams</b> from the list. Team A is the side shown on the left of the post-game screen (Radiant). If a team hasn't played before, choose <b>+ New team</b> and type its name the way it should appear on the site.</li>
       <li><b>Kill score:</b> the two big numbers at the top of the post-game screen, one per team.</li>
       <li><b>Winner:</b> the team the post-game banner names.</li>
       <li><b>Duration:</b> the game time from the post-game screen, as minutes:seconds (for example <code>38:12</code>).</li>
       <li>Press <b>Post private result</b>. Only the teams, kill score, winner and duration are saved; no heroes, players or stats. It counts toward both teams' records.</li>
-    </ol>
+    </ol>`}
     <div class="panel edit">
       <div class="fields">
         ${teamPick("a")}
@@ -360,7 +404,7 @@ function privateHtml(d) {
     </div>
     <div id="checks">${checksHtml(upload.check)}</div>
     <div class="row" style="margin-top:12px">
-      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>Post private result</button>
+      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.editing ? "Save changes" : "Post private result"}</button>
       <button id="discard">Cancel</button>
     </div>`;
 }
@@ -370,6 +414,14 @@ async function startPrivate() {
   try { teams = listTeams(await allMatches()).map((t) => t.name).sort((x, y) => x.localeCompare(y)); } catch { /* offline: new-team entry still works */ }
   Object.assign(upload, { quick: true, isPrivate: true, teams, newTeam: { a: !teams.length, b: !teams.length }, notes: [], names: [], message: null });
   upload.draft = blankDraft();
+  fillFixtureTeams(upload.draft);
+  for (const t of ["a", "b"]) {
+    const n = upload.draft[`team_${t}`];
+    if (!n) continue;
+    const known = upload.teams.find((x) => x.toLowerCase() === n.toLowerCase());
+    if (known) upload.draft[`team_${t}`] = known; else upload.teams.push(n);
+  }
+  upload.newTeam = { a: !upload.teams.length, b: !upload.teams.length };
   upload.check = checkDraft(upload.draft);
   renderUpload();
 }
@@ -408,6 +460,14 @@ async function saveDraft() {
   save.textContent = "Saving…";
   try {
     const ad2l = upload.league === "ad2l";
+    if (upload.editing) {
+      const { id, back } = upload.editing;
+      await editMatch(id, upload.check.match, upload.league);
+      endEdit();
+      if (ad2l) await ad2lUploaded(true); else await allMatches(true);
+      location.hash = back;
+      return;
+    }
     const res = await submitMatch(upload.check.match, { isPrivate: ad2l ? false : upload.isPrivate, league: upload.league, seriesId: upload.seriesId });
     if (res.duplicateOf) {
       upload.message = { kind: "warn", text: "This game is already in the league.", link: ad2l ? `#/ad2l/game/${res.duplicateOf}` : `#/match/${res.duplicateOf}` };
@@ -415,18 +475,61 @@ async function saveDraft() {
       return;
     }
     for (const img of upload.images) URL.revokeObjectURL(img.url);
+    const fromFixture = !ad2l && upload.fixture;
+    upload.fixture = null;
     if (upload.quick) upload.isPrivate = false;
     Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null, seriesId: null, quick: false });
     if (ad2l) { await ad2lUploaded(true); location.hash = `#/ad2l/game/${res.id}`; }
-    else { await allMatches(true); location.hash = `#/match/${res.id}`; }
+    else { await allMatches(true); location.hash = fromFixture ? "#/predict" : `#/match/${res.id}`; }
   } catch (e) {
     upload.message = { kind: "err", text: `Couldn't save: ${e.message}` };
     renderUpload();
   }
 }
 
+// Edit page: the saved game loaded into the review form (public: every field; private: the
+// result form). Only for its uploader or someone who has typed the league password.
+function editDraft(m) {
+  const d = blankDraft();
+  Object.assign(d, { team_a: m.team_a, team_b: m.team_b, score_a: m.score_a, score_b: m.score_b, winner: m.winner,
+    duration: dur(m.duration_sec), game_mode: m.game_mode ?? "" });
+  if (!m.private) d.players = m.players.map((p) => ({ ...p, tag: p.tag ?? "" }));
+  return d;
+}
+function endEdit() {
+  if (upload.editing) Object.assign(upload, { editing: null, draft: null, check: null, isPrivate: false, quick: false, seriesId: null, message: null });
+}
+async function renderEdit(id, league) {
+  const back = league === "ad2l" ? `#/ad2l/game/${id}` : `#/match/${id}`;
+  app.innerHTML = `<div class="panel empty">Loading…</div>`;
+  let m;
+  try { m = await getMatch(id, league); } catch (e) { app.innerHTML = errorBox(e); return; }
+  if (!m) { app.innerHTML = `<div class="notice err">No such game.</div>`; return; }
+  if (m.uid !== (await currentUid()) && !editUnlocked()) { location.hash = back; return; }
+  if (league === "ad2l") await ad2lData().catch(() => null);
+  if (upload.editing?.id !== id) {
+    let teams = [];
+    if (m.private) try { teams = listTeams(await allMatches()).map((t) => t.name).sort((x, y) => x.localeCompare(y)); } catch { /* typed names still work */ }
+    Object.assign(upload, { editing: { id, league, back, title: `${m.team_a} vs ${m.team_b}` }, league, draft: editDraft(m), isPrivate: !!m.private, quick: !!m.private,
+      seriesId: m.series_id ?? null, teams, newTeam: { a: false, b: false }, notes: [], names: [], message: null });
+  }
+  upload.check = checkDraft(upload.draft);
+  renderUpload();
+}
+
 function renderUpload() {
   const msg = upload.message;
+  if (upload.editing) {
+    const e = upload.editing;
+    app.innerHTML = `
+      <div class="kicker" style="margin-bottom:16px"><a href="${e.back}">← Back to the game</a></div>
+      ${pageHead(e.league === "ad2l" ? SOURCES.ad2l.kicker : "The ledger", `Edit ${esc(e.title)}`,
+        "Fix anything that's wrong and press <b>Save changes</b>. The game keeps its upload date, so it stays in the same week.")}
+      ${msg ? `<div class="notice ${msg.kind}">${esc(msg.text)}</div>` : ""}
+      ${upload.quick ? privateHtml(upload.draft) : draftHtml(upload.draft)}`;
+    wireDraft();
+    return;
+  }
   const slot = (i) => {
     const img = upload.images[i];
     return img
@@ -461,6 +564,7 @@ function renderUpload() {
       ${upload.busy ? `<p class="progress" id="progress">${esc(upload.progress)}</p>` : ""}
     </div>
     ${msg ? `<div class="notice ${msg.kind}">${esc(msg.text)}${msg.link ? ` <a href="${msg.link}">Open it</a>` : ""}</div>` : ""}
+    ${fixtureBanner()}
     ${upload.league === "ad2l" || upload.draft ? "" : `<p class="table-note private-hint">Played a scrim you don't want to share the draft or lineups of? Use <b>Private result</b>: pick the two teams, then type the kill score, winner and duration. No screenshots needed.</p>`}
     ${upload.draft ? (upload.quick ? privateHtml(upload.draft) : draftHtml(upload.draft)) : ""}
     <dialog id="zoom"><img alt=""></dialog>`;
@@ -484,51 +588,65 @@ function renderUpload() {
   document.getElementById("parse").onclick = runParse;
   const priv = document.getElementById("private-result");
   if (priv) priv.onclick = startPrivate;
-  document.getElementById("manual").onclick = () => { upload.quick = false; upload.draft = blankDraft(); upload.seriesId = null; upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
+  document.getElementById("manual").onclick = () => { upload.quick = false; upload.draft = blankDraft(); fillFixtureTeams(upload.draft); upload.seriesId = null; upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
   const clear = document.getElementById("clear");
   if (clear) clear.onclick = () => { for (const i of upload.images) URL.revokeObjectURL(i.url); upload.images = []; renderUpload(); };
 
-  if (upload.draft) {
-    document.getElementById("save").onclick = saveDraft;
-    const pick = document.getElementById("series-pick");
-    if (pick) pick.onchange = () => {
-      upload.seriesId = Number(pick.value) || null;
-      const s = ad2lCache?.series.find((x) => x.id === upload.seriesId);
-      const tname = (id) => ad2lCache.teams.find((t) => t.id === id)?.name ?? "";
-      if (s && !upload.draft.team_a && !upload.draft.team_b) { upload.draft.team_a = tname(s.home); upload.draft.team_b = tname(s.away); }
-      upload.check = checkDraft(upload.draft);
-      renderUpload();
-    };
-    const toggle = document.getElementById("private");
-    if (toggle) toggle.onchange = (e) => { upload.isPrivate = e.target.checked; upload.check = checkDraft(upload.draft); renderUpload(); };
-    document.getElementById("discard").onclick = () => {
-      if (upload.quick) upload.isPrivate = false;
-      Object.assign(upload, { draft: null, check: null, notes: [], names: [], quick: false });
-      renderUpload();
-    };
-    app.querySelectorAll("select[data-team]").forEach((sel) => (sel.onchange = () => {
-      const t = sel.dataset.team;
-      upload.newTeam[t] = sel.value === "__new";
-      upload.draft[`team_${t}`] = sel.value === "__new" ? "" : sel.value;
-      upload.check = checkDraft(upload.draft);
-      renderUpload();
-      if (upload.newTeam[t]) app.querySelector(`input[data-path="team_${t}"]`)?.focus();
-    }));
-    // A typed new team name shows up in the Winner menu as you type.
-    app.querySelectorAll('input[data-path="team_a"], input[data-path="team_b"]').forEach((inp) => inp.addEventListener("input", () => {
-      const t = inp.dataset.path.slice(-1);
-      const opt = app.querySelector(`select[data-path="winner"] option[value="${t}"]`);
-      if (opt && upload.quick) opt.textContent = inp.value.trim() || `Team ${t.toUpperCase()}`;
-    }));
-    const maybe = upload.names.filter((n) => !n.sure);
-    app.querySelectorAll("[data-name-fix]").forEach((b) => b.onclick = () => {
-      const n = maybe[Number(b.dataset.nameFix)];
-      upload.draft.players[n.i].name = n.to;
-      upload.names = upload.names.map((x) => x === n ? { ...x, sure: true } : x);
-      upload.check = checkDraft(upload.draft);
-      renderUpload();
-    });
-  }
+  const fxClear = document.getElementById("fx-clear");
+  if (fxClear) fxClear.onclick = () => { upload.fixture = null; renderUpload(); };
+  app.querySelectorAll("[data-fx-side]").forEach((b) => b.onclick = () => {
+    const f = upload.fixture, ab = b.dataset.fxSide === "ab";
+    upload.draft.team_a = ab ? f.team_a : f.team_b;
+    upload.draft.team_b = ab ? f.team_b : f.team_a;
+    upload.check = checkDraft(upload.draft);
+    renderUpload();
+  });
+
+  if (upload.draft) wireDraft();
+}
+
+// Review-form handlers, shared by uploads and edits.
+function wireDraft() {
+  document.getElementById("save").onclick = saveDraft;
+  const pick = document.getElementById("series-pick");
+  if (pick) pick.onchange = () => {
+    upload.seriesId = Number(pick.value) || null;
+    const s = ad2lCache?.series.find((x) => x.id === upload.seriesId);
+    const tname = (id) => ad2lCache.teams.find((t) => t.id === id)?.name ?? "";
+    if (s && !upload.draft.team_a && !upload.draft.team_b) { upload.draft.team_a = tname(s.home); upload.draft.team_b = tname(s.away); }
+    upload.check = checkDraft(upload.draft);
+    renderUpload();
+  };
+  const toggle = document.getElementById("private");
+  if (toggle) toggle.onchange = (e) => { upload.isPrivate = e.target.checked; upload.check = checkDraft(upload.draft); renderUpload(); };
+  document.getElementById("discard").onclick = () => {
+    if (upload.editing) { const { back } = upload.editing; endEdit(); location.hash = back; return; }
+    if (upload.quick) upload.isPrivate = false;
+    Object.assign(upload, { draft: null, check: null, notes: [], names: [], quick: false });
+    renderUpload();
+  };
+  app.querySelectorAll("select[data-team]").forEach((sel) => (sel.onchange = () => {
+    const t = sel.dataset.team;
+    upload.newTeam[t] = sel.value === "__new";
+    upload.draft[`team_${t}`] = sel.value === "__new" ? "" : sel.value;
+    upload.check = checkDraft(upload.draft);
+    renderUpload();
+    if (upload.newTeam[t]) app.querySelector(`input[data-path="team_${t}"]`)?.focus();
+  }));
+  // A typed new team name shows up in the Winner menu as you type.
+  app.querySelectorAll('input[data-path="team_a"], input[data-path="team_b"]').forEach((inp) => inp.addEventListener("input", () => {
+    const t = inp.dataset.path.slice(-1);
+    const opt = app.querySelector(`select[data-path="winner"] option[value="${t}"]`);
+    if (opt && upload.quick) opt.textContent = inp.value.trim() || `Team ${t.toUpperCase()}`;
+  }));
+  const maybe = upload.names.filter((n) => !n.sure);
+  app.querySelectorAll("[data-name-fix]").forEach((b) => b.onclick = () => {
+    const n = maybe[Number(b.dataset.nameFix)];
+    upload.draft.players[n.i].name = n.to;
+    upload.names = upload.names.map((x) => x === n ? { ...x, sure: true } : x);
+    upload.check = checkDraft(upload.draft);
+    renderUpload();
+  });
 }
 
 // ---------- Leagues ----------
@@ -567,7 +685,7 @@ const SOURCES = {
     key: "scrim", kicker: "The ledger", load: allMatches,
     link: (m) => `#/match/${m.id}`, base: "#/",
     empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
-    nav: [["#/", "matches", "Matches"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/", "matches", "Matches"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/predict", "predict", "Predict"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
   ad2l: {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
@@ -610,12 +728,13 @@ async function renderMatch(id, src) {
   if (!raw) { app.innerHTML = `<div class="notice err">No such match.</div>`; return; }
   const m = raw.teamTotals || raw.private ? raw : withDerived(raw);
 
-  // The uploader (same browser session) can delete their own scrim; the rules check it.
+  // The uploader (same browser) can delete or move their upload; so can anyone who types the
+  // league's shared password (kept for this tab). A speed bump, not security: the rules let
+  // any visitor delete an upload.
   const uploaded = src.key === "scrim" || m.unticketed;
-  // The league admin (signed in with their email on this page) can delete any upload.
   const mine = uploaded && m.uid && m.uid === (await currentUid());
-  const admin = uploaded && await isAdmin();
-  const canDelete = mine || admin;
+  const unlocked = uploaded && !mine && editUnlocked();
+  const canDelete = mine || unlocked;
   const noun = m.unticketed ? "game" : "scrim";
   // Unticketed uploads can be put in (or moved to) the PlayOn series they stand for.
   const moveOpts = m.unticketed && canDelete ? ad2lMissing(m.id).filter((g) => sameTeams(ad2lCache, g.series, m.team_a, m.team_b)) : [];
@@ -627,20 +746,18 @@ async function renderMatch(id, src) {
       <span class="muted">${moveOpts.length ? "Games between these two teams not on record here, from earlier weeks or this week's not ticketed yet. Picking one moves this game into that series and week." : "No open game between these two teams: PlayOn has every game of their series on record."}</span>
       <span class="row"><button type="button" id="move" disabled>Move</button><span class="muted" id="move-msg"></span></span></label>` : "";
   const deleteBtn = !uploaded ? "" : canDelete
-    ? `${moveHtml}<div class="row" style="margin-top:18px"><button class="danger" id="del">Delete this ${noun}</button>
-        ${admin ? `<span class="muted">Signed in as league admin · <a href="#" id="admin-out">Sign out</a></span>` : ""}</div>`
-    : `<details class="admin-login"><summary>League admin</summary>
-        <form id="admin-form" class="row"><input type="email" name="email" placeholder="Email" autocomplete="username" required>
-          <input type="password" name="password" placeholder="Password" autocomplete="current-password" required>
-          <button type="submit">Sign in</button></form><p class="muted" id="admin-msg"></p></details>`;
+    ? `${moveHtml}<div class="row" style="margin-top:18px"><button id="edit">Edit this ${noun}</button>
+        <button class="danger" id="del">Delete this ${noun}</button>
+        ${unlocked ? `<span class="muted">Unlocked with the league password · <a href="#" id="edit-lock">Lock</a></span>` : ""}</div>`
+    : `<details class="admin-login"><summary>Edit or delete this ${noun}</summary>
+        <form id="edit-form" class="row"><input type="password" name="password" placeholder="League password" autocomplete="off" required>
+          <button type="submit">Unlock</button></form><p class="muted" id="edit-msg"></p></details>`;
   const wireDelete = () => {
-    const form = document.getElementById("admin-form");
-    if (form) form.onsubmit = async (e) => {
+    const form = document.getElementById("edit-form");
+    if (form) form.onsubmit = (e) => {
       e.preventDefault();
-      const msg = document.getElementById("admin-msg");
-      msg.textContent = "Signing in…";
-      try { await adminSignIn(form.email.value, form.password.value); route(); }
-      catch (err) { msg.textContent = /invalid|wrong|user-not-found/i.test(err.code ?? "") ? "Wrong email or password." : err.message; }
+      if (unlockEdit(form.password.value)) route();
+      else document.getElementById("edit-msg").textContent = "Wrong password.";
     };
     const sel = document.getElementById("series-move"), mv = document.getElementById("move");
     if (sel && mv) {
@@ -656,8 +773,10 @@ async function renderMatch(id, src) {
         } catch (err) { msg.textContent = `Couldn't move it: ${err.message}`; mv.disabled = false; }
       };
     }
-    const out = document.getElementById("admin-out");
-    if (out) out.onclick = async (e) => { e.preventDefault(); await adminSignOut(); route(); };
+    const ed = document.getElementById("edit");
+    if (ed) ed.onclick = () => { location.hash = m.unticketed ? `#/ad2l/edit/${m.id}` : `#/edit/${m.id}`; };
+    const lock = document.getElementById("edit-lock");
+    if (lock) lock.onclick = (e) => { e.preventDefault(); lockEdit(); route(); };
     const b = document.getElementById("del");
     if (!b) return;
     b.onclick = async () => {
@@ -730,12 +849,12 @@ async function renderMatch(id, src) {
   };
   const footer = m.unticketed
     ? `Unticketed AD2L game, uploaded ${when(m.createdAt)} from post-game screenshots, so no draft, gold graph or ward data.
-       Wrong? ${mine ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`
+       Wrong? ${mine ? "You uploaded it, so you can edit or delete it below." : "Anyone with the league password can edit or remove it below."}`
     : ad2l
     ? `Played ${when(m.createdAt)} · AD2L S48 ticketed game ${m.match_id} ·
        <a href="https://www.opendota.com/matches/${m.match_id}" target="_blank" rel="noopener">OpenDota</a> ·
        <a href="https://www.dotabuff.com/matches/${m.match_id}" target="_blank" rel="noopener">Dotabuff</a>`
-    : `Uploaded ${when(m.createdAt)}. Wrong? ${mine ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`;
+    : `Uploaded ${when(m.createdAt)}. Wrong? ${mine ? "You uploaded it, so you can edit or delete it below." : "Anyone with the league password can edit or remove it below."}`;
 
   app.innerHTML = `
     <div class="kicker" style="margin-bottom:16px"><a href="${src.base}">← ${ad2l ? "Weekly" : "The ledger"}</a></div>
@@ -1042,13 +1161,39 @@ const NAME_KEY = "predict-name";
 const storedName = () => { try { return localStorage.getItem(NAME_KEY) ?? ""; } catch { return ""; } };
 const storeName = (n) => { try { localStorage.setItem(NAME_KEY, n); } catch { /* private window: name just isn't remembered */ } };
 const OUTCOMES = ["home", "tie", "away"];
+// "Picking as <name>" bar shared by both leagues' prediction pages.
+const nameBarHtml = (name) => `
+    <div class="pred-name">
+      <div class="pred-name-show"${name ? "" : " hidden"}>Picking as <b>${esc(name)}</b> <button type="button" class="linkish" id="pred-name-edit">Change</button></div>
+      <div class="pred-name-form"${name ? " hidden" : ""}>
+        <label>Your name <input id="pred-name" maxlength="24" value="${esc(name)}" placeholder="Type your name" autocomplete="nickname"></label>
+        <button class="primary" id="pred-name-save" type="button">Save</button>
+        <span class="muted">Your name is how you show up on the leaderboard. Use the same one each week.</span>
+      </div>
+    </div>`;
+function wireNameBar(rerender) {
+  const input = document.getElementById("pred-name");
+  document.getElementById("pred-name-edit").onclick = () => {
+    app.querySelector(".pred-name-show").hidden = true;
+    app.querySelector(".pred-name-form").hidden = false;
+    input.focus();
+  };
+  document.getElementById("pred-name-save").onclick = () => {
+    const n = input.value.trim().slice(0, 24);
+    if (!n) { input.focus(); return; }
+    storeName(n);
+    rerender();
+  };
+  input.onkeydown = (e) => { if (e.key === "Enter") document.getElementById("pred-name-save").click(); };
+  return input;
+}
 
 async function renderPredict() {
   const kicker = SOURCES.ad2l.kicker;
   app.innerHTML = loading(kicker, "Predictions");
   let d, preds;
   try { d = await ad2lData(); } catch (e) { app.innerHTML = `${pageHead(kicker, "Predictions")}${errorBox(e)}`; return; }
-  try { preds = await listPredictions(); } catch (e) { console.warn(e); preds = null; }
+  try { preds = (await listPredictions()).filter((p) => p.league !== "scrim"); } catch (e) { console.warn(e); preds = null; }
   const uid = await currentUid();
   const name = storedName();
   const teamName = Object.fromEntries(d.teams.map((t) => [t.id, t.name]));
@@ -1193,14 +1338,7 @@ async function renderPredict() {
   const ties = bt.filter((x) => x.actual === "tie").length;
   const decisive = bt.filter((x) => x.actual !== "tie");
   app.innerHTML = `${pageHead(kicker, "Predictions", `Call each series: 2–0 either way or a 1–1 split. One point per correct call. You can change a pick until the series starts.`)}
-    <div class="pred-name">
-      <div class="pred-name-show"${name ? "" : " hidden"}>Picking as <b>${esc(name)}</b> <button type="button" class="linkish" id="pred-name-edit">Change</button></div>
-      <div class="pred-name-form"${name ? " hidden" : ""}>
-        <label>Your name <input id="pred-name" maxlength="24" value="${esc(name)}" placeholder="Type your name" autocomplete="nickname"></label>
-        <button class="primary" id="pred-name-save" type="button">Save</button>
-        <span class="muted">Your name is how you show up on the leaderboard. Use the same one each week.</span>
-      </div>
-    </div>
+    ${nameBarHtml(name)}
     ${preds ? "" : `<div class="notice err">Couldn't reach the predictions database, so picks and the leaderboard are unavailable right now. The model's odds still work.</div>`}
     <div id="pred-msg"></div>
     <h2>${night ? new Date(night * 1000).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : "No upcoming series"}${night ? ` <span class="pred-time">${new Date(night * 1000).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>` : ""}</h2>
@@ -1216,11 +1354,7 @@ async function renderPredict() {
       <p>Game odds are treated as independent, so a 2–0 is the single-game chance squared. Settings in use: pull ${params.lambda}, medal weight ${params.beta}.</p>
     </details>`;
 
-  document.getElementById("pred-name-edit").onclick = () => {
-    app.querySelector(".pred-name-show").hidden = true;
-    app.querySelector(".pred-name-form").hidden = false;
-    document.getElementById("pred-name").focus();
-  };
+  const input = wireNameBar(renderPredict);
 
   app.querySelectorAll("details.dr").forEach((dr) => {
     const sel = { fp: "home", g: "1" };
@@ -1232,14 +1366,6 @@ async function renderPredict() {
       dr.querySelector(".pd-g2note").hidden = sel.g !== "2";
     });
   });
-  const input = document.getElementById("pred-name");
-  document.getElementById("pred-name-save").onclick = () => {
-    const n = input.value.trim().slice(0, 24);
-    if (!n) { input.focus(); return; }
-    storeName(n);
-    renderPredict();
-  };
-  input.onkeydown = (e) => { if (e.key === "Enter") document.getElementById("pred-name-save").click(); };
   const msg = document.getElementById("pred-msg");
   app.querySelectorAll(".pred-card").forEach((c) => c.querySelectorAll("[data-pick]").forEach((b) => b.onclick = async () => {
     const n = storedName() || input.value.trim();
@@ -1254,6 +1380,199 @@ async function renderPredict() {
       c.querySelectorAll("[data-pick]").forEach((x) => (x.disabled = false));
     }
   }));
+}
+
+// ---------- Predictions (scrims) ----------
+// Anyone can put an upcoming scrim on the schedule (teams, start, Bo1/2/3); anyone can call
+// it until it starts. Uploaded games between the same teams around that time settle it
+// (lib/fixtures.js), so posting a result is just the usual upload, started from the card.
+
+// <input type="datetime-local"> value for a Date, in the viewer's time zone.
+const localInput = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
+const fxWhen = (d) => d.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+function fxUntil(d, now) {
+  const m = Math.round((d - now) / 6e4);
+  if (m <= 0) return "started";
+  if (m < 60) return `in ${m} min`;
+  if (m < 48 * 60) return `in ${Math.round(m / 60)} h`;
+  return `in ${Math.round(m / 1440)} days`;
+}
+const boOptions = (sel) => [1, 2, 3].map((n) => `<option value="${n}" ${n === sel ? "selected" : ""}>Best of ${n}</option>`).join("");
+// Start an upload for a fixture: the upload page shows which scrim it's for and fills in
+// the team names.
+function uploadFor(f, quick) {
+  upload.fixture = { id: f.id, team_a: f.team_a, team_b: f.team_b, start: f.start, best_of: f.best_of, game: f.games.length + 1 };
+  upload.fixtureQuick = quick;
+  location.hash = "#/upload";
+}
+
+async function renderScrimPredict() {
+  const kicker = SOURCES.scrim.kicker;
+  app.innerHTML = loading(kicker, "Predictions");
+  let matches, fixtures, preds;
+  try { matches = await allMatches(); } catch (e) { app.innerHTML = `${pageHead(kicker, "Predictions")}${errorBox(e)}`; return; }
+  try { fixtures = await listFixtures(); } catch (e) { console.warn(e); fixtures = null; }
+  try { preds = (await listPredictions()).filter((p) => p.league === "scrim"); } catch (e) { console.warn(e); preds = null; }
+  const uid = await currentUid();
+  const name = storedName();
+  const myKey = nameKey(name);
+  const now = Date.now();
+  const settled = settle((fixtures ?? []).filter((f) => f.start), matches);
+  const series = settled.map(asSeries);
+  const ratings = scrimRatings(matches);
+  const bt = fixtureBacktest(settled, matches);
+  const valid = preds ? validPicks(preds, series) : [];
+  const teams = listTeams(matches).map((t) => t.name);
+  for (const f of fixtures ?? []) for (const t of [f.team_a, f.team_b]) if (!teams.some((x) => x.toLowerCase() === t.toLowerCase())) teams.push(t);
+  teams.sort((a, b) => a.localeCompare(b));
+
+  const upcoming = settled.filter((f) => !f.done).sort((a, b) => a.start - b.start);
+  const done = settled.filter((f) => f.done).sort((a, b) => b.start - a.start);
+  const mine = (id) => (preds ?? []).filter((p) => p.series_id === id && p.uid === uid).sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))[0];
+  const canManage = (f) => f.uid === uid || editUnlocked();
+
+  const card = (f, i) => {
+    const locked = now >= f.start;
+    const o = fixtureOdds(f, ratings), call = fixtureCall(f, o);
+    const my = mine(f.id);
+    const c = preds ? crowd(preds, asSeries(f)) : null;
+    const opts = outcomes(f.best_of);
+    const soFar = f.games.length ? `${f.home_wins}–${f.away_wins} after ${f.games.length} game${f.games.length === 1 ? "" : "s"}` : "";
+    return `<article class="pred-card" data-fid="${f.id}" style="--i:${Math.min(i, 12)}">
+      <div class="pred-head">
+        <div class="pred-teams"><span class="a">${teamLink(SOURCES.scrim, f.team_a)}</span><i>vs</i><span class="b">${teamLink(SOURCES.scrim, f.team_b)}</span></div>
+        ${locked ? '<span class="pred-lock">Locked</span>' : ""}
+      </div>
+      <div class="fx-meta"><b>${esc(fxWhen(f.start))}</b> · ${fxUntil(f.start, now)} · Bo${f.best_of}${soFar ? ` · <span class="fx-sofar">${soFar}</span>` : ""}</div>
+      <div class="pred-picks${opts.length === 2 ? " two" : ""}" role="group" aria-label="Your pick">${opts.map((k) => {
+        const n = c ? Math.round(c[k] * c.n) : 0;
+        return `<button type="button" class="${k}" data-pick="${k}" aria-pressed="${my?.pick === k}" ${locked || !preds ? "disabled" : ""}>
+          <span class="pk-main">${esc(outcomeLabel(f, k))}</span>
+          <span class="pk-sub">${Math.round(o[k] * 100)}%${c ? ` · ${n} pick${n === 1 ? "" : "s"}` : ""}${k === call ? " · <b>model</b>" : ""}</span>
+        </button>`;
+      }).join("")}</div>
+      <div class="fx-actions">
+        <button type="button" class="${locked ? "primary" : ""}" data-up="shots">Upload game ${f.games.length + 1}</button>
+        <button type="button" data-up="quick">Private result</button>
+        ${f.games.map((m, j) => `<a class="fx-game" href="#/match/${m.id}">Game ${j + 1}</a>`).join("")}
+        <span class="fx-manage">
+          <button type="button" class="linkish" data-fx="move">Change time</button>
+          <button type="button" class="linkish" data-fx="delete">Delete</button>
+        </span>
+      </div>
+      <div class="fx-move" hidden>
+        <input type="datetime-local" value="${localInput(f.start)}">
+        <select>${boOptions(f.best_of)}</select>
+        <button type="button" class="primary" data-fx="move-save">Save</button>
+      </div>
+    </article>`;
+  };
+
+  // Leaderboard: everyone with a pick that counted, plus the model replayed.
+  const st = preds ? standings(preds, series, bt) : [];
+  const boardHtml = st.length ? `<div class="table-wrap"><table class="pred-board">
+    <thead><tr><th class="rank">#</th><th class="l">Name</th><th>Points</th><th>Correct</th></tr></thead>
+    <tbody>${st.map((r, i) => `<tr class="${!r.model && nameKey(r.name) === myKey ? "me" : ""}">
+      <td class="rank${i < 3 && r.picks ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>
+      <td class="l">${r.model ? `<b>${esc(r.name)}</b> <span class="tag">replayed</span>` : esc(r.name)}</td>
+      <td class="num">${r.points}<span class="muted">/${r.picks}</span></td>
+      <td class="num">${pct(r.accuracy)}</td></tr>`).join("")}</tbody></table></div>` : "";
+
+  const results = done.map((f) => {
+    const m = bt.find((x) => x.s.id === f.id);
+    const c = preds ? crowd(preds, asSeries(f)) : null;
+    const crowdPick = c?.n ? outcomes(f.best_of).sort((a, b) => c[b] - c[a])[0] : null;
+    const me = myKey ? valid.find((p) => p.series_id === f.id && nameKey(p.name) === myKey) : null;
+    const tick = (pick) => (pick ? `${esc(outcomeLabel(f, pick))} ${pick === f.outcome ? '<b class="s-a">✓</b>' : '<b class="s-b">✗</b>'}` : '<span class="muted">—</span>');
+    return `<tr><td class="l">${esc(f.start.toLocaleDateString(undefined, { month: "short", day: "numeric" }))}</td>
+      <td class="l">${teamLink(SOURCES.scrim, f.team_a)} vs ${teamLink(SOURCES.scrim, f.team_b)}</td>
+      <td>${f.home_wins}–${f.away_wins} ${f.games.map((g, j) => `<a href="#/match/${g.id}" title="Game ${j + 1}">G${j + 1}</a>`).join(" ")}</td>
+      <td class="l">${m ? tick(m.pick) : "—"}</td>
+      <td class="l">${c?.n ? `${tick(crowdPick)} <span class="muted">${c.n}</span>` : '<span class="muted">—</span>'}</td>
+      ${myKey ? `<td class="l">${me ? tick(me.pick) : '<span class="muted">—</span>'}</td>` : ""}</tr>`;
+  }).join("");
+
+  const start = new Date(now + 864e5);
+  start.setMinutes(0, 0, 0);
+  app.innerHTML = `${pageHead(kicker, "Predictions", "Put an upcoming scrim on the schedule, call how it goes, and post the result from its card when it's played. One point per correct call; picks lock when the scrim starts.")}
+    ${nameBarHtml(name)}
+    ${fixtures && preds ? "" : `<div class="notice err">Couldn't load the ${fixtures ? "" : "schedule and "}predictions from the database, so ${fixtures ? "picks and the leaderboard are" : "scheduled scrims, picks and the leaderboard are"} unavailable right now.</div>`}
+    <div id="pred-msg"></div>
+    <details class="fx-add" ${upcoming.length ? "" : "open"}>
+      <summary>+ Add an upcoming scrim</summary>
+      <form id="fx-form" class="fx-form">
+        <datalist id="scrim-teams">${teams.map((t) => `<option value="${esc(t)}">`).join("")}</datalist>
+        <label>Team A<input name="a" list="scrim-teams" maxlength="40" required placeholder="Team name" autocomplete="off"></label>
+        <label>Team B<input name="b" list="scrim-teams" maxlength="40" required placeholder="Team name" autocomplete="off"></label>
+        <label>Starts<input name="start" type="datetime-local" required value="${localInput(start)}"></label>
+        <label>Format<select name="bo">${boOptions(2)}</select></label>
+        <button class="primary" type="submit">Add to schedule</button>
+      </form>
+      <p class="table-note">Use the team names the way they're saved on the site (pick from the list), so results line up. Times are in your time zone.</p>
+    </details>
+    <h2>Upcoming</h2>
+    ${upcoming.length ? `<div class="pred-grid reveal">${upcoming.map(card).join("")}</div>
+      <p class="table-note">Each button shows the model's odds and how many people picked it; <b>model</b> marks its call. When the scrim's played, press <b>Upload game</b> on its card (screenshots) or <b>Private result</b> (score only). Games between the same two teams uploaded from 2 hours before the start to 3 days after count toward it automatically.</p>`
+      : `<div class="panel empty">Nothing scheduled. Add the next scrim above.</div>`}
+    <h2>Leaderboard</h2>
+    ${boardHtml ? `${boardHtml}<p class="table-note">Points = correct calls / scrims called. The model replays each scrim from the games uploaded before it.</p>` : `<div class="panel empty">No scrims decided yet.</div>`}
+    ${results ? `<h2>Results</h2><div class="table-wrap"><table><thead><tr><th class="l">Date</th><th class="l">Scrim</th><th>Result</th><th class="l">Model</th><th class="l">Crowd</th>${myKey ? `<th class="l">You</th>` : ""}</tr></thead><tbody>${results}</tbody></table></div>` : ""}
+    <details class="how"><summary>How it works</summary>
+      <p>Odds come from a strength rating per team fitted to every scrim result on the site (private results included), each pulled toward even so one lucky win doesn't make a team a lock. A Bo2 is two independent games (2–0 = p²); a Bo3 is first to two. With no games between the teams the model calls a coin flip: 1–1 in a Bo2, Team A otherwise.</p>
+      <p>A scrim is decided once all its games are in (Bo1, Bo2) or a team has two wins (Bo3). Until then it stays under Upcoming with the score so far. If the teams played under different names in game, the upload page offers the scheduled names in one click.</p>
+    </details>`;
+
+  const input = wireNameBar(renderScrimPredict);
+  const msg = document.getElementById("pred-msg");
+  const say = (kind, text) => { msg.innerHTML = `<div class="notice ${kind}">${esc(text)}</div>`; msg.scrollIntoView({ block: "nearest" }); };
+
+  document.getElementById("fx-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const fm = e.target, btn = fm.querySelector("button");
+    const a = fm.a.value.trim(), b = fm.b.value.trim(), when = new Date(fm.start.value);
+    if (!a || !b) return say("warn", "Type both team names.");
+    if (a.toLowerCase() === b.toLowerCase()) return say("warn", "Pick two different teams.");
+    if (Number.isNaN(+when)) return say("warn", "Pick a start time.");
+    if (when < now - 2 * 864e5 || when > now + 60 * 864e5) return say("warn", "The start has to be within the last 2 days or the next 60.");
+    // Use the saved spelling when the typed name matches a known team.
+    const canon = (n) => teams.find((t) => t.toLowerCase() === n.toLowerCase()) ?? n;
+    btn.disabled = true;
+    try {
+      await addFixture({ team_a: canon(a), team_b: canon(b), start: when, best_of: Number(fm.bo.value) });
+      renderScrimPredict();
+    } catch (err) { btn.disabled = false; say("err", `Couldn't add the scrim: ${err.message}`); }
+  };
+
+  const unlocked = () => {
+    const pw = window.prompt("Only whoever added this scrim can change it. League password:");
+    return pw != null && unlockEdit(pw);
+  };
+  app.querySelectorAll(".pred-card[data-fid]").forEach((c) => {
+    const f = settled.find((x) => x.id === c.dataset.fid);
+    c.querySelectorAll("[data-pick]").forEach((b) => b.onclick = async () => {
+      const n = storedName() || input.value.trim();
+      if (!n) { say("warn", "Type your name first, so your picks count toward the standings."); input.focus(); return; }
+      storeName(n);
+      c.querySelectorAll("[data-pick]").forEach((x) => (x.disabled = true));
+      try { await savePrediction(f.id, b.dataset.pick, n, "scrim"); renderScrimPredict(); }
+      catch (e) { say("err", `Couldn't save your pick: ${e.message}`); c.querySelectorAll("[data-pick]").forEach((x) => (x.disabled = false)); }
+    });
+    c.querySelectorAll("[data-up]").forEach((b) => b.onclick = () => uploadFor(f, b.dataset.up === "quick"));
+    const move = c.querySelector(".fx-move");
+    c.querySelector('[data-fx="move"]').onclick = () => { if (canManage(f) || unlocked()) move.hidden = !move.hidden; };
+    c.querySelector('[data-fx="move-save"]').onclick = async (e) => {
+      const when = new Date(move.querySelector("input").value);
+      if (Number.isNaN(+when)) return say("warn", "Pick a start time.");
+      e.target.disabled = true;
+      try { await moveFixture(f.id, when, Number(move.querySelector("select").value)); renderScrimPredict(); }
+      catch (err) { e.target.disabled = false; say("err", `Couldn't change it: ${err.message}`); }
+    };
+    c.querySelector('[data-fx="delete"]').onclick = async () => {
+      if (!canManage(f) && !unlocked()) return;
+      if (!window.confirm(`Delete ${f.team_a} vs ${f.team_b} from the schedule? Picks on it stop counting. Uploaded games stay.`)) return;
+      try { await deleteFixture(f.id); renderScrimPredict(); } catch (err) { say("err", `Couldn't delete it: ${err.message}`); }
+    };
+  });
 }
 
 // Roshans, Tormentors and map play for a team (games with replay data).
@@ -1426,7 +1745,7 @@ async function renderHeroes(src) {
 }
 
 // "Show at least N" filter above a table, so a hero picked once at 100% doesn't top the list.
-const MIN_DEFAULT = (matches) => (matches.length >= 20 ? 3 : 2);
+const MIN_DEFAULT = (matches) => (matches.length >= 20 ? 3 : matches.length >= 8 ? 2 : 1);
 const minBar = (before, after, def) => `<div class="min-bar"><label>${before} <select id="min-n">${[1, 2, 3, 5, 10].map((n) => `<option value="${n}" ${n === def ? "selected" : ""}>${n}</option>`).join("")}</select> ${after}</label><span class="min-note" id="min-note"></span></div>`;
 function wireMinBar(rows, count, draw) {
   const sel = document.getElementById("min-n"), note = document.getElementById("min-note");
@@ -1436,6 +1755,8 @@ function wireMinBar(rows, count, draw) {
     draw(shown);
   };
   sel.onchange = go;
+  // Never open on an empty table: with few games the default can hide every row.
+  while (sel.selectedIndex > 0 && !rows.some((r) => count(r) >= +sel.value)) sel.selectedIndex--;
   go();
 }
 
@@ -1985,12 +2306,24 @@ function route() {
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
     else if (h.startsWith("#/ad2l/draft")) { section = "heroes"; page = () => renderHeroes(src); } // old Draft tab: now part of Heroes
     else if (h.startsWith("#/ad2l/predict")) { section = "predict"; page = renderPredict; }
-    else if (h.startsWith("#/ad2l/upload")) { section = "upload"; page = async () => { upload.league = "ad2l"; await ad2lData().catch(() => null); await ad2lUploaded(); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
+    else if (/^#\/ad2l\/edit\/[0-9a-f]{32}$/.test(h)) { section = "week"; page = () => renderEdit(h.slice("#/ad2l/edit/".length), "ad2l"); }
+    else if (h.startsWith("#/ad2l/upload")) { section = "upload"; page = async () => { endEdit(); upload.league = "ad2l"; await ad2lData().catch(() => null); await ad2lUploaded(); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
     else { section = "standings"; page = renderStandings; }
   } else {
     const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];
     if (matchId) { section = "matches"; page = () => renderMatch(matchId, src); }
-    else if (h.startsWith("#/upload")) { section = "upload"; page = () => { upload.league = "scrim"; if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
+    else if (/^#\/edit\/[0-9a-f]{32}$/.test(h)) { section = "matches"; page = () => renderEdit(h.slice("#/edit/".length), "scrim"); }
+    else if (h.startsWith("#/upload")) {
+      section = "upload";
+      page = () => {
+        endEdit(); upload.league = "scrim";
+        // Came from a scheduled scrim's "Private result" button: open the result form.
+        if (upload.fixtureQuick) { upload.fixtureQuick = false; return startPrivate(); }
+        if (upload.draft) upload.check = checkDraft(upload.draft);
+        return renderUpload();
+      };
+    }
+    else if (h.startsWith("#/predict")) { section = "predict"; page = renderScrimPredict; }
     else if (h.startsWith("#/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[2] ?? "")); }
     else if (h.startsWith("#/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[2] ?? 0) || 0); }
     else if (h.startsWith("#/tiers")) { section = "players"; page = () => renderPlayers(src); }

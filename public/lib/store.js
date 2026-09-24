@@ -3,9 +3,9 @@
 // anonymously; reading needs no sign-in. The anonymous session persists in this browser,
 // which is what lets an uploader delete their own scrim later.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, limit, serverTimestamp,
+  getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, limit, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { FIREBASE_CONFIG } from "../firebase-config.js";
 import { matchId } from "./stats.js";
@@ -82,43 +82,39 @@ export async function submitMatch(draft, { isPrivate = false, league = "scrim", 
   return { id };
 }
 
-// The league admin signs in with their email account (same project login as Cookbook) on
-// a second Firebase app instance, so it doesn't replace this browser's anonymous session,
-// which is what owns this browser's uploads and predictions. The rules check the email.
-const ADMIN_EMAIL = "jonahbyu@gmail.com";
-const adminAuth = getAuth(initializeApp(FIREBASE_CONFIG, "scrim-league-admin"));
-const adminDb = getFirestore(adminAuth.app);
-const adminReady = new Promise((resolve) => { const off = onAuthStateChanged(adminAuth, () => { off(); resolve(); }); });
-export async function isAdmin() {
-  await adminReady;
-  return adminAuth.currentUser?.email === ADMIN_EMAIL;
+// Any signed-in visitor may delete an upload (the rules allow it); the site asks for the
+// league's shared password first. Signs in anonymously if this browser hasn't yet.
+async function signedIn() {
+  await authReady;
+  if (!auth.currentUser) await signInAnonymously(auth);
 }
-export async function adminSignIn(email, password) {
-  await signInWithEmailAndPassword(adminAuth, email.trim(), password);
-  if (adminAuth.currentUser?.email !== ADMIN_EMAIL) { await signOut(adminAuth); throw new Error("That account isn't the league admin."); }
-}
-export const adminSignOut = () => signOut(adminAuth);
-
-// Only the uploader (same browser session) or the league admin may delete; the rules
-// enforce it, this just makes the call (as the admin when signed in as one).
 export async function deleteMatch(id, league = "scrim") {
-  const asAdmin = await isAdmin();
-  await deleteDoc(doc(asAdmin ? adminDb : db, "scrimLeague", "data", COLLECTIONS[league], id));
+  await signedIn();
+  await deleteDoc(doc(coll(league), id));
+}
+
+// Save corrections to an upload in place: same ID, uploader, upload time, private flag and
+// series (the rules check all of that). Behind the same password as delete.
+export async function editMatch(id, draft, league = "scrim") {
+  await signedIn();
+  const ref = doc(coll(league), id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error("That game isn't there any more.");
+  const { uid, createdAt, series_id, private: isPrivate } = snap.data();
+  await setDoc(ref, { ...toStored(draft, { isPrivate, seriesId: series_id ?? null }), uid, createdAt });
 }
 
 // Put an unticketed upload in a PlayOn series (or take it out with null). Saved games are
 // create-only, so this deletes the upload and saves it again with the new series_id, same
-// ID (the ID doesn't depend on the series). Uploader or admin only, like delete. If saving
+// ID (the ID doesn't depend on the series). Behind the same password as delete. If saving
 // fails, the original is put back.
 export async function moveMatch(id, seriesId, league = "ad2l") {
-  const asAdmin = await isAdmin();
-  const ref = doc(asAdmin ? adminDb : db, "scrimLeague", "data", COLLECTIONS[league], id);
+  await signedIn();
+  const ref = doc(coll(league), id);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error("That game isn't there any more.");
   const { uid, createdAt, series_id, ...rest } = snap.data();
   await deleteDoc(ref);
-  await authReady;
-  if (!auth.currentUser) await signInAnonymously(auth);
   const save = (data) => setDoc(doc(coll(league), id), { ...data, uid: auth.currentUser.uid, createdAt: serverTimestamp() });
   try {
     await save(Number.isInteger(seriesId) ? { ...rest, series_id: seriesId } : rest);
@@ -150,12 +146,44 @@ export async function listPredictions() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data(), updatedAt: d.data().updatedAt?.toDate?.() ?? null }));
 }
 
-export async function savePrediction(seriesId, pick, name) {
-  await authReady;
-  if (!auth.currentUser) await signInAnonymously(auth);
+// league "ad2l": seriesId is a PlayOn series (number); "scrim": a fixture's document ID.
+export async function savePrediction(seriesId, pick, name, league = "ad2l") {
+  await signedIn();
   const uid = auth.currentUser.uid;
   await setDoc(doc(predictions, `${seriesId}_${uid}`), {
-    v: 1, league: "ad2l", series_id: seriesId, pick, name: name.trim().slice(0, 24), uid, updatedAt: serverTimestamp(),
+    v: 1, league, series_id: seriesId, pick, name: name.trim().slice(0, 24), uid, updatedAt: serverTimestamp(),
   });
   return uid;
+}
+
+// ---------- scrim fixtures ----------
+// Upcoming scrims anyone can put on the schedule: two team names, a start time and the
+// format. Results aren't stored here; uploaded games settle a fixture (lib/fixtures.js).
+const fixtures = collection(db, "scrimLeague", "data", "scrim_fixtures");
+const fixtureFromDoc = (d) => ({ id: d.id, ...d.data(), start: d.data().start?.toDate?.() ?? null, createdAt: d.data().createdAt?.toDate?.() ?? null });
+
+export async function listFixtures() {
+  const snap = await getDocs(query(fixtures, orderBy("start", "desc"), limit(MAX_MATCHES)));
+  return snap.docs.map(fixtureFromDoc);
+}
+
+export async function addFixture({ team_a, team_b, start, best_of }) {
+  await signedIn();
+  const ref = doc(fixtures); // random 20-character ID
+  await setDoc(ref, {
+    v: 1, team_a: team_a.trim(), team_b: team_b.trim(), start: Timestamp.fromDate(start), best_of,
+    uid: auth.currentUser.uid, createdAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+// Reschedule: only the start time and format can change.
+export async function moveFixture(id, start, best_of) {
+  await signedIn();
+  await updateDoc(doc(fixtures, id), { start: Timestamp.fromDate(start), best_of });
+}
+
+export async function deleteFixture(id) {
+  await signedIn();
+  await deleteDoc(doc(fixtures, id));
 }

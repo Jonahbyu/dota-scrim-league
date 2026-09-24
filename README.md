@@ -46,8 +46,8 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   hero, weekly and tier pages; standings stay PlayOn's series scores. No draft, gold or ward
   data (those come from replays). Stored in Firestore `scrimLeague/data/ad2l_unticketed`,
   same rules as scrims.
-- **Deleting** — whoever uploaded a scrim can delete it from the browser they uploaded it
-  in; the league admin can delete any.
+- **Editing and deleting** — whoever uploaded a game can edit or delete it from the browser
+  they uploaded it in; anyone else needs the league password (see "Editing and deleting").
 - **Player pages** — click any player name: record, KDA, GPM, damage, kill participation,
   tier, best games, hero pool (W–L per hero) and every game they played (sortable).
 - **Gold graphs** (AD2L) — each game: gold lead minute by minute with each side's biggest lead
@@ -190,13 +190,19 @@ tight to fit (see the comment in the rules file). Re-run the dry test after any 
 
 ## Editing and deleting
 
-- **Delete:** open the game and press **Delete this scrim**. The button shows for whoever
-  uploaded it, in the browser they uploaded from (the upload is tied to that browser's
-  anonymous sign-in). The league admin can delete any game from the command line:
+Open the game. Whoever uploaded it (from the same browser) sees **Edit** and **Delete**
+straight away; anyone else opens **Edit or delete this scrim** and types the league password.
 
-  ```
-  npx firebase firestore:delete scrimLeague/data/matches/<id> --project pistachio-kitchen
-  ```
+- **Edit** loads the game into the upload review form: fix names, heroes, stats, teams,
+  score or winner and press **Save changes**. The game keeps its ID, upload date (so its
+  week), uploader, private flag and AD2L series; the rules check the same shape as a new
+  upload. The ID is still the one from the original teams and score, so a later upload of
+  the same game with the corrected values won't be caught as a duplicate.
+- **Delete** removes it for everyone.
 
-- **Edit:** there's no edit. Saved games are locked so nobody can quietly change a result.
-  To fix a mistake, delete the game and upload it again.
+The password is a speed bump, not security: it's in `app.js`, and the rules let any
+signed-in visitor edit or delete an upload. The admin can also delete from the command line:
+
+```
+npx firebase firestore:delete scrimLeague/data/matches/<id> --project pistachio-kitchen
+```

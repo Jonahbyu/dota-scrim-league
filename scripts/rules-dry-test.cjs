@@ -23,9 +23,18 @@ const req = (data, auth = { uid: "u1" }) => ({ auth, method: "create", path: PAT
 // Delete: `existing` is the stored document the rule sees as `resource`.
 const del = (existing, auth) => ({ request: { auth, method: "delete", path: PATH, time: NOW }, resource: { data: existing } });
 
+// Update: `existing` is the stored document, `data` what the edit writes.
+const upd = (existing, data, auth = { uid: "u2" }, path = PATH) => ({ request: { auth, method: "update", path, time: "2026-09-25T04:00:00Z", resource: { data } }, resource: { data: existing } });
+const UNT_PATH = PATH.replace("/matches/", "/ad2l_unticketed/");
 const PRED_PATH = "/databases/(default)/documents/scrimLeague/data/predictions/20621_u1";
 const pred = (extra = {}) => ({ v: 1, league: "ad2l", series_id: 20621, pick: "home", name: "Rules Test", uid: "u1", updatedAt: NOW, ...extra });
 const predReq = (data, auth = { uid: "u1" }) => ({ auth, method: "create", path: PRED_PATH, time: NOW, resource: { data } });
+const FIX_ID = "AbCdEfGhIjKlMnOpQrSt";
+const FIX_PATH = `/databases/(default)/documents/scrimLeague/data/scrim_fixtures/${FIX_ID}`;
+const fixture = (extra = {}) => ({ v: 1, team_a: "Rules Test A", team_b: "Rules Test B", start: "2026-09-26T02:00:00Z", best_of: 2, uid: "u1", createdAt: NOW, ...extra });
+const fixReq = (data, auth = { uid: "u1" }, path = FIX_PATH) => ({ auth, method: "create", path, time: NOW, resource: { data } });
+const fixUpd = (existing, data, auth = { uid: "u2" }) => ({ request: { auth, method: "update", path: FIX_PATH, time: NOW, resource: { data } }, resource: { data: existing } });
+const SCRIM_PRED_PATH = `/databases/(default)/documents/scrimLeague/data/predictions/${FIX_ID}_u1`;
 const withPlayer = (i, change) => ({ ...match(), players: match().players.map((p, j) => (j === i ? change({ ...p }) : p)) });
 const cases = [
   ["valid match", req(match()), "ALLOW"],
@@ -70,7 +79,8 @@ const cases = [
   ["unticketed, series_id plus extra field", { ...req(match({ series_id: 20690, admin: true })), path: PATH.replace("/matches/", "/ad2l_unticketed/") }, "DENY"],
   ["private scrim with series_id", req(privateMatch({ series_id: 20690 })), "DENY"],
   ["uploader deletes own scrim", del(match(), { uid: "u1" }), "ALLOW"],
-  ["someone else deletes it", del(match(), { uid: "u2" }), "DENY"],
+  ["someone else deletes it (anyone signed in may)", del(match(), { uid: "u2" }), "ALLOW"],
+  ["delete in an unknown collection", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/anything/") } }, "DENY"],
   ["signed-out delete", del(match(), null), "DENY"],
   ["admin deletes any", del(match(), { uid: "admin", token: { email: "jonahbyu@gmail.com" } }), "ALLOW"],
   ["unticketed AD2L game", { ...req(match({ series_id: 20690 })), path: PATH.replace("/matches/", "/ad2l_unticketed/") }, "ALLOW"],
@@ -87,6 +97,39 @@ const cases = [
   ["prediction: 40-char name", predReq(pred({ name: "N".repeat(40) })), "DENY"],
   ["prediction: extra field", predReq(pred({ points: 99 })), "DENY"],
   ["prediction: signed out", predReq(pred(), null), "DENY"],
+  ["prediction: scrim fixture", { ...predReq(pred({ league: "scrim", series_id: FIX_ID })), path: SCRIM_PRED_PATH }, "ALLOW"],
+  ["prediction: scrim with a number id", { ...predReq(pred({ league: "scrim" })) }, "DENY"],
+  ["prediction: ad2l with a fixture id", { ...predReq(pred({ series_id: FIX_ID })), path: SCRIM_PRED_PATH }, "DENY"],
+  ["prediction: unknown league", predReq(pred({ league: "nba" })), "DENY"],
+  ["fixture: valid", fixReq(fixture()), "ALLOW"],
+  ["fixture: Bo3 two days ahead", fixReq(fixture({ best_of: 3 })), "ALLOW"],
+  ["fixture: signed out", fixReq(fixture(), null), "DENY"],
+  ["fixture: someone else's uid", fixReq(fixture({ uid: "u2" })), "DENY"],
+  ["fixture: client createdAt", fixReq(fixture({ createdAt: "2020-01-01T00:00:00Z" })), "DENY"],
+  ["fixture: same team twice", fixReq(fixture({ team_b: "rules test a" })), "DENY"],
+  ["fixture: Bo5", fixReq(fixture({ best_of: 5 })), "DENY"],
+  ["fixture: start as string", fixReq(fixture({ start: "tomorrow" })), "DENY"],
+  ["fixture: start a year out", fixReq(fixture({ start: "2027-09-26T02:00:00Z" })), "DENY"],
+  ["fixture: start a week ago", fixReq(fixture({ start: "2026-09-17T02:00:00Z" })), "DENY"],
+  ["fixture: extra field", fixReq(fixture({ winner: "a" })), "DENY"],
+  ["fixture: empty team", fixReq(fixture({ team_a: "" })), "DENY"],
+  ["fixture: bad id", fixReq(fixture(), undefined, FIX_PATH.replace(FIX_ID, "short")), "DENY"],
+  ["fixture: reschedule", fixUpd(fixture(), fixture({ start: "2026-09-27T02:00:00Z", best_of: 3 })), "ALLOW"],
+  ["fixture: rename team on update", fixUpd(fixture(), fixture({ team_a: "Other" })), "DENY"],
+  ["fixture: change uploader on update", fixUpd(fixture(), fixture({ uid: "u2" })), "DENY"],
+  ["fixture: delete (anyone signed in)", { request: { auth: { uid: "u2" }, method: "delete", path: FIX_PATH, time: NOW }, resource: { data: fixture() } }, "ALLOW"],
+  ["fixture: signed-out delete", { request: { auth: null, method: "delete", path: FIX_PATH, time: NOW }, resource: { data: fixture() } }, "DENY"],
+  ["edit: fix a player name", upd(match(), withPlayer(3, (p) => ({ ...p, name: "Fixed Name" }))), "ALLOW"],
+  ["edit: worst case (long names + pick order)", upd(match(), { ...match(), players: match().players.map((p, i) => ({ ...p, name: "N".repeat(32), hero: "Vengeful Spirit", level: 30, hero_damage: 150000, tag: "TAG", pick: i + 1 })) }), "ALLOW"],
+  ["edit: private result, rename team", upd(privateMatch(), privateMatch({ team_a: "Renamed" })), "ALLOW"],
+  ["edit: unticketed, same series", upd(match({ series_id: 20690 }), match({ series_id: 20690, team_a: "Renamed" }), undefined, UNT_PATH), "ALLOW"],
+  ["edit: signed out", upd(match(), match({ team_a: "Renamed" }), null), "DENY"],
+  ["edit: change uploader", upd(match(), match({ uid: "u2" })), "DENY"],
+  ["edit: change upload time", upd(match(), match({ createdAt: "2026-09-25T04:00:00Z" })), "DENY"],
+  ["edit: public to private", upd(match(), privateMatch()), "DENY"],
+  ["edit: change series", upd(match({ series_id: 20690 }), match({ series_id: 20691 }), undefined, UNT_PATH), "DENY"],
+  ["edit: bad shape", upd(match(), match({ admin: true })), "DENY"],
+  ["edit: level 99", upd(match(), withPlayer(3, (p) => ({ ...p, level: 99 }))), "DENY"],
   ["uploader deletes own unticketed game", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/ad2l_unticketed/") } }, "ALLOW"],
 ];
 

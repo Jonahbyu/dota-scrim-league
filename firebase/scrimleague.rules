@@ -91,16 +91,21 @@
         && request.resource.data.createdAt == request.time
         && validMatch(request.resource.data);
 
-      // A saved result is never edited from the site; mistakes are fixed by the admin.
-      allow update: if false;
+      // Editing (e.g. fixing a misread name): same checks as a new upload, and the uploader,
+      // upload time, private flag and series stay as they were. Open to anyone signed in,
+      // like delete; the site puts it behind the same shared password. One diff() instead of
+      // four comparisons: the player checks leave little of the expression budget.
+      allow update: if knownColl() && request.auth != null
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt', 'private', 'series_id'])
+        && validMatch(request.resource.data);
 
-      // The uploader can delete their own scrim (same anonymous session = same browser);
-      // the league admin can delete any (e.g. a fake or mistaken upload).
-      allow delete: if knownColl() && request.auth != null
-        && (request.auth.uid == resource.data.uid || request.auth.token.email == "jonahbyu@gmail.com");
+      // Anyone signed in (the site signs visitors in anonymously) may delete an upload: the
+      // league decided a wrong or fake upload should be easy to remove. The site asks for a
+      // shared password first, which is a speed bump only; the rules don't check it.
+      allow delete: if knownColl() && request.auth != null;
     }
 
-    // Predictions: one document per person per series, id "<series id>_<uid>", so each
+    // Predictions: one document per person per series (AD2L) or scrim fixture, id "<series id>_<uid>", so each
     // browser can make and change one pick per series. updatedAt must be the server's clock:
     // scoring ignores picks stamped after the series started, so a late change can't count.
     // `name` is whatever the predictor typed (standings group by it); nothing else is stored.
@@ -112,8 +117,12 @@
         && request.resource.data.keys().hasOnly(['v', 'league', 'series_id', 'pick', 'name', 'uid', 'updatedAt'])
         && request.resource.data.keys().size() == 7
         && request.resource.data.v == 1
-        && request.resource.data.league in ['ad2l']
-        && request.resource.data.series_id is int
+        // AD2L picks are on PlayOn series (int ids); scrim picks on a fixture's document ID.
+        && (request.resource.data.league == 'ad2l'
+              ? request.resource.data.series_id is int
+              : request.resource.data.league == 'scrim'
+                && request.resource.data.series_id is string
+                && request.resource.data.series_id.matches('[A-Za-z0-9]{20}'))
         && request.resource.data.pick in ['home', 'tie', 'away']
         && request.resource.data.name is string
         && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 24
@@ -121,4 +130,37 @@
         && request.resource.data.updatedAt == request.time;
       allow delete: if request.auth != null
         && (request.auth.uid == resource.data.uid || request.auth.token.email == "jonahbyu@gmail.com");
+    }
+
+    // Scrim fixtures: upcoming scrims anyone can put on the schedule for predictions. Only
+    // teams, start time and format; results come from uploaded games (matched by teams and
+    // time on the client). Rescheduling changes start/best_of only; delete is open to anyone
+    // signed in, behind the same shared password on the site as deleting a game.
+    match /scrimLeague/data/scrim_fixtures/{fixtureId} {
+      function validFixture(d) {
+        return d.keys().hasOnly(['v', 'team_a', 'team_b', 'start', 'best_of', 'uid', 'createdAt'])
+          && d.keys().size() == 7
+          && d.v == 1
+          && d.team_a is string && d.team_b is string
+          && d.team_a.size() >= 1 && d.team_a.size() <= 40
+          && d.team_b.size() >= 1 && d.team_b.size() <= 40
+          && d.team_a.lower() != d.team_b.lower()
+          && d.start is timestamp
+          && d.best_of in [1, 2, 3];
+      }
+      allow get: if true;
+      allow list: if request.query.limit <= 500;
+      // Start between 2 days ago (logging a scrim just played) and 60 days ahead.
+      allow create: if request.auth != null
+        && fixtureId.matches('[A-Za-z0-9]{20}')
+        && validFixture(request.resource.data)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.start > request.time - duration.value(2, 'd')
+        && request.resource.data.start < request.time + duration.value(60, 'd');
+      allow update: if request.auth != null
+        && validFixture(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['start', 'best_of'])
+        && request.resource.data.start < request.time + duration.value(60, 'd');
+      allow delete: if request.auth != null;
     }
