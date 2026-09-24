@@ -46,16 +46,17 @@
       // Private scrims are results only: the same fields minus `players` (11 keys; every
       // one is read here or in the create rule, so the count proves the exact set).
       // Public scrims add the ten players (12 keys).
-      // Optional `series_id` (unticketed AD2L games only): the PlayOn series the uploader
-      // says it belongs to, one more key when present. Whether that series really is
-      // missing a game is the form's job, like the stat ranges.
+      // `series_id`: the PlayOn series an unticketed AD2L game fills, one more key. Required
+      // in ad2l_unticketed (only missing games may be uploaded), not allowed elsewhere.
+      // Whether that series really is missing a game is the form's job, like the stat ranges.
       function validMatch(d) {
         return d.v == 2
           && d.private is bool
           && validResult(d)
-          // A bad series_id makes the count 99 so it can't match.
+          // A bad or missing series_id makes the count 99 so it can't match.
           && d.size() == (d.private ? 11 : 12)
-               + ('series_id' in d ? (coll == 'ad2l_unticketed' && d.series_id is int ? 1 : 99) : 0)
+               + ('series_id' in d ? (coll == 'ad2l_unticketed' && d.series_id is int ? 1 : 99)
+                                   : (coll == 'ad2l_unticketed' ? 99 : 0))
           && (d.private || validPlayers(d));
       }
 

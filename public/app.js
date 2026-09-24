@@ -123,6 +123,9 @@ function checkDraft(d) {
   const c = validateMatch(d, { resultOnly: upload.isPrivate && upload.league !== "ad2l" });
   if (upload.league !== "ad2l" || !ad2lCache) return c;
   const errors = [d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n)).map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`);
+  // Unticketed uploads must fill a game the league is missing (see seriesPickHtml).
+  if (!ad2lMissing().length) errors.push("No AD2L games are missing right now, so there's nothing to upload.");
+  else if (!upload.seriesId) errors.push("Pick which game this is under “Which game is this?” at the top of the review.");
   const s = upload.seriesId && ad2lCache.series.find((x) => x.id === upload.seriesId);
   if (s && d.team_a && d.team_b && !sameTeams(ad2lCache, s, d.team_a, d.team_b)) errors.push("The teams don't match the series picked under “Which game is this?”.");
   if (!errors.length) return c;
@@ -142,8 +145,8 @@ const seriesOptions = (opts, selected) => opts.filter((g, i, all) => all.findInd
   .map((g) => `<option value="${g.series.id}" ${selected === g.series.id ? "selected" : ""}>${esc(openGameLabel(g))}</option>`).join("");
 // Pick the missing game for these two teams when there's exactly one.
 function guessSeries(d) {
-  const hits = ad2lMissing().filter((g) => sameTeams(ad2lCache, g.series, d.team_a, d.team_b));
-  upload.seriesId = hits.length === 1 ? hits[0].series.id : null;
+  const hits = [...new Set(ad2lMissing().filter((g) => sameTeams(ad2lCache, g.series, d.team_a, d.team_b)).map((g) => g.series.id))];
+  upload.seriesId = hits.length === 1 ? hits[0] : null;
 }
 const ad2lTeamByName = (n) => teamByName(ad2lCache, n);
 
@@ -262,6 +265,7 @@ function draftHtml(d) {
 
   return `
     <h2>Review</h2>
+    ${upload.league === "ad2l" ? seriesPickHtml() : ""}
     <div class="panel edit">
       <div class="fields">
         <label>Team A (first / left)${textInput("team_a", d.team_a, upload.league === "ad2l" ? 'list="ad2l-teams"' : "")}</label>
@@ -290,7 +294,6 @@ function draftHtml(d) {
       </table>
     </div>
     <div id="checks">${checksHtml(upload.check)}</div>
-    ${upload.league === "ad2l" ? seriesPickHtml() : ""}
     ${upload.league === "ad2l" ? `<datalist id="ad2l-teams">${(ad2lCache?.teams ?? []).map((t) => `<option value="${esc(t.name)}">`).join("")}</datalist>` : `
     <label class="private-toggle">
       <input type="checkbox" id="private" ${upload.isPrivate ? "checked" : ""}>
@@ -306,12 +309,14 @@ function draftHtml(d) {
 // Which PlayOn game this upload fills, from the games PlayOn scored that nobody has on
 // record. Saved as series_id, so the game lands in that series and its week.
 function seriesPickHtml() {
+  const opts = ad2lMissing();
+  if (!opts.length) return `<div class="notice err">No AD2L games are missing right now: every game PlayOn has scored is on record, and this week's are all ticketed. Only missing games can be uploaded.</div>`;
   return `<label class="series-pick">Which game is this?
-      <select id="series-pick">
-        <option value="">Not listed</option>
-        ${seriesOptions(ad2lMissing(), upload.seriesId)}
+      <select id="series-pick" class="${upload.seriesId ? "" : "bad"}">
+        <option value="" disabled ${upload.seriesId ? "" : "selected"}>Pick the missing game…</option>
+        ${seriesOptions(opts, upload.seriesId)}
       </select>
-      <span class="muted">Games not on record here: ones missing from earlier weeks, and this week's that haven't been ticketed yet. Picking one puts this game in that series and week.</span></label>`;
+      <span class="muted">Only games the league is missing can be uploaded: ones missing from earlier weeks, and this week's that haven't been ticketed yet. The game goes in that series and week, and the teams have to match.</span></label>`;
 }
 
 // Private result: pick both teams from the league's list (or add a new one), then the kill
@@ -486,7 +491,14 @@ function renderUpload() {
   if (upload.draft) {
     document.getElementById("save").onclick = saveDraft;
     const pick = document.getElementById("series-pick");
-    if (pick) pick.onchange = () => { upload.seriesId = Number(pick.value) || null; revalidate(); };
+    if (pick) pick.onchange = () => {
+      upload.seriesId = Number(pick.value) || null;
+      const s = ad2lCache?.series.find((x) => x.id === upload.seriesId);
+      const tname = (id) => ad2lCache.teams.find((t) => t.id === id)?.name ?? "";
+      if (s && !upload.draft.team_a && !upload.draft.team_b) { upload.draft.team_a = tname(s.home); upload.draft.team_b = tname(s.away); }
+      upload.check = checkDraft(upload.draft);
+      renderUpload();
+    };
     const toggle = document.getElementById("private");
     if (toggle) toggle.onchange = (e) => { upload.isPrivate = e.target.checked; upload.check = checkDraft(upload.draft); renderUpload(); };
     document.getElementById("discard").onclick = () => {
@@ -609,7 +621,7 @@ async function renderMatch(id, src) {
   const moveOpts = m.unticketed && canDelete ? ad2lMissing(m.id).filter((g) => sameTeams(ad2lCache, g.series, m.team_a, m.team_b)) : [];
   const moveHtml = m.unticketed && canDelete ? `<label class="series-pick">Which game is this?
       <select id="series-move">
-        <option value="">Not listed (counts in the week it was uploaded)</option>
+        <option value="" disabled ${m.series_id ? "" : "selected"}>Pick the missing game…</option>
         ${seriesOptions(moveOpts, m.series_id ?? null)}
       </select>
       <span class="muted">${moveOpts.length ? "Games between these two teams not on record here, from earlier weeks or this week's not ticketed yet. Picking one moves this game into that series and week." : "No open game between these two teams: PlayOn has every game of their series on record."}</span>
