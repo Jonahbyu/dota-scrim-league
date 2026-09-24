@@ -730,7 +730,7 @@ function sortableTable(el, columns, rows, sortKey, { toolbar = false } = {}) {
     el.innerHTML = `${bar}<div class="table-wrap sticky-name"><table>
       <thead><tr><th class="rank">#</th>${columns.map(([k, label, , cls]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
         aria-sort="${k === key ? (dir < 0 ? "descending" : "ascending") : "none"}">${label}<span class="sort-ico">${k === key ? (dir < 0 ? "▾" : "▴") : "↕"}</span></th>` : "<th></th>").join("")}</tr></thead>
-      <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " top" : ""}">${String(i + 1).padStart(2, "0")}</td>${columns.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
+      <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>${columns.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
     </table></div>`;
     el.querySelectorAll("th.sortable").forEach((th) => (th.onclick = () => {
       if (th.dataset.k === key) dir = -dir; else { key = th.dataset.k; dir = -1; }
@@ -771,7 +771,7 @@ async function renderPlayers(src) {
       ["lane_pg", "Lane creeps/g", dec], ["neutral_pg", "Neutrals/g", dec], ["neutral_share", "Neutral %", pct], ["roshans", "Roshans"], ["tormentors", "Tormentors"],
     ] : []),
     ...(src.key === "ad2l" && ad2lCache?.pubs ? [
-      ["pub_games", `Pubs since ${sinceLabel()}`, null, "", "gold"], ["pub_win_rate", "Pub win %", pct, "", "jade"], ["pub_kda", "Pub KDA", dec],
+      ["pub_games", `Pubs since ${new Date(lastNight() * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`, null, "", "gold"], ["pub_win_rate", "Pub win %", pct, "", "jade"], ["pub_kda", "Pub KDA", dec],
       ["pub_heroes", "Pub heroes", (v, r) => heroStrip(src, r.pub_list), "l strip"],
     ] : []),
     ["heroes", "Heroes", (v, r) => heroStrip(src, r.hero_list), "l strip"],
@@ -930,7 +930,7 @@ async function renderPredict() {
     <thead><tr><th class="rank">#</th><th class="l">Name</th><th>Points</th><th>Correct</th>
       ${week.map((s) => `<th class="l pb-series"><span class="a">${esc(teamName[s.home])}</span><span class="b">${esc(teamName[s.away])}</span></th>`).join("")}</tr></thead>
     <tbody>${boardRows.map(([k, r], i) => `<tr class="${k === myKey ? "me" : ""}">
-      <td class="rank${i < 3 && r.picks ? " top" : ""}">${String(i + 1).padStart(2, "0")}</td>
+      <td class="rank${i < 3 && r.picks ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>
       <td class="l">${r.model ? `<b>${esc(r.name)}</b> <span class="tag">replayed</span>` : esc(r.name)}</td>
       <td class="num">${r.picks ? `${r.points}<span class="muted">/${r.picks}</span>` : '<span class="muted">—</span>'}</td>
       <td class="num">${r.accuracy == null ? '<span class="muted">—</span>' : pct(r.accuracy)}</td>
