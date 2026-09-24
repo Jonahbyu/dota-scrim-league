@@ -22,6 +22,19 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   count toward team records but not the tier list, player or hero tables. The game ID is
   built from teams + kill score + duration only, so it can't be used to guess a private
   game's heroes.
+- **Predictions** (AD2L → Predict) — type your name and call each series this week: a 2–0
+  either way or 1–1. One point per correct call; picks lock at the series start (the
+  database stamps each pick with server time, and scoring ignores anything stamped after the
+  start). Standings group by the typed name, and "The model" competes using what it would
+  have predicted each week from earlier weeks only. The model: team ratings fitted to every
+  game result (PlayOn scores), pulled toward a roster-medal starting point, with the pull and
+  medal weight tuned by replaying the season; games treated as independent (2–0 = p²).
+  Each series has a draft read: likely bans (team ban history, what the opponents play,
+  division ban rates) and likely picks per player (league heroes counted double, pubs since
+  the last league night, minus likely bans). Stored in Firestore `scrimLeague/data/predictions`.
+- **Recent pubs** (AD2L) — each rostered player's public/ranked games since the last league
+  night (smurfs included), from OpenDota at sync time: columns on the Players table and a
+  section on player pages.
 - **Unticketed AD2L games** — AD2L → Upload: Champion division games played without a
   league ticket (so OpenDota's league list never has them) are uploaded from screenshots
   exactly like a scrim. Team names must be division teams (picked from a list, or filled in

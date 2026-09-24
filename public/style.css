@@ -686,3 +686,50 @@ figure.wardmap[data-mode="dots"] .wm-dim { fill: rgba(8, 8, 6, .5); }
 .ph-cell .hero-chips { gap: 6px; }
 tr.muted td { color: var(--dim); }
 @media (max-width: 900px) { .ph-row { grid-template-columns: 1fr; } }
+
+/* ---------- predictions ---------- */
+.pred-name { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 0 8px; padding: 14px 16px; }
+.pred-name label { display: flex; align-items: center; gap: 10px; font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dust); }
+.pred-name input { background: var(--ink); color: var(--bone); border: 1px solid var(--seam-2); padding: 9px 10px; font: 15px var(--body); width: 220px; max-width: 60vw; }
+.pred-name .muted { font-size: 13px; }
+.pred-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 14px; }
+.pred-card { background: var(--stone); border: 1px solid var(--seam); padding: 16px; display: grid; gap: 12px; align-content: start; }
+.pred-when { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.pred-teams { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; font: 800 20px/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+.pred-teams .a { color: var(--jade); }
+.pred-teams .b { color: var(--ember); text-align: right; }
+.pred-teams .a a, .pred-teams .b a { color: inherit; }
+.pred-teams i { font: 600 10px var(--mono); color: var(--dim); font-style: normal; letter-spacing: .14em; }
+.pred-row { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: center; }
+.pred-lbl { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dust); }
+.pred-lbl small { color: var(--dim); letter-spacing: 0; }
+.pred-bar { display: flex; height: 22px; gap: 2px; }
+.pred-bar .seg, .pred-legend .seg { display: flex; align-items: center; justify-content: center; font: 600 11px/1 var(--mono); color: var(--ink); min-width: 0; overflow: hidden; }
+.seg.home { background: var(--jade); }
+.seg.tie { background: var(--seam-2); color: var(--bone) !important; }
+.seg.away { background: var(--ember); }
+.pred-bar.crowd .seg { opacity: .65; }
+.pred-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 10px 0 0; font: 11px var(--mono); color: var(--dim); }
+.pred-legend .seg { width: 14px; height: 10px; display: inline-block; margin-right: -8px; }
+.pred-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.pred-picks button {
+  background: var(--ink); color: var(--bone); border: 1px solid var(--seam-2); padding: 10px 8px; cursor: pointer;
+  font: 600 12px/1.25 var(--body); overflow-wrap: anywhere;
+}
+.pred-picks button:hover:not(:disabled) { border-color: var(--gold); }
+.pred-picks button[aria-pressed="true"] { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.pred-picks button:disabled { opacity: .55; cursor: not-allowed; }
+.pred-picks button[aria-pressed="true"]:disabled { opacity: 1; }
+details.dr summary { cursor: pointer; font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); padding: 4px 0; }
+.dr-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+.dr-col h4 { margin: 0 0 8px; font: 800 14px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+.dr-sub { font: 600 9px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 10px 0 6px; }
+.dr-bans, .dr-heroes { display: flex; flex-wrap: wrap; gap: 4px; }
+.dr-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--stone-2); border: 1px solid var(--seam); padding: 2px 6px 2px 2px; font-size: 12px; }
+.dr-chip img { width: 28px; height: 16px; object-fit: cover; }
+.dr-chip b { font: 600 11px var(--mono); color: var(--gold); }
+.dr-player { margin-bottom: 8px; }
+.dr-name { font-size: 13px; margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.dr-name .muted { font: 11px var(--mono); }
+h3.pred-night { font: 800 16px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--dust); margin: 20px 0 8px; }
+@media (max-width: 640px) { .dr-cols { grid-template-columns: 1fr; } .pred-teams { font-size: 16px; } }

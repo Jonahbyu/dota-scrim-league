@@ -23,6 +23,9 @@ const req = (data, auth = { uid: "u1" }) => ({ auth, method: "create", path: PAT
 // Delete: `existing` is the stored document the rule sees as `resource`.
 const del = (existing, auth) => ({ request: { auth, method: "delete", path: PATH, time: NOW }, resource: { data: existing } });
 
+const PRED_PATH = "/databases/(default)/documents/scrimLeague/data/predictions/20621_u1";
+const pred = (extra = {}) => ({ v: 1, league: "ad2l", series_id: 20621, pick: "home", name: "Rules Test", uid: "u1", updatedAt: NOW, ...extra });
+const predReq = (data, auth = { uid: "u1" }) => ({ auth, method: "create", path: PRED_PATH, time: NOW, resource: { data } });
 const withPlayer = (i, change) => ({ ...match(), players: match().players.map((p, j) => (j === i ? change({ ...p }) : p)) });
 const cases = [
   ["valid match", req(match()), "ALLOW"],
@@ -60,6 +63,16 @@ const cases = [
   ["unticketed AD2L game", { ...req(match()), path: PATH.replace("/matches/", "/ad2l_unticketed/") }, "ALLOW"],
   ["unticketed, bad shape", { ...req(match({ admin: true })), path: PATH.replace("/matches/", "/ad2l_unticketed/") }, "DENY"],
   ["unknown collection", { ...req(match()), path: PATH.replace("/matches/", "/anything/") }, "DENY"],
+  ["prediction: valid", predReq(pred()), "ALLOW"],
+  ["prediction: change own pick (update)", { ...predReq(pred({ pick: "tie" })), method: "update" }, "ALLOW"],
+  ["prediction: id for another uid", { ...predReq(pred()), path: PRED_PATH.replace("_u1", "_u2") }, "DENY"],
+  ["prediction: id for another series", { ...predReq(pred({ series_id: 99 })) }, "DENY"],
+  ["prediction: client timestamp", predReq(pred({ updatedAt: "2020-01-01T00:00:00Z" })), "DENY"],
+  ["prediction: bad pick", predReq(pred({ pick: "2-0" })), "DENY"],
+  ["prediction: empty name", predReq(pred({ name: "" })), "DENY"],
+  ["prediction: 40-char name", predReq(pred({ name: "N".repeat(40) })), "DENY"],
+  ["prediction: extra field", predReq(pred({ points: 99 })), "DENY"],
+  ["prediction: signed out", predReq(pred(), null), "DENY"],
   ["uploader deletes own unticketed game", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/ad2l_unticketed/") } }, "ALLOW"],
 ];
 

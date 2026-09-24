@@ -149,13 +149,24 @@ const firstSeries = series.find((s) => s.time)?.time ?? Math.floor(Date.now() / 
 const days = Math.ceil((Date.now() / 1000 - firstSeries) / 86400) + 10;
 console.log(`  series: ${series.filter((s) => (s.home_score ?? 0) + (s.away_score ?? 0) > 0).length} played of ${series.length}; searching the last ${days} days`);
 
-// Candidate games: every rostered account's practice-lobby games since the season began.
+// One call per rostered account (smurfs included) for every game since the season began:
+// practice lobbies (lobby_type 1) are candidate league games; public and ranked games
+// (0, 7) are that player's recent pubs, used for pub form and draft predictions.
+const PUB_DAYS = 30;
 const candidates = new Set();
-for (const acct of owner.keys()) {
-  const rows = await opendota(`/players/${acct}/matches?lobby_type=1&date=${days}`);
-  for (const r of rows) candidates.add(r.match_id);
+const pubRows = new Map(); // main account -> rows
+for (const [acct, o] of owner) {
+  const rows = await opendota(`/players/${acct}/matches?date=${Math.max(days, PUB_DAYS)}`);
+  for (const r of rows) {
+    if (r.lobby_type === 1) candidates.add(r.match_id);
+    else if ((r.lobby_type === 0 || r.lobby_type === 7) && r.start_time > Date.now() / 1000 - PUB_DAYS * 86400 && r.duration >= 600) {
+      const list = pubRows.get(o.main) ?? [];
+      list.push(r);
+      pubRows.set(o.main, list);
+    }
+  }
 }
-console.log(`  ${candidates.size} candidate practice-lobby games`);
+console.log(`  ${candidates.size} candidate practice-lobby games; pubs for ${pubRows.size} players`);
 
 const heroes = Object.fromEntries((await opendota("/heroes")).map((h) => [h.id, h.localized_name === "Ring Master" ? "Ringmaster" : h.localized_name]));
 
@@ -249,6 +260,12 @@ const out = {
   teams: teams.map((t) => ({ id: t.id, name: t.name, players: t.players.map((p) => ({ name: p.name, captain: p.captain, account_id: p.account_ids[0], rank_tier: p.rank_tier })) })),
   series,
   games,
+  // Recent pubs per player (main account; smurf games merged), last PUB_DAYS days, newest
+  // first, flat groups of 7: start time, hero, won (1/0), kills, deaths, assists, ranked (1/0).
+  pubs_days: PUB_DAYS,
+  pubs: Object.fromEntries([...pubRows].map(([acct, rows]) => [acct, rows.sort((a, b) => b.start_time - a.start_time).flatMap((r) => [
+    r.start_time, heroes[r.hero_id] ?? `hero ${r.hero_id}`, (r.player_slot < 128) === r.radiant_win ? 1 : 0, r.kills, r.deaths, r.assists, r.lobby_type === 7 ? 1 : 0,
+  ])])),
 };
 await mkdir(path.dirname(OUT), { recursive: true });
 // Pretty-printed, but arrays of numbers (the per-minute series) stay on one line.

@@ -93,3 +93,23 @@ export async function getMatch(id, league = "scrim") {
   const d = await getDoc(doc(coll(league), id));
   return d.exists() ? fromDoc(d) : null;
 }
+
+// ---------- predictions ----------
+// One document per browser per series (id "<series>_<uid>"); saving again changes the pick.
+// updatedAt is the server's clock, which is what scoring checks against the series start.
+const predictions = collection(db, "scrimLeague", "data", "predictions");
+
+export async function listPredictions() {
+  const snap = await getDocs(query(predictions, limit(5000)));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data(), updatedAt: d.data().updatedAt?.toDate?.() ?? null }));
+}
+
+export async function savePrediction(seriesId, pick, name) {
+  await authReady;
+  if (!auth.currentUser) await signInAnonymously(auth);
+  const uid = auth.currentUser.uid;
+  await setDoc(doc(predictions, `${seriesId}_${uid}`), {
+    v: 1, league: "ad2l", series_id: seriesId, pick, name: name.trim().slice(0, 24), uid, updatedAt: serverTimestamp(),
+  });
+  return uid;
+}

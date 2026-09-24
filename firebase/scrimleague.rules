@@ -89,3 +89,26 @@
       allow delete: if knownColl() && request.auth != null
         && (request.auth.uid == resource.data.uid || request.auth.token.email == "jonahbyu@gmail.com");
     }
+
+    // Predictions: one document per person per series, id "<series id>_<uid>", so each
+    // browser can make and change one pick per series. updatedAt must be the server's clock:
+    // scoring ignores picks stamped after the series started, so a late change can't count.
+    // `name` is whatever the predictor typed (standings group by it); nothing else is stored.
+    match /scrimLeague/data/predictions/{predId} {
+      allow get: if true;
+      allow list: if request.query.limit <= 5000;
+      allow create, update: if request.auth != null
+        && predId == string(request.resource.data.series_id) + '_' + request.auth.uid
+        && request.resource.data.keys().hasOnly(['v', 'league', 'series_id', 'pick', 'name', 'uid', 'updatedAt'])
+        && request.resource.data.keys().size() == 7
+        && request.resource.data.v == 1
+        && request.resource.data.league in ['ad2l']
+        && request.resource.data.series_id is int
+        && request.resource.data.pick in ['home', 'tie', 'away']
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 24
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if request.auth != null
+        && (request.auth.uid == resource.data.uid || request.auth.token.email == "jonahbyu@gmail.com");
+    }
