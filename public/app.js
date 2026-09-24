@@ -709,12 +709,14 @@ async function renderStandings() {
 // With { toolbar: true } a "Sort by" menu and direction toggle sit above the table, for
 // people who don't think to click headers (and for phones, where the table scrolls).
 // Fitting to the screen: when the table is wider than its box it first tightens (two
-// density steps), then hides the columns listed in `fit`, least important first, until it
-// fits. A "Show all columns" button turns hiding off (the table scrolls instead). It
-// refits when the window is resized.
-function sortableTable(el, columns, rows, sortKey, { toolbar = false, fit = [] } = {}) {
-  let key = sortKey, dir = -1, density = 0, hidden = new Set(), showAll = false;
+// density steps); if it still doesn't fit, the columns after the first (the name, which
+// stays put) are split into pages that each fit, with tabs to switch between them. It
+// refits when the table's width changes.
+function sortableTable(el, columns, rows, sortKey, { toolbar = false } = {}) {
+  let key = sortKey, dir = -1, density = 0, pages = null, page = 0;
   const max = Object.fromEntries(columns.filter((c) => c[4]).map(([k]) => [k, Math.max(...rows.map((r) => r[k] ?? 0)) || 1]));
+  const labelOf = Object.fromEntries(columns.map(([k, l]) => [k, l]));
+  const pageOf = (k) => pages?.findIndex((pg) => pg.includes(k)) ?? -1;
   const cell = ([k, , f, cls, bar], r) => {
     const barCls = bar ? ` bar ${bar}` : "";
     const style = bar ? ` style="--w:${Math.max(0, (r[k] ?? 0) / max[k]).toFixed(3)}"` : "";
@@ -731,11 +733,15 @@ function sortableTable(el, columns, rows, sortKey, { toolbar = false, fit = [] }
         <button class="sort-dir" type="button">${dir < 0 ? "High → low" : "Low → high"}</button>
         <span class="sort-hint">or click any column header ↕</span>
       </div>` : "";
-    const cols = columns.filter(([k]) => !hidden.has(k));
-    const fitNote = hidden.size || showAll ? `<div class="fit-note">${showAll
-      ? `All columns shown; scroll sideways. <button type="button" class="fit-toggle">Fit to screen</button>`
-      : `${hidden.size} column${hidden.size === 1 ? "" : "s"} hidden to fit the screen: ${columns.filter(([k]) => hidden.has(k)).map(([, l]) => esc(l)).join(", ")}. <button type="button" class="fit-toggle">Show all columns</button>`}</div>` : "";
-    el.innerHTML = `${bar}${fitNote}<div class="table-wrap sticky-name${density ? ` d${density}` : ""}"><table>
+    const paged = pages && pages.length > 1;
+    const cols = paged ? columns.filter(([k], i) => i === 0 || pages[page].includes(k)) : columns;
+    const range = (pg) => (pg.length > 1 ? `${labelOf[pg[0]]} – ${labelOf[pg.at(-1)]}` : labelOf[pg[0]]);
+    const pager = paged ? `<div class="col-pager" role="group" aria-label="Column pages">
+        <button type="button" class="cp-step" data-step="-1" ${page === 0 ? "disabled" : ""} aria-label="Previous columns">‹</button>
+        ${pages.map((pg, i) => `<button type="button" class="cp-page${i === page ? " on" : ""}" data-page="${i}" aria-pressed="${i === page}">${esc(range(pg))}</button>`).join("")}
+        <button type="button" class="cp-step" data-step="1" ${page === pages.length - 1 ? "disabled" : ""} aria-label="More columns">›</button>
+      </div>` : "";
+    el.innerHTML = `${bar}${pager}<div class="table-wrap sticky-name${density ? ` d${density}` : ""}"><table>
       <thead><tr><th class="rank">#</th>${cols.map(([k, label, , cls]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
         aria-sort="${k === key ? (dir < 0 ? "descending" : "ascending") : "none"}">${label}<span class="sort-ico">${k === key ? (dir < 0 ? "▾" : "▴") : "↕"}</span></th>` : "<th></th>").join("")}</tr></thead>
       <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>${cols.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
@@ -745,26 +751,43 @@ function sortableTable(el, columns, rows, sortKey, { toolbar = false, fit = [] }
       draw();
     }));
     if (toolbar) {
-      // Sorting by a hidden column brings it back, so refit.
-      el.querySelector(".sort-key").onchange = (e) => { key = e.target.value; dir = -1; refit(); };
+      // Sorting by a column on another page flips to that page.
+      el.querySelector(".sort-key").onchange = (e) => { key = e.target.value; dir = -1; if (pageOf(key) >= 0) page = pageOf(key); draw(); };
       el.querySelector(".sort-dir").onclick = () => { dir = -dir; draw(); };
     }
-    const t = el.querySelector(".fit-toggle");
-    if (t) t.onclick = () => { showAll = !showAll; refit(); };
+    el.querySelectorAll(".cp-page").forEach((b) => (b.onclick = () => { page = +b.dataset.page; draw(); }));
+    el.querySelectorAll(".cp-step").forEach((b) => (b.onclick = () => { page = Math.min(pages.length - 1, Math.max(0, page + +b.dataset.step)); draw(); }));
   };
   const refit = () => {
-    density = 0; hidden = new Set();
+    const anchor = pages?.[page]?.[0];
+    density = 0; pages = null; page = 0;
     draw();
     const wrap = () => el.querySelector(".table-wrap");
     const over = () => wrap().clientWidth > 0 && wrap().scrollWidth > wrap().clientWidth + 1;
     while (over() && density < 2) { wrap().classList.remove(`d${density}`); density++; wrap().classList.add(`d${density}`); }
-    if (showAll) return draw();
-    for (const k of fit) {
-      if (!over()) break;
-      if (k === key || !columns.some((c) => c[0] === k)) continue;
-      hidden.add(k);
-      draw();
-    }
+    if (!over()) return;
+    // Pack the columns after the name into pages, using their widths at this density.
+    const widths = [...wrap().querySelectorAll("thead th")].map((th) => th.getBoundingClientRect().width);
+    const room = wrap().clientWidth - widths[0] - widths[1] - 2;
+    const pack = (limit) => {
+      const out = [];
+      let cur = [], used = 0;
+      columns.slice(1).forEach(([k], i) => {
+        const w = widths[i + 2];
+        if (cur.length && used + w > limit) { out.push(cur); cur = []; used = 0; }
+        cur.push(k); used += w;
+      });
+      if (cur.length) out.push(cur);
+      return out;
+    };
+    // Fewest pages that fit, then the narrowest page width that still gives that many
+    // pages, so the columns split evenly instead of one full page and a stub.
+    const n = pack(room).length;
+    let lo = Math.max(...widths.slice(2)), hi = room;
+    while (hi - lo > 1) { const mid = (lo + hi) / 2; if (pack(mid).length <= n) hi = mid; else lo = mid; }
+    pages = pack(hi);
+    page = Math.max(0, pageOf(anchor ?? key));
+    draw();
   };
   el._refit = refit;
   refit();
@@ -824,10 +847,7 @@ async function renderPlayers(src) {
   ], src.key === "ad2l" && ad2lCache?.pubs ? data.map((r) => {
     const ps = r.account_id ? pubSummary(pubsSince(ad2lCache, r.account_id, lastNight())) : null;
     return { ...r, pub_games: ps?.games ?? 0, pub_win_rate: ps?.win_rate ?? null, pub_kda: ps?.kda ?? null, pub_heroes: ps ? ps.heroes.map((h) => h.hero).join(", ") : "", pub_list: ps ? ps.heroes.slice(0, 10).map((h) => ({ hero: h.hero, n: h.games })) : [] };
-  }) : data, "games", { toolbar: true, fit: [
-    "tormentors", "roshans", "pub_kda", "neutral_pg", "sen_pg", "dewards_pg", "stacks_pg", "lane_pg", "dmg_per_1k_nw", "avg_xpm",
-    "kills", "deaths", "assists", "pub_win_rate", "neutral_share", "obs_pg", "avg_kp", "heroes", "pub_games", "dmg_per_min", "team", "pub_heroes",
-  ] });
+  }) : data, "games", { toolbar: true });
 }
 
 // Recent pubs = games since the last league night (Thursday), per the league's rhythm.
@@ -1234,9 +1254,7 @@ async function renderHeroes(src) {
       ["p1", "P1", null, "", "jade"], ["w1", "P1 win %", pct], ["p2", "P2"], ["w2", "P2 win %", pct], ["p3", "P3 (last)"], ["w3", "P3 win %", pct],
     ] : []),
     ["avg_damage", "Avg hero dmg", fmt, "", "ember"], ["avg_kda", "Avg KDA", (v) => (v == null ? "—" : esc(v))],
-  ], shown, "picks", { toolbar: true, fit: [
-    "avg_kda", "w3", "w2", "p2", "b3", "b2", "p1_ban_share", "pick_rate", "ban_rate", "wins", "p3", "avg_damage", "w1", "b1", "p1",
-  ] }));
+  ], shown, "picks", { toolbar: true }));
 }
 
 // "Show at least N" filter above a table, so a hero picked once at 100% doesn't top the list.

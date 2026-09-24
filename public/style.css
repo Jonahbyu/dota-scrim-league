@@ -265,11 +265,16 @@ td.name { white-space: normal; min-width: 110px; max-width: 200px; }
 .table-wrap.d2 td.strip { min-width: 190px; }
 .table-wrap.d2 .hero-strip .hero-img { width: 26px; height: 15px; }
 .table-wrap.d2 td.name { min-width: 90px; }
-.fit-note { font: 400 11px/1.6 var(--mono); color: var(--dim); margin: 0 0 8px; }
-.fit-note .fit-toggle {
-  background: none; border: 0; padding: 0; margin-left: 4px; cursor: pointer;
-  font: 600 11px/1.6 var(--mono); color: var(--gold); text-decoration: underline; text-underline-offset: 3px;
+/* Column pages, when a table is too wide for the screen (see sortableTable). */
+.col-pager { display: flex; flex-wrap: wrap; align-items: stretch; gap: 4px; margin: 0 0 8px; }
+.col-pager button {
+  background: var(--stone); border: 1px solid var(--seam-2); color: var(--dust); cursor: pointer;
+  padding: 6px 10px; font: 600 10px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase;
 }
+.col-pager button:hover:not(:disabled) { color: var(--bone); border-color: var(--dust); }
+.col-pager .cp-page.on { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+.col-pager .cp-step { padding: 6px 11px; font-size: 14px; line-height: 1; }
+.col-pager .cp-step:disabled { opacity: .35; cursor: default; }
 td.strip { white-space: normal; min-width: 232px; max-width: 280px; }
 .hero-strip { display: flex; flex-wrap: wrap; gap: 2px; }
 .hero-strip a { position: relative; display: block; line-height: 0; }
