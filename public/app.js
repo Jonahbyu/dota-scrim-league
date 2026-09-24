@@ -1349,7 +1349,11 @@ async function renderWeek(src, back = 0) {
     games = await src.load();
     if (src.key === "ad2l") ad2l = await ad2lData();
   } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Weekly recap")}${errorBox(e)}`; return; }
-  const weeks = [...new Set(games.map((m) => weekStart(m.createdAt).getTime()))].sort((a, b) => b - a);
+  // AD2L games count toward their series' scheduled week, so a series played early or
+  // late still lands in the right week. Anything without a scheduled series uses its date.
+  const sched = new Map((ad2l?.series ?? []).filter((s) => s.time).map((s) => [s.id, new Date(s.time * 1000)]));
+  const weekOf = (m) => weekStart(sched.get(m.series_id) ?? m.createdAt).getTime();
+  const weeks = [...new Set(games.map(weekOf))].sort((a, b) => b - a);
   if (!weeks.length) {
     app.innerHTML = `${pageHead(src.kicker, "Weekly recap")}<div class="panel empty"><strong>No games yet</strong>${src.empty}</div>`;
     return;
@@ -1357,7 +1361,7 @@ async function renderWeek(src, back = 0) {
   back = Math.min(Math.max(0, back), weeks.length - 1);
   const start = new Date(weeks[back]);
   const end = new Date(start); end.setDate(end.getDate() + 6);
-  const inWeek = games.filter((m) => weekStart(m.createdAt).getTime() === weeks[back]).sort((a, b) => a.createdAt - b.createdAt);
+  const inWeek = games.filter((m) => weekOf(m) === weeks[back]).sort((a, b) => a.createdAt - b.createdAt);
   const base = src.key === "ad2l" ? "#/ad2l/week" : "#/week";
   const navBtn = (to, label, on) => on ? `<a class="week-btn" href="${base}/${to}">${label}</a>` : `<span class="week-btn off">${label}</span>`;
   // Every week with games, oldest first. Numbered from the first week, so a week with no
@@ -1365,7 +1369,7 @@ async function renderWeek(src, back = 0) {
   const WEEK_MS = 7 * 864e5;
   const first = weeks[weeks.length - 1];
   const counts = new Map();
-  for (const m of games) { const w = weekStart(m.createdAt).getTime(); counts.set(w, (counts.get(w) ?? 0) + 1); }
+  for (const m of games) { const w = weekOf(m); counts.set(w, (counts.get(w) ?? 0) + 1); }
   const picker = `<nav class="week-pick" aria-label="Weeks">
     <div class="week-pick-label">Week</div>
     <div class="week-chips">${weeks.map((w, i) => ({ w, i })).reverse().map(({ w, i }) => {
