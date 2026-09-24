@@ -1935,7 +1935,7 @@ function tierSection(src, matches) {
     el.querySelectorAll(".seg").forEach((b) => (b.onclick = () => { tierRole = b.dataset.role; draw(); }));
   };
   const html = list.eligible ? `<h2 id="tier-list">Tier list</h2>
-    <p class="table-note wm-intro">${list.eligible} players ranked from ${matches.length} ${src.key === "ad2l" ? "ticketed games" : "games"}. Hover a player for the breakdown.</p>
+    <p class="table-note wm-intro">${list.eligible} players ranked from ${matches.length} ${matches.length === 1 ? "game" : "games"}. Hover a player for the breakdown.</p>
     <div id="tiers"></div>
     <details class="how">
       <summary>How it's scored</summary>

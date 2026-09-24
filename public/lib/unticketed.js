@@ -10,18 +10,23 @@ export const teamByName = (d, n) => d?.teams.find((t) => nameKey(t.name) === nam
 // the game counts for the same person as their ticketed games.
 export function asAd2l(u, d) {
   const acct = new Map();
-  for (const g of d.games) for (const p of g.players) if (p.account_id) acct.set(nameKey(p.name), { name: p.name, account_id: p.account_id });
-  for (const t of d.teams) for (const p of t.players) acct.set(nameKey(p.name), { name: p.name, account_id: p.account_id });
+  for (const g of d.games) for (const p of g.players) if (p.account_id) acct.set(nameKey(p.name), { name: p.name, account_id: p.account_id, rank_tier: p.rank_tier });
+  for (const t of d.teams) for (const p of t.players) acct.set(nameKey(p.name), { name: p.name, account_id: p.account_id, rank_tier: p.rank_tier });
   const home = new Map(d.teams.flatMap((t) => t.players.map((p) => [String(p.account_id), t.id])));
   const ta = teamByName(d, u.team_a), tb = teamByName(d, u.team_b);
   return {
     ...u, unticketed: true,
     team_a: ta?.name ?? u.team_a, team_b: tb?.name ?? u.team_b, team_a_id: ta?.id ?? null, team_b_id: tb?.id ?? null,
+    // Same fields ticketed games carry: player_key is what the leaderboards group by, and
+    // team_name is what credits the game to a team.
     players: (u.players ?? []).map((p) => {
+      const side = p.team === "a" ? ta : tb;
       const k = acct.get(nameKey(p.name));
-      if (!k?.account_id) return p;
-      const teamId = p.team === "a" ? ta?.id : tb?.id;
-      return { ...p, name: k.name, account_id: k.account_id, standin: home.get(String(k.account_id)) !== teamId };
+      if (!k?.account_id) return side ? { ...p, team_name: side.name, standin: true } : p;
+      return {
+        ...p, name: k.name, account_id: k.account_id, player_key: String(k.account_id), rank_tier: p.rank_tier ?? k.rank_tier ?? null,
+        team_name: side?.name ?? null, standin: home.get(String(k.account_id)) !== side?.id,
+      };
     }),
   };
 }

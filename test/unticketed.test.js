@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { asAd2l, guessTeams } from "../public/lib/unticketed.js";
+import { playerLeaderboard } from "../public/lib/stats.js";
 
 const d = JSON.parse(readFileSync(new URL("../public/data/ad2l.json", import.meta.url), "utf8"));
 
@@ -22,6 +23,14 @@ test("asAd2l finds both division teams and each player's account", () => {
   const matched = g.players.filter((p, i) => String(p.account_id) === String(real.players[i].account_id));
   assert.equal(matched.length, 10);
   assert.deepEqual(g.players.map((p) => !!p.standin), real.players.map((p) => !!p.standin));
+});
+
+test("an uploaded game counts for the same leaderboard row as ticketed games", () => {
+  const g = asAd2l(uploaded, d);
+  const rows = playerLeaderboard([real, g]);
+  assert.equal(rows.length, 10);
+  for (const r of rows) assert.equal(r.games, 2, r.name);
+  assert.deepEqual(g.players.map((p) => p.team_name), real.players.map((p) => p.team_name));
 });
 
 test("unknown names and teams pass through unmatched", () => {
