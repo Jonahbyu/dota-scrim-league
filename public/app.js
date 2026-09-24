@@ -114,7 +114,9 @@ function errorBox(e) {
 
 const engine = createBrowserEngine();
 // league: "scrim" (the ledger) or "ad2l" (an unticketed AD2L division game, same form).
-const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false, league: "scrim" };
+const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false, league: "scrim",
+  // Private result form (scrims): no screenshots or players, just the result.
+  quick: false, teams: [], newTeam: { a: false, b: false } };
 // Private uploads only need a valid result; public ones need every player too. AD2L
 // uploads must name two division teams, so the game lands on the right team pages.
 function checkDraft(d) {
@@ -209,7 +211,7 @@ function checksHtml(check) {
   let h = "";
   if (check.errors?.length) h += `<div class="notice err"><b>Fix before saving:</b><ul>${check.errors.map((e) => `<li>${esc(e)}</li>`).join("")}</ul></div>`;
   if (check.warnings?.length) h += `<div class="notice warn"><b>Double-check:</b><ul>${check.warnings.map((e) => `<li>${esc(e)}</li>`).join("")}</ul></div>`;
-  if (check.ok && !check.warnings?.length) h += `<div class="notice ok">All checks pass. Kills match scores on both sides.</div>`;
+  if (check.ok && !check.warnings?.length) h += `<div class="notice ok">${upload.quick ? "Ready to post." : "All checks pass. Kills match scores on both sides."}</div>`;
   return h;
 }
 
@@ -281,6 +283,61 @@ function draftHtml(d) {
     </div>`;
 }
 
+// Private result: pick both teams from the league's list (or add a new one), then the kill
+// score, winner and duration. Nothing else is asked for or saved.
+function privateHtml(d) {
+  const teamPick = (t) => {
+    const v = d[`team_${t}`] ?? "";
+    const typed = upload.newTeam[t];
+    return `<label>Team ${t.toUpperCase()}${t === "a" ? " (Radiant / left)" : " (Dire / right)"}
+      <select data-team="${t}" class="${v || typed ? "" : "bad"}">
+        <option value="" ${!v && !typed ? "selected" : ""}>Pick a team…</option>
+        ${upload.teams.map((n) => `<option value="${esc(n)}" ${!typed && n === v ? "selected" : ""}>${esc(n)}</option>`).join("")}
+        <option value="__new" ${typed ? "selected" : ""}>+ New team (type the name)</option>
+      </select>
+      ${typed ? textInput(`team_${t}`, v, 'placeholder="Team name" maxlength="40"') : ""}</label>`;
+  };
+  const name = (t) => esc(d[`team_${t}`] || `Team ${t.toUpperCase()}`);
+  return `
+    <h2>Private result</h2>
+    <ol class="how-steps">
+      <li><b>Pick both teams</b> from the list. Team A is the side shown on the left of the post-game screen (Radiant). If a team hasn't played before, choose <b>+ New team</b> and type its name the way it should appear on the site.</li>
+      <li><b>Kill score:</b> the two big numbers at the top of the post-game screen, one per team.</li>
+      <li><b>Winner:</b> the team the post-game banner names.</li>
+      <li><b>Duration:</b> the game time from the post-game screen, as minutes:seconds (for example <code>38:12</code>).</li>
+      <li>Press <b>Post private result</b>. Only the teams, kill score, winner and duration are saved; no heroes, players or stats. It counts toward both teams' records.</li>
+    </ol>
+    <div class="panel edit">
+      <div class="fields">
+        ${teamPick("a")}
+        <label>Team A kills${numInput("score_a", d.score_a)}</label>
+        ${teamPick("b")}
+        <label>Team B kills${numInput("score_b", d.score_b)}</label>
+        <label>Winner
+          <select data-path="winner" class="${d.winner ? "" : "bad"}">
+            <option value="" ${!d.winner ? "selected" : ""}>—</option>
+            <option value="a" ${d.winner === "a" ? "selected" : ""}>${name("a")}</option>
+            <option value="b" ${d.winner === "b" ? "selected" : ""}>${name("b")}</option>
+          </select></label>
+        <label>Duration (mm:ss)${textInput("duration", d.duration, 'placeholder="38:12" inputmode="numeric"')}</label>
+      </div>
+    </div>
+    <div id="checks">${checksHtml(upload.check)}</div>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>Post private result</button>
+      <button id="discard">Cancel</button>
+    </div>`;
+}
+
+async function startPrivate() {
+  let teams = [];
+  try { teams = listTeams(await allMatches()).map((t) => t.name).sort((x, y) => x.localeCompare(y)); } catch { /* offline: new-team entry still works */ }
+  Object.assign(upload, { quick: true, isPrivate: true, teams, newTeam: { a: !teams.length, b: !teams.length }, notes: [], names: [], message: null });
+  upload.draft = blankDraft();
+  upload.check = checkDraft(upload.draft);
+  renderUpload();
+}
+
 function setPath(obj, path, value) {
   const keys = path.split(".");
   const last = keys.pop();
@@ -322,7 +379,8 @@ async function saveDraft() {
       return;
     }
     for (const img of upload.images) URL.revokeObjectURL(img.url);
-    Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null });
+    if (upload.quick) upload.isPrivate = false;
+    Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null, quick: false });
     if (ad2l) { await ad2lUploaded(true); location.hash = `#/ad2l/game/${res.id}`; }
     else { await allMatches(true); location.hash = `#/match/${res.id}`; }
   } catch (e) {
@@ -361,12 +419,14 @@ function renderUpload() {
       <div class="row upload-actions" style="--i:4">
         <button class="primary" id="parse" ${!upload.images.length || upload.busy ? "disabled" : ""}>Read screenshots</button>
         <button id="manual" ${upload.busy ? "disabled" : ""}>Enter manually</button>
+        ${upload.league === "ad2l" ? "" : `<button id="private-result" ${upload.busy ? "disabled" : ""}>Private result (score only)</button>`}
         ${upload.images.length && !upload.busy ? `<button id="clear">Clear</button>` : ""}
       </div>
       ${upload.busy ? `<p class="progress" id="progress">${esc(upload.progress)}</p>` : ""}
     </div>
     ${msg ? `<div class="notice ${msg.kind}">${esc(msg.text)}${msg.link ? ` <a href="${msg.link}">Open it</a>` : ""}</div>` : ""}
-    ${upload.draft ? draftHtml(upload.draft) : ""}
+    ${upload.league === "ad2l" || upload.draft ? "" : `<p class="table-note private-hint">Played a scrim you don't want to share the draft or lineups of? Use <b>Private result</b>: pick the two teams, then type the kill score, winner and duration. No screenshots needed.</p>`}
+    ${upload.draft ? (upload.quick ? privateHtml(upload.draft) : draftHtml(upload.draft)) : ""}
     <dialog id="zoom"><img alt=""></dialog>`;
 
   const drop = document.getElementById("drop");
@@ -386,14 +446,35 @@ function renderUpload() {
   app.querySelectorAll(".example img").forEach((img) => (img.onclick = () => { zoom.querySelector("img").src = img.src; zoom.showModal(); }));
 
   document.getElementById("parse").onclick = runParse;
-  document.getElementById("manual").onclick = () => { upload.draft = blankDraft(); upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
+  const priv = document.getElementById("private-result");
+  if (priv) priv.onclick = startPrivate;
+  document.getElementById("manual").onclick = () => { upload.quick = false; upload.draft = blankDraft(); upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
   const clear = document.getElementById("clear");
   if (clear) clear.onclick = () => { for (const i of upload.images) URL.revokeObjectURL(i.url); upload.images = []; renderUpload(); };
 
   if (upload.draft) {
     document.getElementById("save").onclick = saveDraft;
-    document.getElementById("private").onchange = (e) => { upload.isPrivate = e.target.checked; upload.check = checkDraft(upload.draft); renderUpload(); };
-    document.getElementById("discard").onclick = () => { upload.draft = null; upload.check = null; upload.notes = []; upload.names = []; renderUpload(); };
+    const toggle = document.getElementById("private");
+    if (toggle) toggle.onchange = (e) => { upload.isPrivate = e.target.checked; upload.check = checkDraft(upload.draft); renderUpload(); };
+    document.getElementById("discard").onclick = () => {
+      if (upload.quick) upload.isPrivate = false;
+      Object.assign(upload, { draft: null, check: null, notes: [], names: [], quick: false });
+      renderUpload();
+    };
+    app.querySelectorAll("select[data-team]").forEach((sel) => (sel.onchange = () => {
+      const t = sel.dataset.team;
+      upload.newTeam[t] = sel.value === "__new";
+      upload.draft[`team_${t}`] = sel.value === "__new" ? "" : sel.value;
+      upload.check = checkDraft(upload.draft);
+      renderUpload();
+      if (upload.newTeam[t]) app.querySelector(`input[data-path="team_${t}"]`)?.focus();
+    }));
+    // A typed new team name shows up in the Winner menu as you type.
+    app.querySelectorAll('input[data-path="team_a"], input[data-path="team_b"]').forEach((inp) => inp.addEventListener("input", () => {
+      const t = inp.dataset.path.slice(-1);
+      const opt = app.querySelector(`select[data-path="winner"] option[value="${t}"]`);
+      if (opt && upload.quick) opt.textContent = inp.value.trim() || `Team ${t.toUpperCase()}`;
+    }));
     const maybe = upload.names.filter((n) => !n.sure);
     app.querySelectorAll("[data-name-fix]").forEach((b) => b.onclick = () => {
       const n = maybe[Number(b.dataset.nameFix)];

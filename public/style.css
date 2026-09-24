@@ -604,6 +604,12 @@ a.hist-row:hover { text-decoration: none; border-color: var(--seam-2); }
 .hero-chip { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; background: var(--stone); border: 1px solid var(--seam); font-size: 13px; }
 .hero-chip b { font: 600 12px var(--mono); color: var(--gold); margin-left: 4px; }
 .priv { color: var(--gold); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+.how-steps { margin: 0 0 16px; padding-left: 22px; color: var(--dust); font-size: 14px; max-width: 80ch; }
+.how-steps li { margin: 0 0 6px; padding-left: 4px; }
+.how-steps b { color: var(--bone); }
+.how-steps code { font: 13px var(--mono); color: var(--gold); }
+.private-hint { margin-top: 14px; }
+.fields select { background: var(--ink); color: var(--bone); border: 1px solid var(--seam-2); padding: 8px; font: 14px var(--body); text-transform: none; letter-spacing: 0; }
 .private-toggle { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 14px 16px; background: var(--stone); border: 1px solid var(--seam-2); cursor: pointer; }
 .private-toggle input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--gold); flex: none; }
 .private-toggle span { color: var(--dust); font-size: 14px; }
