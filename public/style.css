@@ -254,6 +254,22 @@ th {
 th.sortable { cursor: pointer; user-select: none; white-space: normal; vertical-align: bottom; line-height: 1.35; }
 .sort-ico { white-space: nowrap; }
 td.name { white-space: normal; min-width: 110px; max-width: 200px; }
+/* Density steps a table takes before hiding columns (see sortableTable). */
+.table-wrap.d1 table { font-size: 12px; }
+.table-wrap.d1 th, .table-wrap.d1 td { padding: 7px 5px; }
+.table-wrap.d1 td.l { font-size: 13px; }
+.table-wrap.d2 table { font-size: 11px; }
+.table-wrap.d2 th, .table-wrap.d2 td { padding: 6px 4px; }
+.table-wrap.d2 th { font-size: 9px; letter-spacing: .02em; }
+.table-wrap.d2 td.l { font-size: 12px; }
+.table-wrap.d2 td.strip { min-width: 190px; }
+.table-wrap.d2 .hero-strip .hero-img { width: 26px; height: 15px; }
+.table-wrap.d2 td.name { min-width: 90px; }
+.fit-note { font: 400 11px/1.6 var(--mono); color: var(--dim); margin: 0 0 8px; }
+.fit-note .fit-toggle {
+  background: none; border: 0; padding: 0; margin-left: 4px; cursor: pointer;
+  font: 600 11px/1.6 var(--mono); color: var(--gold); text-decoration: underline; text-underline-offset: 3px;
+}
 td.strip { white-space: normal; min-width: 232px; max-width: 280px; }
 .hero-strip { display: flex; flex-wrap: wrap; gap: 2px; }
 .hero-strip a { position: relative; display: block; line-height: 0; }

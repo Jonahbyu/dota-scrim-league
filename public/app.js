@@ -708,8 +708,12 @@ async function renderStandings() {
 // the value, scaled to the column's highest value.
 // With { toolbar: true } a "Sort by" menu and direction toggle sit above the table, for
 // people who don't think to click headers (and for phones, where the table scrolls).
-function sortableTable(el, columns, rows, sortKey, { toolbar = false } = {}) {
-  let key = sortKey, dir = -1;
+// Fitting to the screen: when the table is wider than its box it first tightens (two
+// density steps), then hides the columns listed in `fit`, least important first, until it
+// fits. A "Show all columns" button turns hiding off (the table scrolls instead). It
+// refits when the window is resized.
+function sortableTable(el, columns, rows, sortKey, { toolbar = false, fit = [] } = {}) {
+  let key = sortKey, dir = -1, density = 0, hidden = new Set(), showAll = false;
   const max = Object.fromEntries(columns.filter((c) => c[4]).map(([k]) => [k, Math.max(...rows.map((r) => r[k] ?? 0)) || 1]));
   const cell = ([k, , f, cls, bar], r) => {
     const barCls = bar ? ` bar ${bar}` : "";
@@ -727,22 +731,64 @@ function sortableTable(el, columns, rows, sortKey, { toolbar = false } = {}) {
         <button class="sort-dir" type="button">${dir < 0 ? "High → low" : "Low → high"}</button>
         <span class="sort-hint">or click any column header ↕</span>
       </div>` : "";
-    el.innerHTML = `${bar}<div class="table-wrap sticky-name"><table>
-      <thead><tr><th class="rank">#</th>${columns.map(([k, label, , cls]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
+    const cols = columns.filter(([k]) => !hidden.has(k));
+    const fitNote = hidden.size || showAll ? `<div class="fit-note">${showAll
+      ? `All columns shown; scroll sideways. <button type="button" class="fit-toggle">Fit to screen</button>`
+      : `${hidden.size} column${hidden.size === 1 ? "" : "s"} hidden to fit the screen: ${columns.filter(([k]) => hidden.has(k)).map(([, l]) => esc(l)).join(", ")}. <button type="button" class="fit-toggle">Show all columns</button>`}</div>` : "";
+    el.innerHTML = `${bar}${fitNote}<div class="table-wrap sticky-name${density ? ` d${density}` : ""}"><table>
+      <thead><tr><th class="rank">#</th>${cols.map(([k, label, , cls]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
         aria-sort="${k === key ? (dir < 0 ? "descending" : "ascending") : "none"}">${label}<span class="sort-ico">${k === key ? (dir < 0 ? "▾" : "▴") : "↕"}</span></th>` : "<th></th>").join("")}</tr></thead>
-      <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>${columns.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
+      <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>${cols.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
     </table></div>`;
     el.querySelectorAll("th.sortable").forEach((th) => (th.onclick = () => {
       if (th.dataset.k === key) dir = -dir; else { key = th.dataset.k; dir = -1; }
       draw();
     }));
     if (toolbar) {
-      el.querySelector(".sort-key").onchange = (e) => { key = e.target.value; dir = -1; draw(); };
+      // Sorting by a hidden column brings it back, so refit.
+      el.querySelector(".sort-key").onchange = (e) => { key = e.target.value; dir = -1; refit(); };
       el.querySelector(".sort-dir").onclick = () => { dir = -dir; draw(); };
     }
+    const t = el.querySelector(".fit-toggle");
+    if (t) t.onclick = () => { showAll = !showAll; refit(); };
   };
-  draw();
+  const refit = () => {
+    density = 0; hidden = new Set();
+    draw();
+    const wrap = () => el.querySelector(".table-wrap");
+    const over = () => wrap().clientWidth > 0 && wrap().scrollWidth > wrap().clientWidth + 1;
+    while (over() && density < 2) { wrap().classList.remove(`d${density}`); density++; wrap().classList.add(`d${density}`); }
+    if (showAll) return draw();
+    for (const k of fit) {
+      if (!over()) break;
+      if (k === key || !columns.some((c) => c[0] === k)) continue;
+      hidden.add(k);
+      draw();
+    }
+  };
+  el._refit = refit;
+  refit();
+  // Refit when the table's box changes width (window resize, rotation, zoom).
+  if (!el._fitObserver && "ResizeObserver" in window) {
+    let width = el.clientWidth, timer;
+    el._fitObserver = new ResizeObserver(() => {
+      if (el.clientWidth === width) return;
+      width = el.clientWidth;
+      clearTimeout(timer);
+      timer = setTimeout(() => el._refit?.(), 120);
+    });
+    el._fitObserver.observe(el);
+  }
+  el.dataset.fit = "";
 }
+
+// Backup for browsers without ResizeObserver: refit on window resize too (a refit that
+// finds nothing changed is cheap).
+let fitTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(fitTimer);
+  fitTimer = setTimeout(() => document.querySelectorAll("[data-fit]").forEach((el) => !el._fitObserver && el._refit?.()), 150);
+});
 
 async function renderPlayers(src) {
   app.innerHTML = loading(src.kicker, "Players");
@@ -778,7 +824,10 @@ async function renderPlayers(src) {
   ], src.key === "ad2l" && ad2lCache?.pubs ? data.map((r) => {
     const ps = r.account_id ? pubSummary(pubsSince(ad2lCache, r.account_id, lastNight())) : null;
     return { ...r, pub_games: ps?.games ?? 0, pub_win_rate: ps?.win_rate ?? null, pub_kda: ps?.kda ?? null, pub_heroes: ps ? ps.heroes.map((h) => h.hero).join(", ") : "", pub_list: ps ? ps.heroes.slice(0, 10).map((h) => ({ hero: h.hero, n: h.games })) : [] };
-  }) : data, "games", { toolbar: true });
+  }) : data, "games", { toolbar: true, fit: [
+    "tormentors", "roshans", "pub_kda", "neutral_pg", "sen_pg", "dewards_pg", "stacks_pg", "lane_pg", "dmg_per_1k_nw", "avg_xpm",
+    "kills", "deaths", "assists", "pub_win_rate", "neutral_share", "obs_pg", "avg_kp", "heroes", "pub_games", "dmg_per_min", "team", "pub_heroes",
+  ] });
 }
 
 // Recent pubs = games since the last league night (Thursday), per the league's rhythm.
@@ -1185,7 +1234,9 @@ async function renderHeroes(src) {
       ["p1", "P1", null, "", "jade"], ["w1", "P1 win %", pct], ["p2", "P2"], ["w2", "P2 win %", pct], ["p3", "P3 (last)"], ["w3", "P3 win %", pct],
     ] : []),
     ["avg_damage", "Avg hero dmg", fmt, "", "ember"], ["avg_kda", "Avg KDA", (v) => (v == null ? "—" : esc(v))],
-  ], shown, "picks", { toolbar: true }));
+  ], shown, "picks", { toolbar: true, fit: [
+    "avg_kda", "w3", "w2", "p2", "b3", "b2", "p1_ban_share", "pick_rate", "ban_rate", "wins", "p3", "avg_damage", "w1", "b1", "p1",
+  ] }));
 }
 
 // "Show at least N" filter above a table, so a hero picked once at 100% doesn't top the list.
