@@ -8,12 +8,13 @@ export function createBrowserEngine() {
   const worker = () => (workerPromise ??= Tesseract.createWorker("eng", 1));
 
   const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const ctx = canvas.getContext("2d", { willReadFrequently: true, colorSpace: "srgb" });
 
   return {
-    // Blob/File → raw RGBA pixels.
+    // Blob/File → raw RGBA pixels, exactly as stored: no colour-profile conversion, so
+    // the numbers match what Node/sharp sees (the thresholds were tuned there).
     async decode(blob) {
-      const bmp = await createImageBitmap(blob);
+      const bmp = await createImageBitmap(blob, { colorSpaceConversion: "none", premultiplyAlpha: "none" });
       canvas.width = bmp.width;
       canvas.height = bmp.height;
       ctx.drawImage(bmp, 0, 0);

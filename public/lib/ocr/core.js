@@ -90,9 +90,15 @@ export function otsu(gray) {
   return bestT;
 }
 
-// threshold: a number, "otsu" (per-crop automatic, floored at `min`), or null (stretch).
+// threshold: a number; "otsu" (per-crop automatic, floored at `min`); { rel } (that
+// fraction of the crop's brightest text, 98th percentile — survives colour shifts, for
+// plain backgrounds only); or null (stretch).
 export function binarize(bm, threshold, min = 60) {
   if (threshold === "otsu") threshold = Math.max(min, otsu(bm.gray));
+  else if (threshold?.rel) {
+    const sorted = Uint8Array.from(bm.gray).sort();
+    threshold = Math.max(min, Math.round(sorted[Math.floor(sorted.length * 0.98)] * threshold.rel));
+  }
   const out = new Uint8Array(bm.gray.length);
   if (threshold != null) {
     for (let i = 0; i < out.length; i++) out[i] = bm.gray[i] > threshold ? 0 : 255;
@@ -243,6 +249,43 @@ export async function readRegion(engine, image, rect, { whitelist = "", scale = 
   const bm = pad(speckle && threshold != null ? despeckle(bin, speckle) : bin);
   engine.debug?.(name, bm);
   return ocr(engine, bm, { whitelist });
+}
+
+// Read a player name, dropping the clan tag after it. Tags are drawn dimmer than names,
+// so split the cell into words and keep words while they're at least `ratio` as bright
+// as the first one. Everything is relative, so a browser's colour conversion (which
+// shifts all the grays) doesn't matter. Measured: names ~200–255, tags ~115–195.
+export async function readName(engine, image, rect, { scale = 3, ratio = 0.85, gapFrac = 0.15, name } = {}) {
+  const r = clampRect(image, rect);
+  if (!r) return { text: "", conf: 0 };
+  const bm = cropScaled(image, r, scale);
+  const inkT = Math.min(140, Math.max(70, otsu(bm.gray)));
+  const ink = new Float64Array(bm.width);
+  for (let x = 0; x < bm.width; x++) for (let y = 0; y < bm.height; y++) if (bm.gray[y * bm.width + x] > inkT) ink[x]++;
+  const words = [];
+  for (const g of runs(ink, 0, 1)) {
+    const w = words[words.length - 1];
+    if (w && g[0] - w[1] < bm.height * gapFrac) w[1] = g[1]; else words.push([...g]);
+  }
+  const bright = ([x0, x1]) => {
+    const vals = [];
+    for (let x = x0; x < x1; x++) for (let y = 0; y < bm.height; y++) { const v = bm.gray[y * bm.width + x]; if (v > inkT) vals.push(v); }
+    vals.sort((p, q) => p - q);
+    return vals.length ? vals[Math.floor(vals.length * 0.9)] : 0;
+  };
+  if (!words.length) return { text: "", conf: 0 };
+  const ref = bright(words[0]);
+  let end = words[0][1];
+  for (const w of words.slice(1)) {
+    if (bright(w) < ref * ratio) break;
+    end = w[1];
+  }
+  const cut = slice(bm, 0, Math.min(bm.width, end + Math.round(bm.height * 0.1)));
+  // Cut at ~83% of the name's brightness: thin enough strokes for clean letters (the old
+  // fixed 170 on ~205-bright names), and relative so colour shifts don't matter.
+  const bin = pad(binarize(cut, Math.max(inkT, Math.round(ref * 0.83))));
+  engine.debug?.(name, bin);
+  return ocr(engine, bin);
 }
 
 // Read a region made of separate numbers ("4 / 5 / 19", "338 / 10"): find the parts,

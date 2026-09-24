@@ -23,7 +23,6 @@ test("OCR reads the sample game's screenshots", { timeout: 120000, skip: !haveFi
   expected.players.forEach((w, i) => {
     for (const f of exact) assert.equal(match.players[i][f], w[f], `${w.name}.${f}`);
   });
-  // Names: at least 9 of 10 exact (a highlighted row can keep its clan tag).
-  const names = expected.players.filter((w, i) => match.players[i].name === w.name).length;
-  assert.ok(names >= 9, `only ${names}/10 names exact`);
+  // Names exact, with the clan tag dropped (including on the highlighted row).
+  expected.players.forEach((w, i) => assert.equal(match.players[i].name, w.name, `name ${i + 1}`));
 });

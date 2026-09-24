@@ -66,6 +66,14 @@ export function validateMatch(m) {
       else if (kills < m[`score_${t}`]) warnings.push(`Team ${T} players have ${kills} kills vs score ${m[`score_${t}`]}. Fine if some kills were by towers/creeps; otherwise check.`);
       if (enemyDeaths !== m[`score_${t}`]) warnings.push(`Team ${T} score is ${m[`score_${t}`]} but the other team has ${enemyDeaths} deaths.`);
     }
+    // Net worth can't much exceed the gold earned (GPM × minutes, plus starting gold), so a
+    // GPM that can't account for the net worth is probably a dropped digit (411 → 41).
+    const minutes = secs / 60;
+    for (const p of players) {
+      if (p.net_worth > p.gpm * minutes * 1.15 + 1000) {
+        warnings.push(`${p.name}: GPM ${p.gpm} is too low for ${p.net_worth.toLocaleString()} net worth in ${m.duration}. Check GPM and net worth.`);
+      }
+    }
     const w = m.winner === "a" ? "a" : "b";
     const l = w === "a" ? "b" : "a";
     if (m[`score_${w}`] < m[`score_${l}`]) warnings.push("The winner has the lower score. Possible, but double-check the winner.");

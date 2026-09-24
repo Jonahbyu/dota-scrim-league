@@ -43,6 +43,15 @@ test("a misread kill count is flagged but still saveable", () => {
   assert.ok(r.warnings.some((w) => w.includes("Team A players have 39 kills")));
 });
 
+test("a GPM with a dropped digit is flagged against net worth", () => {
+  const m = sample();
+  m.players[3].gpm = 41; // real value 411
+  const r = validateMatch(m);
+  assert.ok(r.warnings.some((w) => w.includes("GPM 41 is too low")));
+  // None of the real rows trip it.
+  assert.ok(!validateMatch(sample()).warnings.some((w) => w.includes("GPM")));
+});
+
 test("missing values, fake/duplicate heroes and out-of-range values are errors", () => {
   const m = sample();
   m.players[0].hero_damage = null;

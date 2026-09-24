@@ -10,6 +10,7 @@ const expected = JSON.parse(await readFile("data/sample-game1.json", "utf8"));
 const originals = await Promise.all(["test-screenshots/game1-overview.webp", "test-screenshots/game1-scoreboard.webp"].map((f) => readFile(f)));
 
 // crop = fraction trimmed from [left, top, right, bottom]; negative = add dark border.
+const ONLY = process.env.ONLY?.split(",");
 const VARIANTS = [
   { name: "original", scale: 1 },
   { name: "0.72x (1440p-ish)", scale: 0.72 },
@@ -18,6 +19,10 @@ const VARIANTS = [
   { name: "loose crop (extra border)", crop: [-0.05, -0.06, -0.04, -0.05] },
   { name: "jpeg q70", jpeg: 70 },
   { name: "0.8x + tight + jpeg", scale: 0.8, crop: [0.02, 0.03, 0.0, 0.03], jpeg: 80 },
+  // Browsers may colour-convert on decode (display profiles); simulate shifted grays.
+  { name: "colour: 10% darker", modulate: 0.9 },
+  { name: "colour: 10% brighter", modulate: 1.1 },
+  { name: "colour: gamma 1.3", gamma: 1.3 },
 ];
 
 async function distort(buf, v) {
@@ -36,12 +41,14 @@ async function distort(buf, v) {
     const m = await img.metadata();
     img = sharp(await img.resize(Math.round((m.width ?? width) * v.scale)).png().toBuffer());
   }
+  if (v.modulate) img = sharp(await img.modulate({ brightness: v.modulate }).png().toBuffer());
+  if (v.gamma) img = sharp(await img.gamma(v.gamma).png().toBuffer());
   return v.jpeg ? img.jpeg({ quality: v.jpeg }).toBuffer() : img.png().toBuffer();
 }
 
 const FIELDS = ["name", "hero", "level", "kills", "deaths", "assists", "net_worth", "last_hits", "denies", "gpm", "xpm", "hero_damage", "hero_healing"];
 const engine = createNodeEngine();
-for (const v of VARIANTS) {
+for (const v of VARIANTS.filter((x) => !ONLY || ONLY.includes(x.name))) {
   const inputs = await Promise.all(originals.map((b) => distort(b, v)));
   const { match, notes } = await parseScreenshots(engine, inputs);
   let right = 0, total = 0;

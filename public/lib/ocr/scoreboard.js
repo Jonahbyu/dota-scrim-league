@@ -1,4 +1,4 @@
-import { readRegion, readNumberGroups } from "./core.js";
+import { readRegion, readNumberGroups, readName } from "./core.js";
 import { matchHero } from "../heroes.js";
 
 // Scoreboard tab. Layout was measured on a 2000x854 screenshot, relative to the "LH"
@@ -96,18 +96,22 @@ export async function readScoreboard(engine, image, words) {
   const R = (x0, y0, x1, y1) => ({ x0: lhX + x0 * k, y0, x1: lhX + x1 * k, y1 });
   // Upscale so text ends up the same size whatever the screenshot resolution.
   const scale = Math.max(2, Math.round(3 / k));
-  // Fixed cutoffs read crisp screenshots best; a per-cell automatic (Otsu) cutoff copes
-  // better with blur and highlighted rows. Try fixed first; if the result is invalid or
-  // low-confidence, also try Otsu and keep the better valid reading.
+  // Each cell is read with its fixed cutoff (best on crisp, true-colour screenshots) and a
+  // cutoff relative to the cell's brightest text (survives a browser dimming/brightening
+  // colours on decode). Agreement wins outright; otherwise the more confident valid
+  // reading; Otsu is the last resort when neither is valid.
   const read = async (rect, opts, valid = (t) => t.length > 0) => {
-    const first = await readRegion(engine, image, rect, { scale, ...opts });
-    if (opts.threshold == null || (valid(first.text) && first.conf >= 75)) return first;
-    const second = await readRegion(engine, image, rect, { scale, ...opts, threshold: "otsu", min: opts.threshold * 0.6, name: opts.name && `${opts.name}_otsu` });
-    const ok = [first, second].filter((r) => valid(r.text));
-    return ok.sort((x, y) => y.conf - x.conf)[0] ?? first;
+    const { rel, ...base } = opts;
+    const fixed = await readRegion(engine, image, rect, { scale, ...base });
+    if (rel == null) return fixed;
+    const relative = await readRegion(engine, image, rect, { scale, ...base, threshold: { rel }, name: base.name && `${base.name}_rel` });
+    if (fixed.text === relative.text) return fixed;
+    let ok = [fixed, relative].filter((r) => valid(r.text));
+    if (!ok.length) ok = [await readRegion(engine, image, rect, { scale, ...base, threshold: "otsu", min: 70, name: base.name && `${base.name}_otsu` })].filter((r) => valid(r.text));
+    return ok.sort((x, y) => y.conf - x.conf)[0] ?? fixed;
   };
   const isNum = (t) => /^\d[\d,]*$/.test(t.trim());
-  const NUM = { whitelist: "0123456789,", threshold: 140 };
+  const NUM = { whitelist: "0123456789,", threshold: 140, rel: 0.65 };
 
   const teams = [];
   for (let t = 0; t < 2; t++) {
@@ -126,16 +130,20 @@ export async function readScoreboard(engine, image, words) {
       const [hy0, hy1] = [cy + 4 * k, cy + 26 * k];
       const [vy0, vy1] = [cy - 14 * k, cy + 16 * k];
 
-      // No Otsu fallback for names: its lower cutoff brings the gray clan tag back.
-      const name = await readRegion(engine, image, R(-1234, ny0, -1045, ny1), { scale, threshold: 170, name: `${n}_name` });
+      const name = await readName(engine, image, R(-1234, ny0, -1045, ny1), { scale, name: `${n}_name` });
       const hero = await read(R(-1215, hy0, -1040, hy1), { whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' -", threshold: 110, name: `${n}_hero` }, (t) => matchHero(t) != null);
-      const lvl = await read(R(-1240, hy0, -1216, hy1), { whitelist: "0123456789", threshold: 140, name: `${n}_level` }, (t) => level(t) != null);
+      const lvl = await read(R(-1240, hy0, -1216, hy1), { whitelist: "0123456789", threshold: 140, rel: 0.65, name: `${n}_level` }, (t) => level(t) != null);
+      // LH/DN: fixed and relative; if they disagree, the relative one (colour-proof) wins
+      // when it's complete. Otsu if neither parses.
       const lhdnRect = R(-14, vy0, 106, vy1);
-      let lhdn = await readNumberGroups(engine, image, lhdnRect, { count: 2, scale, threshold: 140, name: `${n}_lhdn` });
-      if (lhdn.length !== 2 || lhdn.includes(null)) {
+      const complete = (g) => g.length === 2 && !g.includes(null);
+      const lhFixed = await readNumberGroups(engine, image, lhdnRect, { count: 2, scale, threshold: 140, name: `${n}_lhdn` });
+      const lhRel = await readNumberGroups(engine, image, lhdnRect, { count: 2, scale, threshold: { rel: 0.65 }, name: `${n}_lhdn_rel` });
+      let lhdn = complete(lhRel) ? lhRel : lhFixed;
+      if (!complete(lhdn)) {
         lhdn = await readNumberGroups(engine, image, lhdnRect, { count: 2, scale, threshold: "otsu", min: 84, name: `${n}_lhdn_otsu` });
       }
-      const gpm = await read(R(118, vy0, 186, vy1), { ...NUM, threshold: 110, name: `${n}_gpm` }, isNum);
+      const gpm = await read(R(118, vy0, 186, vy1), { ...NUM, threshold: 110, rel: 0.52, name: `${n}_gpm` }, isNum);
       const xpm = await read(R(280, vy0, 356, vy1), { ...NUM, name: `${n}_xpm` }, isNum);
       const heal = await read(R(372, vy0, 450, vy1), { ...NUM, name: `${n}_heal` }, isNum);
       const dmg = await read(R(580, vy0, 665, vy1), { ...NUM, name: `${n}_dmg` }, isNum);
