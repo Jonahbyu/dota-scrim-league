@@ -30,8 +30,10 @@ export async function currentUid() {
 
 // Review-form draft → the stored document shape the rules validate.
 // Private = results only: heroes, players and stats are never sent anywhere.
-export function toStored(draft, { isPrivate = false } = {}) {
+// seriesId: the PlayOn series an unticketed AD2L game fills (only that collection allows it).
+export function toStored(draft, { isPrivate = false, seriesId = null } = {}) {
   const base = {
+    ...(Number.isInteger(seriesId) ? { series_id: seriesId } : {}),
     v: 2,
     private: isPrivate,
     team_a: draft.team_a.trim(),
@@ -43,6 +45,9 @@ export function toStored(draft, { isPrivate = false } = {}) {
     game_mode: (draft.game_mode ?? "").trim(),
   };
   if (isPrivate) return base;
+  // Saved only as a complete 1–10 set (the rules accept pick on all players or none).
+  const picks = draft.players.map((p) => p.pick);
+  const fullPicks = picks.every((v) => Number.isInteger(v) && v >= 1 && v <= 10) && new Set(picks).size === 10;
   return {
     ...base,
     players: draft.players.map((p) => ({
@@ -53,13 +58,14 @@ export function toStored(draft, { isPrivate = false } = {}) {
       level: p.level, kills: p.kills, deaths: p.deaths, assists: p.assists,
       net_worth: p.net_worth, last_hits: p.last_hits, denies: p.denies,
       gpm: p.gpm, xpm: p.xpm, hero_damage: p.hero_damage, hero_healing: p.hero_healing,
+      ...(fullPicks ? { pick: p.pick } : {}),
     })),
   };
 }
 
 // Returns { id } on success or { duplicateOf: id } if the game is already uploaded.
-export async function submitMatch(draft, { isPrivate = false, league = "scrim" } = {}) {
-  const data = toStored(draft, { isPrivate });
+export async function submitMatch(draft, { isPrivate = false, league = "scrim", seriesId = null } = {}) {
+  const data = toStored(draft, { isPrivate, seriesId: league === "ad2l" ? seriesId : null });
   const id = await matchId(data);
   const ref = doc(coll(league), id);
   if ((await getDoc(ref)).exists()) return { duplicateOf: id };
@@ -98,6 +104,28 @@ export const adminSignOut = () => signOut(adminAuth);
 export async function deleteMatch(id, league = "scrim") {
   const asAdmin = await isAdmin();
   await deleteDoc(doc(asAdmin ? adminDb : db, "scrimLeague", "data", COLLECTIONS[league], id));
+}
+
+// Put an unticketed upload in a PlayOn series (or take it out with null). Saved games are
+// create-only, so this deletes the upload and saves it again with the new series_id, same
+// ID (the ID doesn't depend on the series). Uploader or admin only, like delete. If saving
+// fails, the original is put back.
+export async function moveMatch(id, seriesId, league = "ad2l") {
+  const asAdmin = await isAdmin();
+  const ref = doc(asAdmin ? adminDb : db, "scrimLeague", "data", COLLECTIONS[league], id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error("That game isn't there any more.");
+  const { uid, createdAt, series_id, ...rest } = snap.data();
+  await deleteDoc(ref);
+  await authReady;
+  if (!auth.currentUser) await signInAnonymously(auth);
+  const save = (data) => setDoc(doc(coll(league), id), { ...data, uid: auth.currentUser.uid, createdAt: serverTimestamp() });
+  try {
+    await save(Number.isInteger(seriesId) ? { ...rest, series_id: seriesId } : rest);
+  } catch (e) {
+    await save(Number.isInteger(series_id) ? { ...rest, series_id } : rest).catch(() => {});
+    throw e;
+  }
 }
 
 const fromDoc = (d) => ({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate?.() ?? null });

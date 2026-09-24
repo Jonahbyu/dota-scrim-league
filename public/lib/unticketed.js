@@ -26,6 +26,41 @@ export function asAd2l(u, d) {
   };
 }
 
+// Games PlayOn scored but nobody has on record: a series scored 2-0 with one ticketed
+// game and no upload for it is missing one game. Each is { series, game } (game = its
+// number in the series, after the ones on record); these are what an upload can fill.
+export function missingGames(d, uploads = []) {
+  const out = [];
+  for (const s of d.series) {
+    const played = (s.home_score ?? 0) + (s.away_score ?? 0);
+    const have = d.games.filter((g) => g.series_id === s.id).length + uploads.filter((u) => u.series_id === s.id).length;
+    for (let game = have + 1; game <= played; game++) out.push({ series: s, game });
+  }
+  return out;
+}
+
+// Every game an unticketed upload can stand for: games missing from series PlayOn has
+// scored (earlier weeks), plus both games of series not scored yet that are scheduled
+// before `until` (this week's, not ticketed yet). Each is { series, game, scored }.
+// `except` is an upload being moved, so its own slot counts as open.
+export function openGames(d, uploads = [], until = Infinity, except = null) {
+  const out = [];
+  for (const s of d.series) {
+    const played = (s.home_score ?? 0) + (s.away_score ?? 0);
+    const scored = played > 0;
+    const total = scored ? played : s.time && s.time <= until ? 2 : 0;
+    const have = d.games.filter((g) => g.series_id === s.id).length + uploads.filter((u) => u.series_id === s.id && u.id !== except).length;
+    for (let game = have + 1; game <= total; game++) out.push({ series: s, game, scored });
+  }
+  return out.sort((a, b) => (b.series.time ?? 0) - (a.series.time ?? 0));
+}
+
+// Do the draft's two team names match this series' two teams (either way round)?
+export function sameTeams(d, s, a, b) {
+  const ids = [teamByName(d, a)?.id, teamByName(d, b)?.id];
+  return ids.includes(s.home) && ids.includes(s.away) && s.home !== s.away;
+}
+
 // If a side's name wasn't read as a division team, use the team most of that side's
 // recognised players are rostered on (3+ of 5). Changes `match` in place; returns notes.
 export function guessTeams(match, d) {

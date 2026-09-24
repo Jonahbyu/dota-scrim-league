@@ -113,3 +113,13 @@ test("leaderboards aggregate across games", () => {
   const heroes = heroStats([g1, g2]);
   assert.equal(heroes.find((h) => h.hero === "Kez").picks, 2);
 });
+
+test("pick order: optional, but a full unique 1-10 set when given", () => {
+  const withPicks = (picks) => { const m = sample(); m.players.forEach((p, i) => { p.pick = picks[i]; }); return validateMatch(m); };
+  assert.equal(withPicks([6, 7, 8, 9, 10, 5, 4, 1, 3, 2]).errors.length, 0);
+  assert.ok(withPicks([6, 7, 8, 9, 10, 5, 4, 1, 3, 3]).errors.some((e) => e.includes("twice")));
+  assert.ok(withPicks([6, 7, 8, 9, 11, 5, 4, 1, 3, 2]).errors.some((e) => e.includes("1–10")));
+  const partial = withPicks([6, 7, null, null, null, null, null, null, null, null]);
+  assert.equal(partial.errors.length, 0);
+  assert.ok(partial.warnings.some((w) => w.includes("won't be saved")));
+});

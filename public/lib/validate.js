@@ -61,6 +61,15 @@ export function validateMatch(m, { resultOnly = false } = {}) {
     if (total > 2000000) errors.push(`${who}: stats are implausibly large — check for a misread.`);
   });
 
+  // Pick order (draft order from the Scoreboard's PICK column) is optional, but when given
+  // it has to be the full set: each of 1–10 exactly once.
+  const picks = players.map((p) => p.pick).filter((v) => v != null);
+  if (picks.length) {
+    if (picks.some((v) => !Number.isInteger(v) || v < 1 || v > 10)) errors.push("Pick order must be 1–10.");
+    else if (new Set(picks).size !== picks.length) errors.push("Pick order has the same number twice.");
+    else if (picks.length < 10) warnings.push(`Pick order is filled in for ${picks.length} of 10 players, so it won't be saved. Fill in the rest or clear it.`);
+  }
+
   if (errors.length === 0) {
     for (const [t, o] of [["a", "b"], ["b", "a"]]) {
       const team = players.filter((p) => p.team === t);

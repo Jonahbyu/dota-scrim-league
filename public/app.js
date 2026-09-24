@@ -9,10 +9,10 @@ import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
 import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.js";
 import { buildPlayerIndex, matchPlayers, nameKey } from "./lib/players.js";
 import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
-import { asAd2l, guessTeams, teamByName } from "./lib/unticketed.js";
+import { asAd2l, guessTeams, openGames, sameTeams, teamByName } from "./lib/unticketed.js";
 import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks, modelCall, TIE_EDGE, predictDraft } from "./lib/predict.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
-import { submitMatch, listMatches, getMatch, deleteMatch, currentUid, listPredictions, savePrediction, isAdmin, adminSignIn, adminSignOut } from "./lib/store.js";
+import { submitMatch, listMatches, getMatch, deleteMatch, moveMatch, currentUid, listPredictions, savePrediction, isAdmin, adminSignIn, adminSignOut } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
 
@@ -114,7 +114,7 @@ function errorBox(e) {
 
 const engine = createBrowserEngine();
 // league: "scrim" (the ledger) or "ad2l" (an unticketed AD2L division game, same form).
-const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false, league: "scrim",
+const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false, league: "scrim", seriesId: null,
   // Private result form (scrims): no screenshots or players, just the result.
   quick: false, teams: [], newTeam: { a: false, b: false } };
 // Private uploads only need a valid result; public ones need every player too. AD2L
@@ -122,9 +122,28 @@ const upload = { images: [], draft: null, check: null, notes: [], names: [], bus
 function checkDraft(d) {
   const c = validateMatch(d, { resultOnly: upload.isPrivate && upload.league !== "ad2l" });
   if (upload.league !== "ad2l" || !ad2lCache) return c;
-  const bad = [d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n));
-  if (!bad.length) return c;
-  return { ...c, ok: false, errors: [...(c.errors ?? []), ...bad.map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`)] };
+  const errors = [d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n)).map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`);
+  const s = upload.seriesId && ad2lCache.series.find((x) => x.id === upload.seriesId);
+  if (s && d.team_a && d.team_b && !sameTeams(ad2lCache, s, d.team_a, d.team_b)) errors.push("The teams don't match the series picked under “Which game is this?”.");
+  if (!errors.length) return c;
+  return { ...c, ok: false, errors: [...(c.errors ?? []), ...errors] };
+}
+// Games an upload can fill: missing from earlier weeks, or this week's not ticketed yet.
+const thisWeekEnd = () => (weekStart(new Date()).getTime() + 7 * 864e5) / 1000;
+const ad2lMissing = (except = null) => (ad2lCache ? openGames(ad2lCache, ad2lUploads ?? [], thisWeekEnd(), except) : []);
+// "Week 3 · A vs B · game 2 (PlayOn 2–0)" for the series pickers.
+function openGameLabel({ series: s, game, scored }) {
+  const tname = Object.fromEntries((ad2lCache?.teams ?? []).map((t) => [t.id, t.name]));
+  const first = ad2lCache?.series.filter((x) => x.time).reduce((m, x) => Math.min(m, x.time), Infinity);
+  const week = Number.isFinite(first) && s.time ? `Week ${Math.round((weekStart(new Date(s.time * 1000)) - weekStart(new Date(first * 1000))) / (7 * 864e5)) + 1} · ` : "";
+  return `${week}${tname[s.home] ?? "?"} vs ${tname[s.away] ?? "?"} · game ${game} ${scored ? `(PlayOn ${s.home_score}–${s.away_score})` : "(not scored yet)"}`;
+}
+const seriesOptions = (opts, selected) => opts.filter((g, i, all) => all.findIndex((x) => x.series.id === g.series.id) === i)
+  .map((g) => `<option value="${g.series.id}" ${selected === g.series.id ? "selected" : ""}>${esc(openGameLabel(g))}</option>`).join("");
+// Pick the missing game for these two teams when there's exactly one.
+function guessSeries(d) {
+  const hits = ad2lMissing().filter((g) => sameTeams(ad2lCache, g.series, d.team_a, d.team_b));
+  upload.seriesId = hits.length === 1 ? hits[0].series.id : null;
 }
 const ad2lTeamByName = (n) => teamByName(ad2lCache, n);
 
@@ -165,7 +184,7 @@ async function runParse() {
     upload.draft = match;
     upload.notes = notes;
     upload.names = await fixNames(match);
-    if (upload.league === "ad2l") { await ad2lData(); upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)]; }
+    if (upload.league === "ad2l") { await ad2lData(); await ad2lUploaded(); upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)]; guessSeries(match); }
     upload.check = checkDraft(match);
     upload.message = { kind: "ok", text: "Done. Check every value against your screenshots: red boxes couldn't be read." };
   } catch (e) {
@@ -271,6 +290,7 @@ function draftHtml(d) {
       </table>
     </div>
     <div id="checks">${checksHtml(upload.check)}</div>
+    ${upload.league === "ad2l" ? seriesPickHtml() : ""}
     ${upload.league === "ad2l" ? `<datalist id="ad2l-teams">${(ad2lCache?.teams ?? []).map((t) => `<option value="${esc(t.name)}">`).join("")}</datalist>` : `
     <label class="private-toggle">
       <input type="checkbox" id="private" ${upload.isPrivate ? "checked" : ""}>
@@ -281,6 +301,17 @@ function draftHtml(d) {
       <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.isPrivate ? "Post private result" : upload.league === "ad2l" ? "Save to AD2L" : "Save to league"}</button>
       <button id="discard">Discard</button>
     </div>`;
+}
+
+// Which PlayOn game this upload fills, from the games PlayOn scored that nobody has on
+// record. Saved as series_id, so the game lands in that series and its week.
+function seriesPickHtml() {
+  return `<label class="series-pick">Which game is this?
+      <select id="series-pick">
+        <option value="">Not listed</option>
+        ${seriesOptions(ad2lMissing(), upload.seriesId)}
+      </select>
+      <span class="muted">Games not on record here: ones missing from earlier weeks, and this week's that haven't been ticketed yet. Picking one puts this game in that series and week.</span></label>`;
 }
 
 // Private result: pick both teams from the league's list (or add a new one), then the kill
@@ -349,8 +380,8 @@ function onDraftInput(e) {
   if (!el.dataset.path) return;
   let v = el.value;
   if (el.dataset.type === "int-opt") {
-    const cleaned = v.replace(/s/g, "");
-    v = /^d+$/.test(cleaned) ? Number(cleaned) : null;
+    const cleaned = v.replace(/\s/g, "");
+    v = /^\d+$/.test(cleaned) ? Number(cleaned) : null;
     el.classList.toggle("bad", cleaned !== "" && v == null);
   } else if (el.dataset.type === "int") {
     const cleaned = v.replace(/[,\s]/g, "");
@@ -372,7 +403,7 @@ async function saveDraft() {
   save.textContent = "Saving…";
   try {
     const ad2l = upload.league === "ad2l";
-    const res = await submitMatch(upload.check.match, { isPrivate: ad2l ? false : upload.isPrivate, league: upload.league });
+    const res = await submitMatch(upload.check.match, { isPrivate: ad2l ? false : upload.isPrivate, league: upload.league, seriesId: upload.seriesId });
     if (res.duplicateOf) {
       upload.message = { kind: "warn", text: "This game is already in the league.", link: ad2l ? `#/ad2l/game/${res.duplicateOf}` : `#/match/${res.duplicateOf}` };
       renderUpload();
@@ -380,7 +411,7 @@ async function saveDraft() {
     }
     for (const img of upload.images) URL.revokeObjectURL(img.url);
     if (upload.quick) upload.isPrivate = false;
-    Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null, quick: false });
+    Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null, seriesId: null, quick: false });
     if (ad2l) { await ad2lUploaded(true); location.hash = `#/ad2l/game/${res.id}`; }
     else { await allMatches(true); location.hash = `#/match/${res.id}`; }
   } catch (e) {
@@ -448,12 +479,14 @@ function renderUpload() {
   document.getElementById("parse").onclick = runParse;
   const priv = document.getElementById("private-result");
   if (priv) priv.onclick = startPrivate;
-  document.getElementById("manual").onclick = () => { upload.quick = false; upload.draft = blankDraft(); upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
+  document.getElementById("manual").onclick = () => { upload.quick = false; upload.draft = blankDraft(); upload.seriesId = null; upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
   const clear = document.getElementById("clear");
   if (clear) clear.onclick = () => { for (const i of upload.images) URL.revokeObjectURL(i.url); upload.images = []; renderUpload(); };
 
   if (upload.draft) {
     document.getElementById("save").onclick = saveDraft;
+    const pick = document.getElementById("series-pick");
+    if (pick) pick.onchange = () => { upload.seriesId = Number(pick.value) || null; revalidate(); };
     const toggle = document.getElementById("private");
     if (toggle) toggle.onchange = (e) => { upload.isPrivate = e.target.checked; upload.check = checkDraft(upload.draft); renderUpload(); };
     document.getElementById("discard").onclick = () => {
@@ -572,8 +605,17 @@ async function renderMatch(id, src) {
   const admin = uploaded && await isAdmin();
   const canDelete = mine || admin;
   const noun = m.unticketed ? "game" : "scrim";
+  // Unticketed uploads can be put in (or moved to) the PlayOn series they stand for.
+  const moveOpts = m.unticketed && canDelete ? ad2lMissing(m.id).filter((g) => sameTeams(ad2lCache, g.series, m.team_a, m.team_b)) : [];
+  const moveHtml = m.unticketed && canDelete ? `<label class="series-pick">Which game is this?
+      <select id="series-move">
+        <option value="">Not listed (counts in the week it was uploaded)</option>
+        ${seriesOptions(moveOpts, m.series_id ?? null)}
+      </select>
+      <span class="muted">${moveOpts.length ? "Games between these two teams not on record here, from earlier weeks or this week's not ticketed yet. Picking one moves this game into that series and week." : "No open game between these two teams: PlayOn has every game of their series on record."}</span>
+      <span class="row"><button type="button" id="move" disabled>Move</button><span class="muted" id="move-msg"></span></span></label>` : "";
   const deleteBtn = !uploaded ? "" : canDelete
-    ? `<div class="row" style="margin-top:18px"><button class="danger" id="del">Delete this ${noun}</button>
+    ? `${moveHtml}<div class="row" style="margin-top:18px"><button class="danger" id="del">Delete this ${noun}</button>
         ${admin ? `<span class="muted">Signed in as league admin · <a href="#" id="admin-out">Sign out</a></span>` : ""}</div>`
     : `<details class="admin-login"><summary>League admin</summary>
         <form id="admin-form" class="row"><input type="email" name="email" placeholder="Email" autocomplete="username" required>
@@ -588,6 +630,20 @@ async function renderMatch(id, src) {
       try { await adminSignIn(form.email.value, form.password.value); route(); }
       catch (err) { msg.textContent = /invalid|wrong|user-not-found/i.test(err.code ?? "") ? "Wrong email or password." : err.message; }
     };
+    const sel = document.getElementById("series-move"), mv = document.getElementById("move");
+    if (sel && mv) {
+      sel.onchange = () => { mv.disabled = (Number(sel.value) || null) === (m.series_id ?? null); };
+      mv.onclick = async () => {
+        mv.disabled = true;
+        const msg = document.getElementById("move-msg");
+        msg.textContent = "Moving…";
+        try {
+          await moveMatch(m.id, Number(sel.value) || null);
+          await ad2lUploaded(true);
+          route();
+        } catch (err) { msg.textContent = `Couldn't move it: ${err.message}`; mv.disabled = false; }
+      };
+    }
     const out = document.getElementById("admin-out");
     if (out) out.onclick = async (e) => { e.preventDefault(); await adminSignOut(); route(); };
     const b = document.getElementById("del");
@@ -1917,7 +1973,7 @@ function route() {
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
     else if (h.startsWith("#/ad2l/draft")) { section = "heroes"; page = () => renderHeroes(src); } // old Draft tab: now part of Heroes
     else if (h.startsWith("#/ad2l/predict")) { section = "predict"; page = renderPredict; }
-    else if (h.startsWith("#/ad2l/upload")) { section = "upload"; page = async () => { upload.league = "ad2l"; await ad2lData().catch(() => null); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
+    else if (h.startsWith("#/ad2l/upload")) { section = "upload"; page = async () => { upload.league = "ad2l"; await ad2lData().catch(() => null); await ad2lUploaded(); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
     else { section = "standings"; page = renderStandings; }
   } else {
     const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];

@@ -43,3 +43,20 @@ test("guessTeams fills a misread team name from the roster majority", () => {
   assert.equal(m.team_b, real.team_b);
   assert.equal(notes.length, 1);
 });
+
+test("missing games: PlayOn score beyond the games on record, filled by uploads", async () => {
+  const { missingGames, sameTeams } = await import("../public/lib/unticketed.js");
+  const d = {
+    teams: [{ id: 1, name: "Damage Over Time", players: [] }, { id: 2, name: "SWM.Twinks", players: [] }, { id: 3, name: "No Immortals", players: [] }],
+    series: [
+      { id: 10, home: 1, away: 2, home_score: 2, away_score: 0 }, // one ticketed game -> game 2 missing
+      { id: 11, home: 1, away: 3, home_score: 1, away_score: 1 }, // both ticketed
+      { id: 12, home: 2, away: 3 }, // not played yet
+    ],
+    games: [{ series_id: 10 }, { series_id: 11 }, { series_id: 11 }],
+  };
+  assert.deepEqual(missingGames(d).map((g) => [g.series.id, g.game]), [[10, 2]]);
+  assert.deepEqual(missingGames(d, [{ series_id: 10 }]), []);
+  assert.ok(sameTeams(d, d.series[0], "swm.twinks", "Damage over Time"));
+  assert.ok(!sameTeams(d, d.series[0], "SWM.Twinks", "No Immortals"));
+});

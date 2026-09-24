@@ -30,12 +30,15 @@
       //  - one sum of the two name lengths errors unless both are strings, and caps them.
       // Per-field ranges (no negative kills etc.) are enforced by the upload form, not here;
       // a hand-crafted request could slip one past, and the admin can delete it.
+      // Optional 16th field `pick`: draft order from the Scoreboard's PICK column. The key
+      // count must be 16 exactly when it's there (so it can't stand in for a stat or sneak
+      // in another field), and it joins the `is int` sum; its 1-10 range is the form's job.
       // Re-run the dry test after ANY change here: the valid case sits near the limit.
       function validPlayer(p, team) {
-        return p.keys().size() == 15
+        return p.size() == ('pick' in p ? 16 : 15)
           && p.team == team
           && (p.level + p.kills + p.deaths + p.assists + p.net_worth + p.last_hits + p.denies
-              + p.gpm + p.xpm + p.hero_damage + p.hero_healing) is int
+              + p.gpm + p.xpm + p.hero_damage + p.hero_healing + p.get('pick', 0)) is int
           && p.name.size() + p.hero.size() <= 64
           && p.level <= 30;
       }
@@ -43,11 +46,17 @@
       // Private scrims are results only: the same fields minus `players` (11 keys; every
       // one is read here or in the create rule, so the count proves the exact set).
       // Public scrims add the ten players (12 keys).
+      // Optional `series_id` (unticketed AD2L games only): the PlayOn series the uploader
+      // says it belongs to, one more key when present. Whether that series really is
+      // missing a game is the form's job, like the stat ranges.
       function validMatch(d) {
         return d.v == 2
           && d.private is bool
           && validResult(d)
-          && (d.private ? d.keys().size() == 11 : d.keys().size() == 12 && validPlayers(d));
+          // A bad series_id makes the count 99 so it can't match.
+          && d.size() == (d.private ? 11 : 12)
+               + ('series_id' in d ? (coll == 'ad2l_unticketed' && d.series_id is int ? 1 : 99) : 0)
+          && (d.private || validPlayers(d));
       }
 
       function validResult(d) {
