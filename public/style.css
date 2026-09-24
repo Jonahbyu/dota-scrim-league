@@ -328,6 +328,19 @@ td.bar.ember { --bar: rgba(255, 90, 54, .55); }
 .week-btn { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--seam-2); color: var(--bone); }
 .week-btn:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
 .week-btn.off { color: var(--dim); border-color: var(--seam); }
+/* hero names that open the hero page */
+a.hero-link, span.hero-link { color: inherit; cursor: pointer; text-decoration: none; }
+a.hero-link:hover, span.hero-link:hover, span.hero-link:focus-visible { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+a.draft-step { display: block; color: inherit; text-decoration: none; }
+a.draft-step:hover .hero-img { filter: brightness(1.25); }
+
+/* hero page */
+.hero-head { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+.hero-banner { width: 192px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--seam-2); box-shadow: 0 18px 40px -18px #000; }
+.card .v.small { font-size: 26px; line-height: 1.05; }
+.card .v.small a { color: inherit; }
+@media (max-width: 720px) { .hero-banner { width: 128px; } }
+
 /* player names that open the player page */
 a.player-link, span.player-link { color: inherit; cursor: pointer; text-decoration: none; }
 a.player-link:hover, span.player-link:hover, span.player-link:focus-visible { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }

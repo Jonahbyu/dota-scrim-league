@@ -133,6 +133,74 @@ export function playerHistory(matches, key) {
   };
 }
 
+export const heroSlug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+// Everything about one hero: who picked it (teams and players), how they did on it, every
+// game it was in, and — for games with a Captains Mode draft — who banned it and when it
+// was taken. Teams are keyed by id when the data has one (AD2L), else by name.
+export function heroHistory(matches, hero) {
+  const detailed = matches.filter(hasDetails);
+  const games = [];
+  for (const m of detailed) for (const p of m.players) if (p.hero === hero) games.push({ m, p, won: p.team === m.winner });
+  const teams = new Map();
+  const teamOf = (m, side) => {
+    const id = side === "a" ? m.team_a_id : m.team_b_id, name = side === "a" ? m.team_a : m.team_b;
+    const key = id != null ? `id:${id}` : name.trim().toLowerCase();
+    return teams.get(key) ?? teams.set(key, { key, id: id ?? null, name, picks: 0, wins: 0, players: new Set(), bans: 0, banned_against: 0 }).get(key);
+  };
+  for (const { m, p, won } of games) {
+    const t = teamOf(m, p.team);
+    t.picks++; if (won) t.wins++;
+    t.players.add(p.name);
+  }
+
+  // Drafts: bans by each team, and the pick's position in the draft (1–24).
+  let drafted = 0, bans = 0, contested = 0;
+  const pickSteps = [];
+  for (const m of detailed) {
+    if (!m.draft?.length) continue;
+    drafted++;
+    const steps = m.draft.filter((s) => s.hero === hero);
+    if (steps.length) contested++;
+    for (const s of steps) {
+      if (s.pick) { pickSteps.push(s.order + 1); continue; }
+      bans++;
+      teamOf(m, s.side).bans++;
+      teamOf(m, s.side === "a" ? "b" : "a").banned_against++;
+    }
+  }
+
+  const wins = games.filter((g) => g.won).length;
+  const minutes = games.reduce((s, { m }) => s + m.duration_sec / 60, 0);
+  const sum = (f) => games.reduce((s, g) => s + f(g.p), 0);
+  const best = (f) => (games.length ? games.reduce((a, b) => (f(b.p) > f(a.p) ? b : a)) : null);
+  return {
+    hero,
+    summary: {
+      picks: games.length,
+      wins,
+      win_rate: games.length ? wins / games.length : null,
+      pick_rate: detailed.length ? games.length / detailed.length : null,
+      kda: games.length ? (sum((p) => p.kills) + sum((p) => p.assists)) / Math.max(sum((p) => p.deaths), 1) : null,
+      avg_gpm: minutes ? Math.round(games.reduce((s, { m, p }) => s + p.gpm * m.duration_sec / 60, 0) / minutes) : null,
+      dmg_per_min: minutes ? Math.round(sum((p) => p.hero_damage) / minutes) : null,
+      drafted, bans,
+      ban_rate: drafted ? bans / drafted : null,
+      contest_rate: drafted ? contested / drafted : null,
+      avg_pick_step: pickSteps.length ? pickSteps.reduce((a, b) => a + b, 0) / pickSteps.length : null,
+    },
+    teams: [...teams.values()].map((t) => ({ ...t, players: [...t.players].sort(), win_rate: t.picks ? t.wins / t.picks : null }))
+      .sort((a, b) => b.picks - a.picks || b.wins - a.wins || b.bans - a.bans || a.name.localeCompare(b.name)),
+    players: playerLeaderboard(games.map(({ m, p }) => ({ ...m, players: [p] }))),
+    games: [...games].sort((a, b) => (b.m.createdAt ?? 0) - (a.m.createdAt ?? 0)),
+    best: {
+      damage: best((p) => p.hero_damage),
+      kda: best((p) => (p.kills + p.assists) / Math.max(p.deaths, 1)),
+      gpm: best((p) => p.gpm),
+    },
+  };
+}
+
 export function heroStats(matches) {
   const rows = new Map();
   for (const m of matches) {

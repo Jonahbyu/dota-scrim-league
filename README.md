@@ -26,6 +26,9 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   in; the league admin can delete any.
 - **Player pages** — click any player name: record, KDA, GPM, damage, kill participation,
   tier, best games, hero pool (W–L per hero) and every game they played (sortable).
+- **Hero pages** — click any hero: record, pick and ban rates, average draft slot (AD2L),
+  best team and player on it, biggest games, a teams table (picks, W–L, win % on the hero,
+  who played it, bans for and against), a players table and every game it was in.
 - **Strength of schedule** (AD2L standings) — RPI-style: opponents' game win % (without
   their games against you) and their opponents' win %, plus how tough the remaining
   schedule is. Team names link to team pages everywhere on the site.
