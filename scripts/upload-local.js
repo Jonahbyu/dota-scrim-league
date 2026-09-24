@@ -59,4 +59,4 @@ const res = await fetch(`https://firestore.googleapis.com/v1/${docs}:commit`, {
   }] }),
 });
 if (!res.ok) { console.log("save failed:", res.status, (await res.text()).slice(0, 300)); process.exit(1); }
-console.log(`saved: https://jonahbyu.github.io/dota-scrim-league/#/match/${id}`);
+console.log(`saved: https://dota2scrimcircuittracker.github.io/#/match/${id}`);

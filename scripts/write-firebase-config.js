@@ -5,9 +5,10 @@
 // Usage: FIREBASE_WEB_API_KEY=... node scripts/write-firebase-config.js
 import { writeFile } from "node:fs/promises";
 
-const apiKey = process.env.FIREBASE_WEB_API_KEY;
-if (!apiKey) {
-  console.error("FIREBASE_WEB_API_KEY is not set.");
+// Strip whitespace and any byte-order mark (Windows shells can add one when setting the secret).
+const apiKey = (process.env.FIREBASE_WEB_API_KEY ?? "").replace(/^﻿/, "").trim();
+if (!/^AIza[\w-]{35}$/.test(apiKey)) {
+  console.error("FIREBASE_WEB_API_KEY is missing or not a Google API key.");
   process.exit(1);
 }
 const config = {
