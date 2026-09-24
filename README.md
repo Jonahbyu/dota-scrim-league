@@ -38,6 +38,11 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   Tormentors taken vs given up, first-Roshan rate, and wards / dewards / stacks per game;
   Weekly adds most wards, stacks and dewards. Hero pages and the Heroes table show ban
   and contest rate (picked or banned per drafted game).
+- **Ward maps** (AD2L) — every observer and sentry position from the replay. Game pages show
+  both teams as dots (hover for time placed, how long it lasted, dewarded or not); player,
+  hero and team pages show a heat map of all their wards with Dire games mirrored so it's
+  always "own base bottom left". Filter by ward type and game phase (0–10', 10–20', 20–35',
+  35'+). The lanes/river outline under the wards is approximate.
 - **Hero pages** — click any hero: record, pick and ban rates, average draft slot (AD2L),
   best team and player on it, biggest games, a teams table (picks, W–L, win % on the hero,
   who played it, bans for and against), a players table and every game it was in.

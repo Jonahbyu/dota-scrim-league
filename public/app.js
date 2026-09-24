@@ -6,6 +6,7 @@ import { heroImg } from "./lib/hero-meta.js";
 import { listTeams, teamHistory, teamSlug, sideOf } from "./lib/teams.js";
 import { hasTimeline, swings, teamTimeline, teamObjectives, goldCurves, byPlayer, byHero, BIG_LEAD } from "./lib/timeline.js";
 import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
+import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.js";
 import { buildPlayerIndex, matchPlayers } from "./lib/players.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid } from "./lib/store.js";
@@ -77,6 +78,13 @@ function goldCurveSection(matches, match, what) {
     ], { caption: `Average gold at each minute over ${c.games} game${c.games === 1 ? "" : "s"}, against the division's average core and support. Hover for values.` })}
     <p class="table-note">${GOLD_NOTE}</p>`;
 }
+
+// Where one player / hero / team puts wards, over all their parsed games (own side bottom left).
+function wardSection(wards, what, games) {
+  const html = wardMapHtml([{ label: what, cls: "s-mine", wards }], { mirrored: true });
+  return html ? `<h2>Ward map</h2><p class="table-note wm-intro">Every ward ${esc(what)} placed across ${games} parsed game${games === 1 ? "" : "s"}. Filter by ward type or game phase; switch to dots to hover single wards.</p>${html}` : "";
+}
+const gamesWith = (matches, match) => matches.filter((m) => m.players.some((p) => p.obs_pos && match(p, m))).length;
 
 const loading = (kicker, title) => `${pageHead(kicker, title)}<div class="panel empty">Loading…</div>`;
 
@@ -530,9 +538,14 @@ async function renderMatch(id, src) {
         <tr class="sep b"><td colspan="${cols.length + 2}">${teamLink(src, m.team_b, m.team_b_id)}</td></tr>${rows("b")}
       </tbody></table></div>
     ${mapTableHtml(m, src)}
+    ${m.players.some((p) => p.obs_pos) ? `<h2>Ward map</h2>${wardMapHtml([
+      { label: m.team_a, cls: "s-a", wards: m.players.filter((p) => p.team === "a").flatMap((p) => wardsOf(p)) },
+      { label: m.team_b, cls: "s-b", wards: m.players.filter((p) => p.team === "b").flatMap((p) => wardsOf(p)) },
+    ], { id: "match-wards" })}` : ""}
     <p class="table-note">▲ best in match. Dmg/min = hero damage ÷ minutes. Dmg per 1k NW = hero damage per 1,000 net worth (efficiency). KP = (kills + assists) ÷ team score.<br>${footer}</p>${deleteBtn}`;
   wireDelete();
   wireCharts(app);
+  wireWardMaps(app);
 }
 
 // Map play per player (parsed replays only): creeps, stacks, wards, dewards, objectives.
@@ -794,12 +807,14 @@ async function renderPlayer(src, key) {
       ${bestCard("Top GPM", h.best.gpm, fmt(h.best.gpm.p.gpm), 2)}
     </div>
     ${goldCurveSection(matches, byPlayer(key), s.name)}
+    ${wardSection(collectWards(matches, byPlayer(key)), s.name, gamesWith(matches, byPlayer(key)))}
     <h2>Hero pool</h2>
     <div class="hero-chips">${h.heroes.map((x) => `<div class="hero-chip" title="KDA ${x.kda.toFixed(2)}">${portrait(x.hero)}<span>${heroLink(src, x.hero)}</span><b>${x.wins}–${x.games - x.wins}</b></div>`).join("")}</div>
     <h2>Every game</h2>
     <div id="t"></div>
     <p class="table-note">Newest first. Sort with the menu or any column header; the arrow opens the game.</p>`;
   wireCharts(app);
+  wireWardMaps(app);
 
   sortableTable(document.getElementById("t"), [
     ["date", "Date", (v) => when(new Date(v)), "l"],
@@ -886,6 +901,7 @@ async function renderHero(src, slug) {
     <div class="cards reveal">${cards.map(([k, v, t], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
     ${hl.length ? `<h2>Highlights</h2><div class="cards reveal">${hl.map(([k, v, t], i) => `<div class="card hl" style="--i:${i}"><div class="k">${k}</div><div class="v small">${v}</div><div class="s">${t}</div></div>`).join("")}</div>` : ""}
     ${goldCurveSection(matches, byHero(hero), hero)}
+    ${wardSection(collectWards(matches, byHero(hero)), hero, gamesWith(matches, byHero(hero)))}
     <h2>Teams</h2>
     <div id="teams"></div>
     <p class="table-note">Win % is that team's record when they picked ${esc(hero)}.${S.drafted ? " Bans come from Captains Mode drafts; “Banned vs them” = opponents banned it against that team." : ""}</p>
@@ -893,6 +909,7 @@ async function renderHero(src, slug) {
     ${h.games.length ? `<h2>Every game</h2><div id="games"></div><p class="table-note">Newest first. The arrow opens the game.</p>` : ""}`;
 
   wireCharts(app);
+  wireWardMaps(app);
   sortableTable(document.getElementById("teams"), [
     ["name", "Team", (v, r) => teamLink(src, v, r.id), "l"],
     ["picks", "Picks", null, "", "gold"], ["wins", "Wins"],
@@ -1222,8 +1239,11 @@ async function renderTeams(src, slug) {
       <p class="table-note">From ${h.drafted} drafted game${h.drafted === 1 ? "" : "s"}. Hero pool shows win–loss on each hero.</p>` : ""}
     ${teamObjectivesHtml(h, team)}
     ${teamGoldHtml(h, team, src)}
+    ${(() => { const gs = h.games.map(({ m }) => m), mine = (p, m) => p.team === sideOf(m, team);
+      return wardSection(collectWards(gs, mine), team.name, gamesWith(gs, mine)); })()}
     ${h.detailed.length ? `<h2>Player stats for this team</h2><div id="t"></div>` : ""}`;
   wireCharts(app);
+  wireWardMaps(app);
 
   document.getElementById("team-select").onchange = (e) => { location.hash = `${base}/${e.target.value}`; };
   if (h.detailed.length) {

@@ -26,6 +26,22 @@ const SEASON_ID = Number(arg("season", 675)); // PlayOn "S48 Champion League"
 const LEAGUE_ID = Number(arg("league", 20077)); // Dota league "AD2L Season 48"
 const UA = "dota-scrim-league/0.1 (AD2L fan stats page; contact: jonahbyu@gmail.com)";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// OpenDota ward logs → flat [x, y, placed_sec, life_sec, killed, ...]. A ward that left before
+// its full duration (observer 360s, sentry 420s) was killed; the left log names an attacker
+// even on expiry, so lifetime is the test. Wards still up at game end have no left entry.
+function wardLog(placed, left) {
+  if (!Array.isArray(placed)) return null;
+  const gone = new Map((left ?? []).map((w) => [w.ehandle, w]));
+  const out = [];
+  for (const w of placed) {
+    const l = gone.get(w.ehandle);
+    const life = l ? l.time - w.time : -1;
+    const full = w.type === "obs_log" ? 360 : 420;
+    out.push(Math.round(w.x), Math.round(w.y), w.time, life, l && life < full - 5 ? 1 : 0);
+  }
+  return out;
+}
+
 const decode = (s) => s.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ").trim();
 
 // ---------- polite fetchers with on-disk caches ----------
@@ -216,6 +232,10 @@ for (const id of [...candidates].sort()) {
       // Roshan kill events and Aegis pickups in 12 of 38 S48 games; these always agree.
       roshan_kills: p.killed ? (p.killed.npc_dota_roshan ?? 0) : null,
       tormentor_kills: p.killed ? (p.killed.npc_dota_miniboss ?? 0) : null,
+      // Ward placements, flat groups of 5: x, y (OpenDota map grid, ~64-192, Radiant bottom
+      // left), second placed, seconds it lived (-1 unknown), 1 if an enemy killed it.
+      obs_pos: wardLog(p.obs_log, p.obs_left_log),
+      sen_pos: wardLog(p.sen_log, p.sen_left_log),
     })),
   });
 }

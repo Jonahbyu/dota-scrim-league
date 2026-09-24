@@ -637,3 +637,44 @@ dialog::backdrop { background: rgba(0, 0, 0, .85); }
   .fx-score { text-align: left; }
   nav a.nav-cta { margin-left: 0; }
 }
+
+/* ---------- ward maps ---------- */
+.wm-intro { margin: -4px 0 12px; }
+figure.wardmap { margin: 0 0 8px; padding: 14px; background: var(--stone); border: 1px solid var(--seam); }
+.wm-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 14px; }
+.wm-seg { display: inline-flex; border: 1px solid var(--seam-2); }
+.wm-seg button {
+  background: transparent; color: var(--dust); border: 0; border-right: 1px solid var(--seam-2);
+  padding: 7px 11px; font: 600 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+}
+.wm-seg button:last-child { border-right: 0; }
+.wm-seg button:hover { color: var(--bone); }
+.wm-seg button[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+.wm-body { display: grid; grid-template-columns: minmax(0, 560px) minmax(200px, 1fr); gap: 20px; align-items: start; }
+.wm-map svg { width: 100%; height: auto; display: block; border: 1px solid var(--seam-2); }
+.wm-ground { fill: #10140f; }
+.wm-base.a { fill: rgba(95, 211, 155, .09); }
+.wm-base.b { fill: rgba(255, 90, 54, .09); }
+.wm-river { fill: none; stroke: rgba(90, 150, 210, .22); stroke-width: 7; stroke-linecap: round; }
+.wm-lane { fill: none; stroke: rgba(236, 226, 205, .10); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.wm-anc.a { fill: var(--jade); opacity: .6; }
+.wm-anc.b { fill: var(--ember); opacity: .6; }
+.wm-lbl { font: 600 4px var(--mono); letter-spacing: .12em; text-transform: uppercase; fill: var(--dim); }
+.wm-lbl.a { fill: var(--jade); }
+.wm-lbl.b { fill: var(--ember); }
+.wm-dots .obs, .wm-dots .sen { stroke-width: .5; }
+.wm-dots.s-a .obs, .wm-dots.s-a .sen { fill: var(--jade); stroke: var(--jade); }
+.wm-dots.s-b .obs, .wm-dots.s-b .sen { fill: var(--ember); stroke: var(--ember); }
+.wm-dots.s-mine .obs, .wm-dots.s-mine .sen { fill: var(--gold); stroke: var(--gold); }
+.wm-dots .sen { fill-opacity: .55; }
+.wm-dots .killed { fill-opacity: 0 !important; }
+.wm-dots > *:hover { stroke: var(--bone); stroke-width: .9; }
+.wm-side { display: grid; gap: 12px; font: 12px/1.6 var(--mono); color: var(--dust); }
+.wm-stat { padding: 10px 12px; border-left: 3px solid var(--seam-2); background: var(--stone-2); }
+.wm-stat.s-a { border-left-color: var(--jade); }
+.wm-stat.s-b { border-left-color: var(--ember); }
+.wm-stat.s-mine { border-left-color: var(--gold); }
+.wm-stat b { color: var(--bone); }
+.wm-who { font: 800 15px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--bone); margin-bottom: 4px; }
+.wm-note { margin: 0; font-size: 11px; color: var(--dim); }
+@media (max-width: 760px) { .wm-body { grid-template-columns: 1fr; } }
