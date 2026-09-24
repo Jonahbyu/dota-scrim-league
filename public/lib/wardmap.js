@@ -1,12 +1,19 @@
 // Ward maps from parsed replays (AD2L). Each player carries obs_pos / sen_pos as flat groups
-// of 5: x, y on OpenDota's map grid (about 64-192, Radiant bottom left), second placed,
+// of 5: x, y on OpenDota's map grid (about 62-195, Radiant bottom left), second placed,
 // seconds it lived (-1 = still up at the end), 1 if the enemy killed it.
 //
 // wardMapHtml() returns a <figure> with the wards embedded; wireWardMaps() draws it and wires
 // the controls (observers / sentries, game phase, heat / dots). No library: heat is a density
 // grid drawn as SVG cells with a light blur.
 
-const MIN = 64, MAX = 192, SIZE = MAX - MIN;
+// The minimap picture (public/img/minimap.webp, 634×599) placed on the grid by its two fountain
+// icons (pixels 75,532 and 535,106) and where players stand pre-horn in 38 S48 replays (grid
+// 74.6,78.0 and 182.9,177.9). Both axes come out at 4.25 px per grid unit, so no stretching.
+const IMG = { src: "img/minimap.webp", x0: 56.94, x1: 206.2, y0: 62.3, y1: 202.8 };
+// The map is point-symmetric about the midpoint of the fountains; mirroring uses that centre.
+const CX = (74.6 + 182.9) / 2, CY = (78.0 + 177.9) / 2;
+const Y = (y) => 256 - y; // grid y goes up, SVG y goes down
+const VB = { x: IMG.x0, y: Y(IMG.y1), w: IMG.x1 - IMG.x0, h: IMG.y1 - IMG.y0 };
 const attr = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 const clock = (s) => `${s < 0 ? "-" : ""}${Math.floor(Math.abs(s) / 60)}:${String(Math.abs(s) % 60).padStart(2, "0")}`;
 
@@ -21,7 +28,7 @@ export function wardsOf(p, { flip = false } = {}) {
     if (!Array.isArray(arr)) continue;
     for (let i = 0; i + 4 < arr.length; i += 5) {
       const x = arr[i], y = arr[i + 1];
-      out.push({ kind, x: mirror ? 2 * 128 - x : x, y: mirror ? 2 * 128 - y : y, t: arr[i + 2], life: arr[i + 3], killed: arr[i + 4] === 1 });
+      out.push({ kind, x: mirror ? +(2 * CX - x).toFixed(1) : x, y: mirror ? +(2 * CY - y).toFixed(1) : y, t: arr[i + 2], life: arr[i + 3], killed: arr[i + 4] === 1 });
     }
   }
   return out;
@@ -78,25 +85,13 @@ function heat(v) {
 
 const PHASES =[[-Infinity, 600], [600, 1200], [1200, 2100], [2100, Infinity]];
 
-// The map itself: an outline of the three lanes, the river and both bases. Positions are
-// approximate (converted from world coordinates of the ancients, lanes and river crossings)
-// and only there so the wards have something to sit on.
-const Y = (y) => MAX - y + MIN; // grid y goes up, SVG y goes down
+// The minimap picture, darkened a little so wards and heat stand out, with side labels.
 function terrain(mirrored) {
-  const pt = (x, y) => `${x},${Y(y)}`;
   const own = mirrored ? "Own side" : "Radiant", enemy = mirrored ? "Enemy side" : "Dire";
-  return `<rect class="wm-ground" x="${MIN}" y="${MIN}" width="${SIZE}" height="${SIZE}"/>
-    <path class="wm-base a" d="M${pt(64, 64)}L${pt(104, 64)}Q${pt(100, 100)} ${pt(64, 104)}Z"/>
-    <path class="wm-base b" d="M${pt(192, 192)}L${pt(152, 192)}Q${pt(156, 156)} ${pt(192, 152)}Z"/>
-    <path class="wm-river" d="M${pt(66, 146)}C${pt(96, 138)} ${pt(112, 132)} ${pt(128, 127)}S${pt(160, 118)} ${pt(190, 111)}"/>
-    <path class="wm-lane" d="M${pt(80, 92)}L${pt(80, 176)}L${pt(166, 176)}"/>
-    <path class="wm-lane" d="M${pt(92, 79)}L${pt(176, 79)}L${pt(176, 162)}"/>
-    <path class="wm-lane" d="M${pt(90, 90)}L${pt(166, 164)}"/>
-    <circle class="wm-anc a" cx="${82}" cy="${Y(86)}" r="2.6"/><circle class="wm-anc b" cx="${171}" cy="${Y(166)}" r="2.6"/>
-    <text class="wm-lbl a" x="${MIN + 3}" y="${MAX - 3}">${own}</text>
-    <text class="wm-lbl b" x="${MAX - 3}" y="${MIN + 7}" text-anchor="end">${enemy}</text>
-    <text class="wm-lbl lane" x="${MIN + 3}" y="${MIN + 7}">Top</text>
-    <text class="wm-lbl lane" x="${MAX - 3}" y="${MAX - 3}" text-anchor="end">Bottom</text>`;
+  return `<image href="${IMG.src}" x="${VB.x}" y="${VB.y}" width="${VB.w}" height="${VB.h}" preserveAspectRatio="none"/>
+    <rect class="wm-dim" x="${VB.x}" y="${VB.y}" width="${VB.w}" height="${VB.h}"/>
+    <text class="wm-lbl a" x="${VB.x + 3}" y="${VB.y + VB.h - 3}">${own}</text>
+    <text class="wm-lbl b" x="${VB.x + VB.w - 3}" y="${VB.y + 7}" text-anchor="end">${enemy}</text>`;
 }
 
 function draw(fig) {
@@ -111,22 +106,22 @@ function draw(fig) {
   if (mode === "heat") {
     // Density on a 2-unit grid (Gaussian spread of ~2.5 units around each ward), scaled to
     // the busiest cell so the hot spots always show, whether there are 20 wards or 2,000.
-    const G = 64, cell = SIZE / G, sigma = 2.5 / cell, reach = Math.ceil(sigma * 2.5);
-    const grid = new Float32Array(G * G);
+    const cell = 2, GX = Math.ceil(VB.w / cell), GY = Math.ceil(VB.h / cell), sigma = 2.5 / cell, reach = Math.ceil(sigma * 2.5);
+    const grid = new Float32Array(GX * GY);
     for (const w of shown.flatMap((l) => l.w)) {
-      const cx = (w[1] - MIN) / cell, cy = (MAX - w[2]) / cell;
-      for (let j = Math.max(0, Math.floor(cy) - reach); j <= Math.min(G - 1, Math.floor(cy) + reach); j++)
-        for (let i = Math.max(0, Math.floor(cx) - reach); i <= Math.min(G - 1, Math.floor(cx) + reach); i++) {
+      const cx = (w[1] - VB.x) / cell, cy = (Y(w[2]) - VB.y) / cell;
+      for (let j = Math.max(0, Math.floor(cy) - reach); j <= Math.min(GY - 1, Math.floor(cy) + reach); j++)
+        for (let i = Math.max(0, Math.floor(cx) - reach); i <= Math.min(GX - 1, Math.floor(cx) + reach); i++) {
           const d2 = (i + 0.5 - cx) ** 2 + (j + 0.5 - cy) ** 2;
-          grid[j * G + i] += Math.exp(-d2 / (2 * sigma * sigma));
+          grid[j * GX + i] += Math.exp(-d2 / (2 * sigma * sigma));
         }
     }
     const peak = Math.max(...grid) || 1;
     let cells = "";
-    for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) {
-      const v = grid[j * G + i] / peak;
+    for (let j = 0; j < GY; j++) for (let i = 0; i < GX; i++) {
+      const v = grid[j * GX + i] / peak;
       if (v < 0.12) continue;
-      cells += `<rect x="${(MIN + i * cell).toFixed(1)}" y="${(MIN + j * cell).toFixed(1)}" width="${cell + 0.05}" height="${cell + 0.05}" fill="${heat(v)}" fill-opacity="${(0.1 + 0.85 * v).toFixed(2)}"/>`;
+      cells += `<rect x="${(VB.x + i * cell).toFixed(1)}" y="${(VB.y + j * cell).toFixed(1)}" width="${cell + 0.05}" height="${cell + 0.05}" fill="${heat(v)}" fill-opacity="${(0.15 + 0.8 * v).toFixed(2)}"/>`;
     }
     body = `<defs><filter id="${fid}"><feGaussianBlur stdDeviation="0.9"/></filter></defs><g class="wm-heat" filter="url(#${fid})">${cells}</g>`;
   } else {
@@ -137,7 +132,7 @@ function draw(fig) {
         : `<rect class="sen${w[5] ? " killed" : ""}" x="${w[1] - 1.1}" y="${Y(w[2]) - 1.1}" width="2.2" height="2.2" transform="rotate(45 ${w[1]} ${Y(w[2])})"><title>${tip}</title></rect>`;
     }).join("")}</g>`).join("");
   }
-  fig.querySelector(".wm-map").innerHTML = `<svg viewBox="${MIN} ${MIN} ${SIZE} ${SIZE}" role="img" aria-label="Ward map, ${n} wards">${terrain(fig.dataset.mirrored === "1")}${body}</svg>`;
+  fig.querySelector(".wm-map").innerHTML = `<svg viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}" role="img" aria-label="Ward map, ${n} wards">${terrain(fig.dataset.mirrored === "1")}${body}</svg>`;
 
   // Side panel: counts and survival per layer for what's shown.
   fig.querySelector(".wm-side").innerHTML = shown.map((l) => {
@@ -150,8 +145,7 @@ function draw(fig) {
       ${obs.length ? `<div><b>${Math.round((killed / obs.length) * 100)}%</b> of observers dewarded</div>` : ""}
       ${life != null ? `<div>Observers lasted <b>${clock(Math.round(life))}</b> on average (max 6:00)</div>` : ""}</div>`;
   }).join("") + `<p class="wm-note">${mode === "heat" ? "Brighter = more wards placed there (scaled to the busiest spot)." : "● observer, ◆ sentry; hollow = dewarded. Hover a ward for its time."}
-    ${fig.dataset.mirrored === "1" ? " Dire games are mirrored so every ward is from the placer's own side (own base bottom left)." : ""}
-    The map outline is approximate.</p>`;
+    ${fig.dataset.mirrored === "1" ? " Dire games are mirrored so every ward is from the placer's own side (own base bottom left)." : ""}</p>`;
 }
 
 export function wireWardMaps(root) {

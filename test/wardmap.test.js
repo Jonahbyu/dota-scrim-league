@@ -13,7 +13,7 @@ test("wardsOf reads flat groups of 5", () => {
 });
 
 test("flip mirrors Dire wards to the placer's own side, leaves Radiant alone", () => {
-  assert.deepEqual(wardsOf(dire, { flip: true }).map((w) => [w.x, w.y]), [[96, 86]]);
+  assert.deepEqual(wardsOf(dire, { flip: true }).map((w) => [w.x, w.y]), [[97.5, 85.9]]);
   assert.deepEqual(wardsOf(radiant, { flip: true })[0], wardsOf(radiant)[0]);
 });
 
@@ -21,7 +21,7 @@ test("collectWards filters players and mirrors; summary counts", () => {
   const games = [{ players: [radiant, dire, { team: "a", name: "X" }] }];
   const all = collectWards(games, () => true);
   assert.equal(all.length, 4);
-  assert.equal(collectWards(games, (p) => p.name === "D")[0].x, 96);
+  assert.equal(collectWards(games, (p) => p.name === "D")[0].x, 97.5);
   const s = wardSummary(all);
   assert.deepEqual({ obs: s.obs, sen: s.sen, obs_killed: s.obs_killed }, { obs: 3, sen: 1, obs_killed: 2 });
   assert.equal(Math.round(s.obs_life), Math.round((360 + 45 + 200) / 3));

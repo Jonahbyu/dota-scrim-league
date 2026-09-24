@@ -652,14 +652,9 @@ figure.wardmap { margin: 0 0 8px; padding: 14px; background: var(--stone); borde
 .wm-seg button[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
 .wm-body { display: grid; grid-template-columns: minmax(0, 560px) minmax(200px, 1fr); gap: 20px; align-items: start; }
 .wm-map svg { width: 100%; height: auto; display: block; border: 1px solid var(--seam-2); }
-.wm-ground { fill: #10140f; }
-.wm-base.a { fill: rgba(95, 211, 155, .09); }
-.wm-base.b { fill: rgba(255, 90, 54, .09); }
-.wm-river { fill: none; stroke: rgba(90, 150, 210, .22); stroke-width: 7; stroke-linecap: round; }
-.wm-lane { fill: none; stroke: rgba(236, 226, 205, .10); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
-.wm-anc.a { fill: var(--jade); opacity: .6; }
-.wm-anc.b { fill: var(--ember); opacity: .6; }
-.wm-lbl { font: 600 4px var(--mono); letter-spacing: .12em; text-transform: uppercase; fill: var(--dim); }
+.wm-dim { fill: rgba(8, 8, 6, .35); }
+figure.wardmap[data-mode="dots"] .wm-dim { fill: rgba(8, 8, 6, .5); }
+.wm-lbl { paint-order: stroke; stroke: rgba(0,0,0,.8); stroke-width: .8px; font: 600 4px var(--mono); letter-spacing: .12em; text-transform: uppercase; fill: var(--dim); }
 .wm-lbl.a { fill: var(--jade); }
 .wm-lbl.b { fill: var(--ember); }
 .wm-dots .obs, .wm-dots .sen { stroke-width: .5; }
