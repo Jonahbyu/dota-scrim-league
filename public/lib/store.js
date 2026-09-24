@@ -3,7 +3,7 @@
 // anonymously; reading needs no sign-in. The anonymous session persists in this browser,
 // which is what lets an uploader delete their own scrim later.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, limit, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -76,10 +76,28 @@ export async function submitMatch(draft, { isPrivate = false, league = "scrim" }
   return { id };
 }
 
+// The league admin signs in with their email account (same project login as Cookbook) on
+// a second Firebase app instance, so it doesn't replace this browser's anonymous session,
+// which is what owns this browser's uploads and predictions. The rules check the email.
+const ADMIN_EMAIL = "jonahbyu@gmail.com";
+const adminAuth = getAuth(initializeApp(FIREBASE_CONFIG, "scrim-league-admin"));
+const adminDb = getFirestore(adminAuth.app);
+const adminReady = new Promise((resolve) => { const off = onAuthStateChanged(adminAuth, () => { off(); resolve(); }); });
+export async function isAdmin() {
+  await adminReady;
+  return adminAuth.currentUser?.email === ADMIN_EMAIL;
+}
+export async function adminSignIn(email, password) {
+  await signInWithEmailAndPassword(adminAuth, email.trim(), password);
+  if (adminAuth.currentUser?.email !== ADMIN_EMAIL) { await signOut(adminAuth); throw new Error("That account isn't the league admin."); }
+}
+export const adminSignOut = () => signOut(adminAuth);
+
 // Only the uploader (same browser session) or the league admin may delete; the rules
-// enforce it, this just makes the call.
+// enforce it, this just makes the call (as the admin when signed in as one).
 export async function deleteMatch(id, league = "scrim") {
-  await deleteDoc(doc(coll(league), id));
+  const asAdmin = await isAdmin();
+  await deleteDoc(doc(asAdmin ? adminDb : db, "scrimLeague", "data", COLLECTIONS[league], id));
 }
 
 const fromDoc = (d) => ({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate?.() ?? null });

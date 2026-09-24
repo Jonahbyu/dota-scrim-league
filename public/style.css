@@ -613,6 +613,10 @@ a.hist-row:hover { text-decoration: none; border-color: var(--seam-2); }
 .private-toggle { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 14px 16px; background: var(--stone); border: 1px solid var(--seam-2); cursor: pointer; }
 .private-toggle input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--gold); flex: none; }
 .private-toggle span { color: var(--dust); font-size: 14px; }
+.admin-login { margin-top: 18px; font-size: 13px; color: var(--dust); }
+.admin-login summary { cursor: pointer; width: max-content; }
+.admin-login form { margin-top: 8px; flex-wrap: wrap; }
+.admin-login input { min-width: 0; flex: 1 1 180px; }
 .private-toggle b { color: var(--bone); }
 button.danger { color: var(--err); border-color: rgba(255, 107, 91, .5); }
 button.danger:hover:not(:disabled) { background: #2a100c; border-color: var(--err); }

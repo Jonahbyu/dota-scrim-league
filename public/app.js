@@ -12,7 +12,7 @@ import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
 import { asAd2l, guessTeams, teamByName } from "./lib/unticketed.js";
 import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks, modelCall, TIE_EDGE, predictDraft } from "./lib/predict.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
-import { submitMatch, listMatches, getMatch, deleteMatch, currentUid, listPredictions, savePrediction } from "./lib/store.js";
+import { submitMatch, listMatches, getMatch, deleteMatch, currentUid, listPredictions, savePrediction, isAdmin, adminSignIn, adminSignOut } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
 
@@ -567,10 +567,29 @@ async function renderMatch(id, src) {
 
   // The uploader (same browser session) can delete their own scrim; the rules check it.
   const uploaded = src.key === "scrim" || m.unticketed;
-  const canDelete = uploaded && m.uid && m.uid === (await currentUid());
+  // The league admin (signed in with their email on this page) can delete any upload.
+  const mine = uploaded && m.uid && m.uid === (await currentUid());
+  const admin = uploaded && await isAdmin();
+  const canDelete = mine || admin;
   const noun = m.unticketed ? "game" : "scrim";
-  const deleteBtn = canDelete ? `<div class="row" style="margin-top:18px"><button class="danger" id="del">Delete this ${noun}</button></div>` : "";
+  const deleteBtn = !uploaded ? "" : canDelete
+    ? `<div class="row" style="margin-top:18px"><button class="danger" id="del">Delete this ${noun}</button>
+        ${admin ? `<span class="muted">Signed in as league admin · <a href="#" id="admin-out">Sign out</a></span>` : ""}</div>`
+    : `<details class="admin-login"><summary>League admin</summary>
+        <form id="admin-form" class="row"><input type="email" name="email" placeholder="Email" autocomplete="username" required>
+          <input type="password" name="password" placeholder="Password" autocomplete="current-password" required>
+          <button type="submit">Sign in</button></form><p class="muted" id="admin-msg"></p></details>`;
   const wireDelete = () => {
+    const form = document.getElementById("admin-form");
+    if (form) form.onsubmit = async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById("admin-msg");
+      msg.textContent = "Signing in…";
+      try { await adminSignIn(form.email.value, form.password.value); route(); }
+      catch (err) { msg.textContent = /invalid|wrong|user-not-found/i.test(err.code ?? "") ? "Wrong email or password." : err.message; }
+    };
+    const out = document.getElementById("admin-out");
+    if (out) out.onclick = async (e) => { e.preventDefault(); await adminSignOut(); route(); };
     const b = document.getElementById("del");
     if (!b) return;
     b.onclick = async () => {
@@ -643,12 +662,12 @@ async function renderMatch(id, src) {
   };
   const footer = m.unticketed
     ? `Unticketed AD2L game, uploaded ${when(m.createdAt)} from post-game screenshots, so no draft, gold graph or ward data.
-       Wrong? ${canDelete ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`
+       Wrong? ${mine ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`
     : ad2l
     ? `Played ${when(m.createdAt)} · AD2L S48 ticketed game ${m.match_id} ·
        <a href="https://www.opendota.com/matches/${m.match_id}" target="_blank" rel="noopener">OpenDota</a> ·
        <a href="https://www.dotabuff.com/matches/${m.match_id}" target="_blank" rel="noopener">Dotabuff</a>`
-    : `Uploaded ${when(m.createdAt)}. Wrong? ${canDelete ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`;
+    : `Uploaded ${when(m.createdAt)}. Wrong? ${mine ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`;
 
   app.innerHTML = `
     <div class="kicker" style="margin-bottom:16px"><a href="${src.base}">← ${ad2l ? "Weekly" : "The ledger"}</a></div>
