@@ -435,7 +435,7 @@ const SOURCES = {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/week",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
   },
 };
 
@@ -1066,17 +1066,51 @@ async function renderPlayer(src, key) {
 
 async function renderHeroes(src) {
   app.innerHTML = loading(src.kicker, "Heroes");
-  let matches;
-  try { matches = (await src.load()).filter(hasDetails); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Heroes")}${errorBox(e)}`; return; }
+  let all;
+  try { all = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Heroes")}${errorBox(e)}`; return; }
+  const matches = all.filter(hasDetails);
   const rows = heroStats(matches);
-  app.innerHTML = `${pageHead(src.kicker, "Heroes", rows.length ? `${rows.length} heroes picked across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Click a hero for who plays it and how they do; sort with the menu or any column header.` : "")}
-    ${rows.length ? `${minBar("Show heroes picked at least", "times", MIN_DEFAULT(matches))}<div id="t" class="reveal"></div>` : `<div class="panel empty"><strong>No picks yet</strong>${src.empty}</div>`}`;
-  if (!rows.length) return;
-  wireMinBar(rows, (r) => r.picks, (shown) => sortableTable(document.getElementById("t"), [
+  // Captains Mode drafts (AD2L replays) add the by-phase columns and the highlight cards.
+  const a = draftAnalysis(all);
+  const byHero = new Map(a.games ? a.heroes.map((h) => [h.hero, h]) : []);
+  const card = (k, v, t, i, small = false) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v${small ? " small" : ""}">${v}</div><div class="s">${t}</div></div>`;
+  let cards = "";
+  if (a.games) {
+    const H = a.heroes;
+    const most = (f) => [...H].sort((x, y) => f(y) - f(x) || y.contested - x.contested)[0];
+    const b1 = most((h) => h.bans[0]), p1 = most((h) => h.picks[0]), lp = most((h) => h.last_picks);
+    const bestLast = H.filter((h) => h.last_picks >= 3).sort((x, y) => y.last_pick_wins / y.last_picks - x.last_pick_wins / x.last_picks || y.last_picks - x.last_picks)[0];
+    cards = `<div class="cards reveal">
+      ${card("First pick", `${a.first_pick.wins}–${a.first_pick.games - a.first_pick.wins}`, `team with first pick won ${pct(a.first_pick.win_rate)} of games`, 0)}
+      ${card("Top phase 1 ban", heroLink(src, b1.hero), `${b1.bans[0]} first-phase bans · ${pct(b1.p1_ban_share)} of its bans`, 1, true)}
+      ${card("Top phase 1 pick", heroLink(src, p1.hero), `${p1.picks[0]} first-phase picks · ${p1.pick_wins[0]}–${p1.picks[0] - p1.pick_wins[0]}`, 2, true)}
+      ${card("Most last-picked", heroLink(src, lp.hero), `${lp.last_picks} last picks · ${lp.last_pick_wins}–${lp.last_picks - lp.last_pick_wins}`, 3, true)}
+      ${bestLast ? card("Best last pick", heroLink(src, bestLast.hero), `${bestLast.last_pick_wins}–${bestLast.last_picks - bestLast.last_pick_wins} as a last pick (3+ games)`, 4, true) : ""}
+    </div>`;
+  }
+  const merged = rows.map((r) => {
+    const h = byHero.get(r.hero);
+    return h ? { ...r, b1: h.bans[0], b2: h.bans[1], b3: h.bans[2], p1_ban_share: h.p1_ban_share, p1: h.picks[0], p2: h.picks[1], p3: h.picks[2], w1: h.pick_win_rate[0], w2: h.pick_win_rate[1], w3: h.pick_win_rate[2] } : r;
+  });
+  // Heroes only ever banned (never picked) still belong in the draft view.
+  if (a.games) for (const h of a.heroes) if (!rows.some((r) => r.hero === h.hero) && h.ban_total) {
+    merged.push({ hero: h.hero, picks: 0, pick_rate: 0, wins: 0, win_rate: null, bans: h.ban_total, ban_rate: h.ban_total / matches.length, contest_rate: h.contest_rate,
+      b1: h.bans[0], b2: h.bans[1], b3: h.bans[2], p1_ban_share: h.p1_ban_share, p1: 0, p2: 0, p3: 0, w1: null, w2: null, w3: null, avg_damage: null, avg_kda: null });
+  }
+  app.innerHTML = `${pageHead(src.kicker, "Heroes", merged.length ? `${rows.length} heroes picked across ${matches.length} ${matches.length === 1 ? "game" : "games"}${a.games ? `, with bans and picks by draft phase from ${a.games} Captains Mode drafts` : ""}. Click a hero for who plays it and how they do; sort with the menu or any column header.` : "")}
+    ${merged.length ? `${cards}${minBar(a.games ? "Show heroes picked or banned at least" : "Show heroes picked at least", "times", MIN_DEFAULT(matches))}<div id="t" class="reveal"></div>
+    ${a.games ? `<p class="table-note">B1–B3 = bans in draft phase 1–3; P1–P3 = picks, with the win % when picked in that phase (P3 = last picks). Phase 1 = the opening 7 bans and first 2 picks, phase 2 = 3 bans and 6 picks, phase 3 = the last 4 bans and 2 last picks. “1st-phase ban share” = how many of its bans came in the opening phase: high means teams remove it on sight.</p>` : ""}`
+    : `<div class="panel empty"><strong>No picks yet</strong>${src.empty}</div>`}`;
+  if (!merged.length) return;
+  wireMinBar(merged, (r) => (r.picks ?? 0) + (a.games ? r.bans ?? 0 : 0), (shown) => sortableTable(document.getElementById("t"), [
     ["hero", "Hero", (v) => `<span class="hero-cell">${portrait(v)}${heroLink(src, v)}</span>`, "l"], ["picks", "Picks", null, "", "gold"], ["pick_rate", "Pick rate", pct], ["wins", "Wins"],
     ["win_rate", "Win %", pct, "", "jade"],
-    ...(rows.some((r) => r.contest_rate != null) ? [["bans", "Bans"], ["ban_rate", "Ban %", pct], ["contest_rate", "Contest %", pct, "", "gold"]] : []),
-    ["avg_damage", "Avg hero dmg", fmt, "", "ember"], ["avg_kda", "Avg KDA"],
+    ...(merged.some((r) => r.contest_rate != null) ? [["bans", "Bans"], ["ban_rate", "Ban %", pct], ["contest_rate", "Contest %", pct, "", "gold"]] : []),
+    ...(a.games ? [
+      ["b1", "B1", null, "", "ember"], ["b2", "B2"], ["b3", "B3"], ["p1_ban_share", "1st-phase ban share", pct],
+      ["p1", "P1", null, "", "jade"], ["w1", "P1 win %", pct], ["p2", "P2"], ["w2", "P2 win %", pct], ["p3", "P3 (last)"], ["w3", "P3 win %", pct],
+    ] : []),
+    ["avg_damage", "Avg hero dmg", fmt, "", "ember"], ["avg_kda", "Avg KDA", (v) => (v == null ? "—" : esc(v))],
   ], shown, "picks", { toolbar: true }));
 }
 
@@ -1128,39 +1162,6 @@ function heroPhaseHtml(row, drafted) {
       <tbody>${[0, 1, 2].map((i) => `<tr><td class="l">Phase ${i + 1}</td><td>${row.bans[i]}</td><td>${row.picks[i]}</td><td>${wl(row.pick_wins[i], row.picks[i])}</td><td>${pct(row.pick_win_rate[i])}</td></tr>`).join("")}
         <tr class="total"><td class="l">Total</td><td>${row.ban_total}</td><td>${row.pick_total}</td><td>${wl(row.pick_wins.reduce((a, b) => a + b, 0), row.pick_total)}</td><td>${pct(row.win_rate)}</td></tr></tbody>
     </table></div>`;
-}
-
-async function renderDraft(src) {
-  app.innerHTML = loading(src.kicker, "Draft");
-  let matches;
-  try { matches = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Draft")}${errorBox(e)}`; return; }
-  const a = draftAnalysis(matches);
-  if (!a.games) { app.innerHTML = `${pageHead(src.kicker, "Draft")}<div class="panel empty"><strong>No drafts</strong>Drafts come from AD2L replays.</div>`; return; }
-  const H = a.heroes;
-  const most = (f) => [...H].sort((x, y) => f(y) - f(x) || y.contested - x.contested)[0];
-  const b1 = most((h) => h.bans[0]), p1 = most((h) => h.picks[0]), lp = most((h) => h.last_picks);
-  const bestLast = H.filter((h) => h.last_picks >= 3).sort((x, y) => y.last_pick_wins / y.last_picks - x.last_pick_wins / x.last_picks || y.last_picks - x.last_picks)[0];
-  const card = (k, v, t, i, small = false) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v${small ? " small" : ""}">${v}</div><div class="s">${t}</div></div>`;
-  app.innerHTML = `${pageHead(src.kicker, "Draft", `Bans and picks by draft phase over ${a.games} Captains Mode drafts. Phase 1 = the opening 7 bans and first 2 picks, phase 2 = 3 bans and 6 picks, phase 3 = the last 4 bans and 2 last picks.`)}
-    <div class="cards reveal">
-      ${card("First pick", `${a.first_pick.wins}–${a.first_pick.games - a.first_pick.wins}`, `team with first pick won ${pct(a.first_pick.win_rate)} of games`, 0)}
-      ${card("Top phase 1 ban", heroLink(src, b1.hero), `${b1.bans[0]} first-phase bans · ${pct(b1.p1_ban_share)} of its bans`, 1, true)}
-      ${card("Top phase 1 pick", heroLink(src, p1.hero), `${p1.picks[0]} first-phase picks · ${p1.pick_wins[0]}–${p1.picks[0] - p1.pick_wins[0]}`, 2, true)}
-      ${card("Most last-picked", heroLink(src, lp.hero), `${lp.last_picks} last picks · ${lp.last_pick_wins}–${lp.last_picks - lp.last_pick_wins}`, 3, true)}
-      ${bestLast ? card("Best last pick", heroLink(src, bestLast.hero), `${bestLast.last_pick_wins}–${bestLast.last_picks - bestLast.last_pick_wins} as a last pick (3+ games)`, 4, true) : ""}
-    </div>
-    <h2>Every hero by phase</h2>
-    ${minBar("Show heroes picked or banned at least", "times", MIN_DEFAULT(matches))}
-    <div id="t"></div>
-    <p class="table-note">B1–B3 = bans in phase 1–3; P1–P3 = picks, with the win % when picked in that phase (P3 = last picks). “1st-phase ban share” = how many of its bans came in the opening phase: high means teams remove it on sight.</p>`;
-  const rows = H.map((h) => ({ ...h, b1: h.bans[0], b2: h.bans[1], b3: h.bans[2], p1: h.picks[0], p2: h.picks[1], p3: h.picks[2], w1: h.pick_win_rate[0], w2: h.pick_win_rate[1], w3: h.pick_win_rate[2] }));
-  wireMinBar(rows, (r) => r.contested, (shown) => sortableTable(document.getElementById("t"), [
-    ["hero", "Hero", (v) => `<span class="hero-cell">${portrait(v)}${heroLink(src, v)}</span>`, "l"],
-    ["contest_rate", "Contest %", pct, "", "gold"],
-    ["b1", "B1", null, "", "ember"], ["b2", "B2"], ["b3", "B3"], ["p1_ban_share", "1st-phase ban share", pct],
-    ["p1", "P1", null, "", "jade"], ["w1", "P1 win %", pct], ["p2", "P2"], ["w2", "P2 win %", pct], ["p3", "P3 (last)"], ["w3", "P3 win %", pct],
-    ["win_rate", "Win % overall", pct, "", "jade"],
-  ], shown, "contest_rate", { toolbar: true }));
 }
 
 // ---------- Hero page ----------
@@ -1666,7 +1667,7 @@ function route() {
     else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith("#/ad2l/hero/")) { section = "heroes"; page = () => renderHero(src, h.slice("#/ad2l/hero/".length)); }
     else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
-    else if (h.startsWith("#/ad2l/draft")) { section = "draft"; page = () => renderDraft(src); }
+    else if (h.startsWith("#/ad2l/draft")) { section = "heroes"; page = () => renderHeroes(src); } // old Draft tab: now part of Heroes
     else if (h.startsWith("#/ad2l/predict")) { section = "predict"; page = renderPredict; }
     else if (h.startsWith("#/ad2l/upload")) { section = "upload"; page = async () => { upload.league = "ad2l"; await ad2lData().catch(() => null); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
     else { section = "standings"; page = renderStandings; }
