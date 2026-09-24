@@ -15,7 +15,9 @@ export function parseDuration(s) {
 // differ from summed player kills (tower/creep/neutral kills count toward score).
 // Limits here are at least as strict as firebase/scrimleague.rules, so anything the form
 // accepts, the database accepts.
-export function validateMatch(m) {
+// resultOnly: a private scrim saves just teams, score, winner, duration — players aren't
+// checked because they aren't saved.
+export function validateMatch(m, { resultOnly = false } = {}) {
   const errors = [];
   const warnings = [];
 
@@ -32,6 +34,9 @@ export function validateMatch(m) {
   if (secs == null) errors.push(`Duration "${m.duration ?? ""}" isn't mm:ss.`);
   else if (secs < 120 || secs > 14400) errors.push("Duration must be between 2:00 and 4:00:00.");
   if ((m.game_mode ?? "").trim().length > 40) errors.push("Game mode is over 40 characters.");
+  if (resultOnly) {
+    return { ok: errors.length === 0, errors, warnings, match: { ...m, team_a: m.team_a?.trim(), team_b: m.team_b?.trim() } };
+  }
 
   const players = Array.isArray(m.players) ? m.players : [];
   const seenHeroes = new Set();

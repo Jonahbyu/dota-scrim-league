@@ -1,12 +1,18 @@
 // Derived stats and leaderboards, computed from stored match documents.
 // A stored match: { team_a, team_b, score_a, score_b, winner, duration_sec, game_mode, players[10] }.
 
-// Same game uploaded twice (either team order, by either team) → same fingerprint.
+// Same game uploaded twice (either team order, by either team, public or private) → same
+// fingerprint. Built only from what a private (results-only) upload also shows — teams,
+// duration, kill score — so the hash can't be used to guess a private game's heroes.
 export function fingerprint(m) {
-  const heroes = m.players.map((p) => p.hero).sort().join(",");
-  const teams = [m.team_a, m.team_b].map((t) => t.trim().toLowerCase()).sort().join("|");
-  return `${teams}#${m.duration_sec}#${heroes}`;
+  const sides = [[m.team_a, m.score_a], [m.team_b, m.score_b]]
+    .map(([t, s]) => `${t.trim().toLowerCase()}:${s}`).sort().join("|");
+  return `${sides}#${m.duration_sec}`;
 }
+
+// Private scrims are stored as results only (no players), so everything that reads
+// players skips them.
+export const hasDetails = (m) => Array.isArray(m.players) && m.players.length === 10;
 
 export async function matchId(m) {
   const bytes = new TextEncoder().encode(fingerprint(m));
@@ -15,6 +21,7 @@ export async function matchId(m) {
 }
 
 export function withDerived(match) {
+  if (!hasDetails(match)) return { ...match, players: [], private: true };
   const minutes = match.duration_sec / 60;
   const teamTotals = {};
   for (const t of ["a", "b"]) {

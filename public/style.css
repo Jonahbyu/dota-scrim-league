@@ -376,6 +376,65 @@ td.bar.ember { --bar: rgba(255, 90, 54, .55); }
   .gp-meta { margin-left: 0; }
 }
 
+/* ---------- teams ---------- */
+.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.team-card {
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 16px 18px; color: var(--bone);
+  background: var(--stone); border: 1px solid var(--seam); border-left: 3px solid var(--gold);
+  transition: transform .12s, border-color .12s;
+}
+.team-card:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--seam-2); border-left-color: var(--gold); }
+.tc-name { font: 800 20px/1.05 var(--display); text-transform: uppercase; letter-spacing: .03em; }
+.tc-rec { font: 900 26px/1 var(--display); color: var(--dust); grid-row: span 2; align-self: center; }
+.tc-rec b { color: var(--jade); font-weight: 900; }
+.tc-meta { font: 400 11px/1 var(--mono); color: var(--dim); }
+.team-picker { display: flex; align-items: center; gap: 10px; margin: -12px 0 22px; font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dust); }
+.team-picker select { background: var(--ink); color: var(--bone); border: 1px solid var(--seam-2); padding: 9px 10px; font: 14px var(--body); max-width: 100%; }
+.team-cols { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+.team-cols > section { min-width: 0; }
+.history { display: grid; gap: 6px; }
+.hist-row {
+  display: grid; grid-template-columns: 34px 1fr auto auto auto; gap: 14px; align-items: center;
+  padding: 10px 14px; background: var(--stone); border: 1px solid var(--seam); color: var(--bone);
+  animation: rise .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 40ms);
+}
+a.hist-row:hover { text-decoration: none; border-color: var(--seam-2); }
+.hist-res { font: 900 20px/1 var(--display); text-align: center; }
+.hist-row.win .hist-res { color: var(--jade); }
+.hist-row.loss .hist-res { color: var(--ember); }
+.hist-row.tie .hist-res { color: var(--gold); }
+.hist-row.upcoming { opacity: .7; }
+.hist-row.upcoming .hist-res { color: var(--dust); font-size: 14px; }
+.hist-vs { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dust); }
+.hist-vs b { color: var(--bone); font-weight: 600; }
+.hist-score { font: 600 14px var(--mono); color: var(--gold); }
+.hist-games { display: flex; gap: 6px; font: 400 11px var(--mono); color: var(--dust); }
+.hist-games a { padding: 3px 6px; border: 1px solid var(--seam-2); }
+.hist-games a.w { color: var(--jade); }
+.hist-games a.l { color: #ff9a82; }
+.hist-date { font: 400 11px var(--mono); color: var(--dim); min-width: 52px; text-align: right; }
+.roster { list-style: none; margin: 0; padding: 0; background: var(--stone); border: 1px solid var(--seam); }
+.roster li { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--seam); }
+.roster li:last-child { border-bottom: 0; }
+.roster a { color: var(--bone); font-weight: 600; }
+.roster .tag { margin-left: auto; }
+.cap { font: 600 9px/1 var(--mono); background: var(--gold); color: var(--ink); padding: 3px 5px; }
+.hero-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.hero-chip { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; background: var(--stone); border: 1px solid var(--seam); font-size: 13px; }
+.hero-chip b { font: 600 12px var(--mono); color: var(--gold); margin-left: 4px; }
+.priv { color: var(--gold); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+.private-toggle { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 14px 16px; background: var(--stone); border: 1px solid var(--seam-2); cursor: pointer; }
+.private-toggle input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--gold); flex: none; }
+.private-toggle span { color: var(--dust); font-size: 14px; }
+.private-toggle b { color: var(--bone); }
+button.danger { color: var(--err); border-color: rgba(255, 107, 91, .5); }
+button.danger:hover:not(:disabled) { background: #2a100c; border-color: var(--err); }
+@media (max-width: 860px) {
+  .team-cols { grid-template-columns: 1fr; }
+  .hist-row { grid-template-columns: 30px 1fr auto; }
+  .hist-games, .hist-date { grid-column: 2 / -1; }
+}
+
 /* ---------- tier list ---------- */
 .segs { margin-bottom: 18px; gap: 0; }
 button.seg { clip-path: none; margin-right: -1px; padding: 10px 16px; }

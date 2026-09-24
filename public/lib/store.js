@@ -1,10 +1,11 @@
 // Firestore access. Matches live at scrimLeague/data/matches/{matchId} in the shared
 // pistachio-kitchen project (rules: firebase/scrimleague.rules). Uploading signs in
-// anonymously; reading needs no sign-in.
+// anonymously; reading needs no sign-in. The anonymous session persists in this browser,
+// which is what lets an uploader delete their own scrim later.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, setDoc, query, orderBy, limit, serverTimestamp,
+  getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, limit, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { FIREBASE_CONFIG } from "../firebase-config.js";
 import { matchId } from "./stats.js";
@@ -17,10 +18,19 @@ const matches = collection(db, "scrimLeague", "data", "matches");
 
 export const MAX_MATCHES = 500;
 
+// Resolves once Firebase has restored any saved session from this browser.
+const authReady = new Promise((resolve) => { const off = onAuthStateChanged(auth, () => { off(); resolve(); }); });
+export async function currentUid() {
+  await authReady;
+  return auth.currentUser?.uid ?? null;
+}
+
 // Review-form draft → the stored document shape the rules validate.
-export function toStored(draft) {
-  return {
-    v: 1,
+// Private = results only: heroes, players and stats are never sent anywhere.
+export function toStored(draft, { isPrivate = false } = {}) {
+  const base = {
+    v: 2,
+    private: isPrivate,
     team_a: draft.team_a.trim(),
     team_b: draft.team_b.trim(),
     score_a: draft.score_a,
@@ -28,6 +38,10 @@ export function toStored(draft) {
     winner: draft.winner,
     duration_sec: parseDuration(draft.duration),
     game_mode: (draft.game_mode ?? "").trim(),
+  };
+  if (isPrivate) return base;
+  return {
+    ...base,
     players: draft.players.map((p) => ({
       team: p.team,
       name: p.name.trim(),
@@ -41,11 +55,12 @@ export function toStored(draft) {
 }
 
 // Returns { id } on success or { duplicateOf: id } if the game is already uploaded.
-export async function submitMatch(draft) {
-  const data = toStored(draft);
+export async function submitMatch(draft, { isPrivate = false } = {}) {
+  const data = toStored(draft, { isPrivate });
   const id = await matchId(data);
   const ref = doc(matches, id);
   if ((await getDoc(ref)).exists()) return { duplicateOf: id };
+  await authReady;
   if (!auth.currentUser) await signInAnonymously(auth);
   try {
     await setDoc(ref, { ...data, uid: auth.currentUser.uid, createdAt: serverTimestamp() });
@@ -56,6 +71,12 @@ export async function submitMatch(draft) {
     throw e;
   }
   return { id };
+}
+
+// Only the uploader (same browser session) or the league admin may delete; the rules
+// enforce it, this just makes the call.
+export async function deleteMatch(id) {
+  await deleteDoc(doc(matches, id));
 }
 
 const fromDoc = (d) => ({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate?.() ?? null });

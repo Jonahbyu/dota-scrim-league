@@ -68,7 +68,8 @@ test("missing values, fake/duplicate heroes and out-of-range values are errors",
 
 test("same game from either team gets the same id", async () => {
   const a = stored();
-  const b = { ...a, team_a: a.team_b, team_b: a.team_a };
+  // The other team's screenshot lists them first: names and kill scores both swap.
+  const b = { ...a, team_a: a.team_b, team_b: a.team_a, score_a: a.score_b, score_b: a.score_a };
   assert.equal(fingerprint(a), fingerprint(b));
   assert.equal(await matchId(a), await matchId(b));
   assert.match(await matchId(a), /^[0-9a-f]{32}$/);

@@ -14,6 +14,16 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   best KDA, top GPM, most kills) and every game with lineups and MVP. AD2L games also show
   the full Captains Mode draft in pick/ban order, grouped by series. (Scrims have no draft:
   it isn't on the post-game screen.)
+- **Teams** — pick a team for its history: record, series/game results, roster, hero pool
+  (W–L per hero), what they ban and what's banned against them (AD2L drafts), and player
+  stats for that team. AD2L records come from PlayOn's series scores.
+- **Private scrims** — tick "Private" on upload to post the result only (teams, winner,
+  kill score, duration). Heroes, players and stats never leave the browser. Private games
+  count toward team records but not the tier list, player or hero tables. The game ID is
+  built from teams + kill score + duration only, so it can't be used to guess a private
+  game's heroes.
+- **Deleting** — whoever uploaded a scrim can delete it from the browser they uploaded it
+  in; the league admin can delete any.
 - Match pages with standouts (damage per net worth, kill participation, damage share),
   sortable player and hero leaderboards.
 

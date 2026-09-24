@@ -14,11 +14,14 @@ const player = (i) => ({
   gpm: 450, xpm: 600, hero_damage: 15000, hero_healing: 0,
 });
 const match = (extra = {}) => ({
-  v: 1, team_a: "Rules Test A", team_b: "Rules Test B", score_a: 10, score_b: 10, winner: "a",
+  v: 2, private: false, team_a: "Rules Test A", team_b: "Rules Test B", score_a: 10, score_b: 10, winner: "a",
   duration_sec: 2400, game_mode: "Captains Mode", players: [...Array(10)].map((_, i) => player(i)),
   uid: "u1", createdAt: NOW, ...extra,
 });
+const privateMatch = (extra = {}) => { const m = match({ private: true, ...extra }); delete m.players; return m; };
 const req = (data, auth = { uid: "u1" }) => ({ auth, method: "create", path: PATH, time: NOW, resource: { data } });
+// Delete: `existing` is the stored document the rule sees as `resource`.
+const del = (existing, auth) => ({ request: { auth, method: "delete", path: PATH, time: NOW }, resource: { data: existing } });
 
 const withPlayer = (i, change) => ({ ...match(), players: match().players.map((p, j) => (j === i ? change({ ...p }) : p)) });
 const cases = [
@@ -42,6 +45,18 @@ const cases = [
   ["team B slot marked a", req(withPlayer(6, (p) => ({ ...p, team: "a" }))), "DENY"],
   ["hero name 100 chars", req(withPlayer(5, (p) => ({ ...p, hero: "H".repeat(100) }))), "DENY"],
   ["name is a number", req(withPlayer(4, (p) => ({ ...p, name: 42 }))), "DENY"],
+  ["old v1 shape", req(match({ v: 1 })), "DENY"],
+  ["private: results only", req(privateMatch()), "ALLOW"],
+  ["private but with players", req(match({ private: true })), "DENY"],
+  ["public but without players", req((() => { const m = match(); delete m.players; return m; })()), "DENY"],
+  ["private flag missing", req((() => { const m = privateMatch(); delete m.private; return m; })()), "DENY"],
+  ["private flag not a bool", req(privateMatch({ private: "yes" })), "DENY"],
+  ["private with extra field", req(privateMatch({ heroes: "Kez" })), "DENY"],
+  ["private, bad winner", req(privateMatch({ winner: "c" })), "DENY"],
+  ["uploader deletes own scrim", del(match(), { uid: "u1" }), "ALLOW"],
+  ["someone else deletes it", del(match(), { uid: "u2" }), "DENY"],
+  ["signed-out delete", del(match(), null), "DENY"],
+  ["admin deletes any", del(match(), { uid: "admin", token: { email: "jonahbyu@gmail.com" } }), "ALLOW"],
 ];
 
 (async () => {
@@ -51,7 +66,9 @@ const cases = [
   const body = {
     source: { files: [{ name: "firestore.rules", content: source }] },
     testSuite: {
-      testCases: cases.map(([, request, expectation]) => ({ request, expectation, expressionReportLevel: "VISITED" })),
+      testCases: cases.map(([, r, expectation]) => ({
+        ...(r.request ? r : { request: r }), expectation, expressionReportLevel: "VISITED",
+      })),
     },
   };
   const res = (await c.post("/projects/pistachio-kitchen:test", body)).body;

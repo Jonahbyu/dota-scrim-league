@@ -36,19 +36,29 @@
           && p.level <= 30;
       }
 
+      // Private scrims are results only: the same fields minus `players` (11 keys; every
+      // one is read here or in the create rule, so the count proves the exact set).
+      // Public scrims add the ten players (12 keys).
       function validMatch(d) {
-        // 11 keys, every one of them read here or in the create rule.
-        return d.keys().size() == 11
-          && d.v == 1
-          && d.team_a.size() + d.team_b.size() <= 80
+        return d.v == 2
+          && d.private is bool
+          && validResult(d)
+          && (d.private ? d.keys().size() == 11 : d.keys().size() == 12 && validPlayers(d));
+      }
+
+      function validResult(d) {
+        return d.team_a.size() + d.team_b.size() <= 80
           && d.team_a.lower() != d.team_b.lower()
           && d.score_a + d.score_b is int
           && d.score_a + d.score_b <= 400
           && d.winner in ['a', 'b']
           && d.duration_sec is int && d.duration_sec >= 120 && d.duration_sec <= 14400
-          && d.game_mode.size() <= 40
-          // Five a side, team A first: the order the upload form always sends.
-          && d.players.size() == 10
+          && d.game_mode.size() <= 40;
+      }
+
+      function validPlayers(d) {
+        // Five a side, team A first: the order the upload form always sends.
+        return d.players.size() == 10
           && validPlayer(d.players[0], 'a') && validPlayer(d.players[1], 'a')
           && validPlayer(d.players[2], 'a') && validPlayer(d.players[3], 'a')
           && validPlayer(d.players[4], 'a') && validPlayer(d.players[5], 'b')
@@ -56,10 +66,11 @@
           && validPlayer(d.players[8], 'b') && validPlayer(d.players[9], 'b');
       }
 
-      // The document ID is a hash of the game (teams, duration, heroes), computed by the
-      // client, so two uploads of the same game collide on one ID. Create-only plus that
-      // collision is what stops the same scrim being counted twice. uid pins who uploaded
-      // it; createdAt must be the server's clock, not the client's.
+      // The document ID is a hash of the game (teams, kill score, duration -- no heroes, so
+      // a private scrim's ID reveals nothing), computed by the client, so two uploads of the
+      // same game collide on one ID. Create-only plus that collision is what stops the same
+      // scrim being counted twice. uid pins who uploaded it; createdAt must be the server's
+      // clock, not the client's.
       allow create: if request.auth != null
         && matchId.matches('[0-9a-f]{32}')
         && request.resource.data.uid == request.auth.uid
@@ -69,6 +80,8 @@
       // A saved result is never edited from the site; mistakes are fixed by the admin.
       allow update: if false;
 
-      // Only the league admin can remove a match (e.g. a fake or mistaken upload).
-      allow delete: if request.auth != null && request.auth.token.email == "jonahbyu@gmail.com";
+      // The uploader can delete their own scrim (same anonymous session = same browser);
+      // the league admin can delete any (e.g. a fake or mistaken upload).
+      allow delete: if request.auth != null
+        && (request.auth.uid == resource.data.uid || request.auth.token.email == "jonahbyu@gmail.com");
     }
