@@ -328,6 +328,21 @@ td.bar.ember { --bar: rgba(255, 90, 54, .55); }
 .week-btn { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--seam-2); color: var(--bone); }
 .week-btn:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
 .week-btn.off { color: var(--dim); border-color: var(--seam); }
+/* team names that open the team page */
+a.team-link, span.team-link { color: inherit; cursor: pointer; text-decoration: none; border-bottom: 1px dotted color-mix(in srgb, currentColor 45%, transparent); }
+a.team-link:hover, span.team-link:hover, span.team-link:focus-visible { color: var(--gold); border-bottom-color: var(--gold); text-decoration: none; }
+
+/* strength of schedule: one square per series played */
+.sos-faced { display: inline-flex; gap: 3px; flex-wrap: wrap; }
+.sos-sq {
+  display: inline-grid; place-items: center; min-width: 30px; height: 20px; padding: 0 3px;
+  font: 600 9px/1 var(--mono); letter-spacing: .04em; color: var(--ink); text-decoration: none;
+}
+.sos-sq.w { background: var(--jade); }
+.sos-sq.l { background: var(--ember); }
+.sos-sq.t { background: var(--dust); }
+.sos-sq:hover { outline: 1px solid var(--gold); outline-offset: 1px; text-decoration: none; }
+
 /* week picker: every week, top right of the Weekly page */
 .week-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px 40px; flex-wrap: wrap; margin-bottom: 28px; }
 .week-top .page-head { margin-bottom: 0; }

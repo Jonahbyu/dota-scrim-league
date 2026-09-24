@@ -3,8 +3,9 @@ import { validateMatch } from "./lib/validate.js";
 import { withDerived, playerLeaderboard, heroStats, hasDetails } from "./lib/stats.js";
 import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
 import { heroImg } from "./lib/hero-meta.js";
-import { listTeams, teamHistory } from "./lib/teams.js";
+import { listTeams, teamHistory, teamSlug } from "./lib/teams.js";
 import { buildPlayerIndex, matchPlayers } from "./lib/players.js";
+import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
@@ -22,6 +23,24 @@ const pageHead = (kicker, title, sub = "") => `
     <h1 style="--i:1">${title}</h1>
     ${sub ? `<p style="--i:2">${sub}</p>` : ""}
   </header>`;
+// A team name that opens the team's page. AD2L teams by PlayOn id (looked up by name when
+// only the name is known); scrim teams by name. Inside something that's already a link
+// (a match card), nested=true gives a span handled by the click listener at the bottom.
+function teamHref(src, name, id = null) {
+  if (!name) return null;
+  if (src.key === "ad2l") {
+    id ??= ad2lCache?.teams.find((t) => t.name.trim().toLowerCase() === name.trim().toLowerCase())?.id;
+    return id != null ? `#/ad2l/teams/${id}` : null;
+  }
+  return `#/teams/${teamSlug(name)}`;
+}
+function teamLink(src, name, id = null, nested = false) {
+  const href = teamHref(src, name, id);
+  if (!href) return esc(name ?? "");
+  return nested
+    ? `<span class="team-link" role="link" tabindex="0" data-href="${href}">${esc(name)}</span>`
+    : `<a class="team-link" href="${href}">${esc(name)}</a>`;
+}
 const loading = (kicker, title) => `${pageHead(kicker, title)}<div class="panel empty">Loading…</div>`;
 
 const STATS = [
@@ -355,12 +374,12 @@ async function renderMatches(src) {
     ${pageHead(src.kicker, title, data.length ? count : "")}
     ${data.length ? `<div class="fixtures reveal">${data.map((m, i) => `
       <a class="fixture win-${m.winner}" href="${src.link(m)}" style="--i:${Math.min(i, 12)}">
-        <div class="fx-team a ${m.winner === "a" ? "" : "lost"}">${esc(m.team_a)}${m.winner === "a" ? "<small>Victory</small>" : ""}</div>
+        <div class="fx-team a ${m.winner === "a" ? "" : "lost"}">${teamLink(src, m.team_a, m.team_a_id, true)}${m.winner === "a" ? "<small>Victory</small>" : ""}</div>
         <div class="fx-score">
           <div class="n">${m.score_a}<i>/</i>${m.score_b}</div>
           <div class="meta">${dur(m.duration_sec)} · ${when(m.createdAt)}${m.private ? ' · <span class="priv">Private</span>' : ""}</div>
         </div>
-        <div class="fx-team b ${m.winner === "b" ? "" : "lost"}">${esc(m.team_b)}${m.winner === "b" ? "<small>Victory</small>" : ""}</div>
+        <div class="fx-team b ${m.winner === "b" ? "" : "lost"}">${teamLink(src, m.team_b, m.team_b_id, true)}${m.winner === "b" ? "<small>Victory</small>" : ""}</div>
       </a>`).join("")}</div>`
     : `<div class="panel empty"><strong>No games yet</strong>${src.empty}</div>`}`;
 }
@@ -399,7 +418,7 @@ async function renderMatch(id, src) {
   if (m.private) {
     const side = (t) => `<div class="plate ${t} ${m.winner === t ? "" : "lost"}">
       <div class="top-line"><span class="side">${t === "a" ? "Team A" : "Team B"}</span>${m.winner === t ? '<span class="win-badge">Victory</span>' : ""}</div>
-      <div class="team">${esc(t === "a" ? m.team_a : m.team_b)}</div>
+      <div class="team">${t === "a" ? teamLink(src, m.team_a, m.team_a_id) : teamLink(src, m.team_b, m.team_b_id)}</div>
       <div class="n">${t === "a" ? m.score_a : m.score_b}</div></div>`;
     app.innerHTML = `
       <div class="kicker" style="margin-bottom:16px"><a href="${src.base}">← The ledger</a></div>
@@ -444,7 +463,7 @@ async function renderMatch(id, src) {
     const won = m.winner === t;
     return `<div class="plate ${t} ${won ? "" : "lost"}">
       <div class="top-line"><span class="side">${ad2l ? (t === "a" ? "Radiant" : "Dire") : (t === "a" ? "Team A" : "Team B")}</span>${won ? '<span class="win-badge">Victory</span>' : ""}</div>
-      <div class="team">${esc(t === "a" ? m.team_a : m.team_b)}</div>
+      <div class="team">${t === "a" ? teamLink(src, m.team_a, m.team_a_id) : teamLink(src, m.team_b, m.team_b_id)}</div>
       <div class="n">${t === "a" ? m.score_a : m.score_b}</div>
     </div>`;
   };
@@ -469,8 +488,8 @@ async function renderMatch(id, src) {
     <div class="table-wrap"><table>
       <thead><tr><th class="l">Player</th><th class="l">Hero</th>${cols.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
       <tbody>
-        <tr class="sep a"><td colspan="${cols.length + 2}">${esc(m.team_a)}</td></tr>${rows("a")}
-        <tr class="sep b"><td colspan="${cols.length + 2}">${esc(m.team_b)}</td></tr>${rows("b")}
+        <tr class="sep a"><td colspan="${cols.length + 2}">${teamLink(src, m.team_a, m.team_a_id)}</td></tr>${rows("a")}
+        <tr class="sep b"><td colspan="${cols.length + 2}">${teamLink(src, m.team_b, m.team_b_id)}</td></tr>${rows("b")}
       </tbody></table></div>
     <p class="table-note">▲ best in match. Dmg/min = hero damage ÷ minutes. Dmg per 1k NW = hero damage per 1,000 net worth (efficiency). KP = (kills + assists) ÷ team score.<br>${footer}</p>${deleteBtn}`;
   wireDelete();
@@ -507,16 +526,37 @@ async function renderStandings() {
     <p class="table-note">Sorted by game wins; official standings and tiebreakers live on
       <a href="https://dota.playon.gg/seasons/${d.playon_season_id}" target="_blank" rel="noopener">PlayOn</a>.
       "Stats" = games whose full stats were found (players whose match history is private can hide a game).</p>
+    <h2>Strength of schedule</h2>
+    <div id="sos" class="reveal"></div>
+    <p class="table-note"><b>SOS</b> = (2 × opponents' game win % + their opponents' game win %) ÷ 3, the same idea as RPI.
+      Opponents' records leave out their games against the team in question, so beating a team doesn't make your own
+      schedule look easier. Each series counts once. <b>Still to play</b> = average game win % of the opponents left.
+      Squares: every series played, oldest first (green won, red lost, grey tied); hover for details, click for the team.</p>
     ${upcoming.length ? `<h2>Up next</h2><div class="fixtures reveal">${upcoming.slice(0, 10).map((s, i) => `
       <div class="fixture" style="--i:${i}">
-        <div class="fx-team a">${esc(name[s.home] ?? "TBD")}</div>
+        <div class="fx-team a">${name[s.home] ? teamLink(SOURCES.ad2l, name[s.home], s.home) : "TBD"}</div>
         <div class="fx-score"><div class="n" style="font-size:22px">VS</div><div class="meta">${date(s.time)}</div></div>
-        <div class="fx-team b">${esc(name[s.away] ?? "TBD")}</div>
+        <div class="fx-team b">${name[s.away] ? teamLink(SOURCES.ad2l, name[s.away], s.away) : "TBD"}</div>
       </div>`).join("")}</div>` : ""}`;
   sortableTable(document.getElementById("t"), [
-    ["team", "Team", (v) => esc(v), "l"], ["series", "Series"], ["w", "W"], ["tie", "T"], ["l", "L"],
+    ["team", "Team", (v, r) => teamLink(SOURCES.ad2l, v, r.id), "l"], ["series", "Series"], ["w", "W"], ["tie", "T"], ["l", "L"],
     ["gw", "Games won", null, "", "jade"], ["gl", "Games lost"], ["game_rate", "Game win %", pct, "", "jade"], ["tracked", "Stats"],
   ], rows, "gw");
+
+  const sos = strengthOfSchedule(d.teams.map((t) => t.id), d.series);
+  const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
+  const initials = (n) => { const w = n.split(/[\s-]+/).filter(Boolean); return (w.length > 1 ? w.map((x) => x[0]).join("") : n).slice(0, 3).toUpperCase(); };
+  const faced = (fs) => `<span class="sos-faced">${fs.map((f) => `<a class="sos-sq ${f.result}" href="#/ad2l/teams/${f.opp}"
+      title="${f.result === "w" ? "Won" : f.result === "l" ? "Lost" : "Tied"} ${f.us}–${f.them} vs ${esc(name[f.opp])} (their other games: ${pct(f.opp_rate)})">${esc(initials(name[f.opp] ?? "?"))}</a>`).join("")}</span>`;
+  sortableTable(document.getElementById("sos"), [
+    ["team", "Team", (v, r) => teamLink(SOURCES.ad2l, v, r.id), "l"],
+    ["record", "Series W–T–L", null],
+    ["sos", "SOS", pct, "", "gold"],
+    ["owp", "Opp. win %", pct],
+    ["oowp", "Opp. opp. win %", pct],
+    ["faced", "Opponents faced", (v) => faced(v), "l"],
+    ["remaining_sos", "Still to play", (v, r) => r.remaining.length ? `${pct(v)} <span class="muted">· ${r.remaining.length} left</span>` : "—", "", "ember"],
+  ], sos.map((x) => ({ ...x, team: name[x.id], record: `${byId[x.id].w}–${byId[x.id].tie}–${byId[x.id].l}` })), "sos");
 }
 
 // ---------- Leaderboards ----------
@@ -560,7 +600,7 @@ async function renderPlayers(src) {
     : `<div class="panel empty"><strong>No players yet</strong>${src.empty}</div>`}`;
   if (!data.length) return;
   const teamCol = src.key === "ad2l"
-    ? [["team", "Team", (v, r) => `${esc(v ?? "")}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l"]] : [];
+    ? [["team", "Team", (v, r) => `${v ? teamLink(src, v) : ""}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l"]] : [];
   sortableTable(document.getElementById("t"), [
     ["name", "Player", (v) => esc(v), "l"], ...teamCol, ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
     ["kills", "K"], ["deaths", "D"], ["assists", "A"], ["kda", "KDA", (v) => v.toFixed(2), "", "jade"],
@@ -646,7 +686,7 @@ function gamePanel(m, src, label) {
     return `<article class="game-panel">
       <header class="gp-head">
         <span class="gp-label">${label}</span>
-        <span class="gp-result"><b class="${m.winner === "a" ? "w" : ""}">${esc(m.team_a)}</b> <span class="gp-score">${m.score_a}–${m.score_b}</span> <b class="${m.winner === "b" ? "w" : ""}">${esc(m.team_b)}</b></span>
+        <span class="gp-result"><b class="${m.winner === "a" ? "w" : ""}">${teamLink(src, m.team_a, m.team_a_id)}</b> <span class="gp-score">${m.score_a}–${m.score_b}</span> <b class="${m.winner === "b" ? "w" : ""}">${teamLink(src, m.team_b, m.team_b_id)}</b></span>
         <span class="gp-meta">${dur(m.duration_sec)} · <span class="priv">Private</span> · result only</span>
       </header>
     </article>`;
@@ -661,13 +701,13 @@ function gamePanel(m, src, label) {
   return `<article class="game-panel">
     <header class="gp-head">
       <span class="gp-label">${label}</span>
-      <span class="gp-result"><b class="${m.winner === "a" ? "w" : ""}">${esc(m.team_a)}</b> <span class="gp-score">${m.score_a}–${m.score_b}</span> <b class="${m.winner === "b" ? "w" : ""}">${esc(m.team_b)}</b></span>
+      <span class="gp-result"><b class="${m.winner === "a" ? "w" : ""}">${teamLink(src, m.team_a, m.team_a_id)}</b> <span class="gp-score">${m.score_a}–${m.score_b}</span> <b class="${m.winner === "b" ? "w" : ""}">${teamLink(src, m.team_b, m.team_b_id)}</b></span>
       <span class="gp-meta">${dur(m.duration_sec)} · ${esc(m.winner === "a" ? m.team_a : m.team_b)} win · <a href="${src.link(m)}">Full stats →</a></span>
     </header>
     ${draftStrip(m)}
     <div class="lineups">
-      <ul class="lineup a"><li class="lu-head">${esc(m.team_a)}${m.winner === "a" ? ' <span class="win-badge">Win</span>' : ""}</li>${lineup("a")}</ul>
-      <ul class="lineup b"><li class="lu-head">${esc(m.team_b)}${m.winner === "b" ? ' <span class="win-badge">Win</span>' : ""}</li>${lineup("b")}</ul>
+      <ul class="lineup a"><li class="lu-head">${teamLink(src, m.team_a, m.team_a_id)}${m.winner === "a" ? ' <span class="win-badge">Win</span>' : ""}</li>${lineup("a")}</ul>
+      <ul class="lineup b"><li class="lu-head">${teamLink(src, m.team_b, m.team_b_id)}${m.winner === "b" ? ' <span class="win-badge">Win</span>' : ""}</li>${lineup("b")}</ul>
     </div>
   </article>`;
 }
@@ -715,7 +755,7 @@ async function renderWeek(src, back = 0) {
     body = [...bySeries.entries()].map(([sid, gs], i) => {
       const s = ad2l.series.find((x) => x.id === sid);
       const head = s
-        ? `<span>${esc(tname[s.home])}</span> <span class="series-score">${s.home_score ?? "?"}–${s.away_score ?? "?"}</span> <span>${esc(tname[s.away])}</span>`
+        ? `<span>${teamLink(src, tname[s.home], s.home)}</span> <span class="series-score">${s.home_score ?? "?"}–${s.away_score ?? "?"}</span> <span>${teamLink(src, tname[s.away], s.away)}</span>`
         : `${esc(gs[0].team_a)} vs ${esc(gs[0].team_b)}`;
       return `<section class="series" style="--i:${i}">
         <h2 class="series-head">${head}</h2>
@@ -812,7 +852,7 @@ async function renderTeams(src, slug) {
       const gs = h.games.filter(({ m }) => m.series_id === s.id).sort((a, b) => a.m.createdAt - b.m.createdAt);
       return `<div class="hist-row ${result}" style="--i:${Math.min(i, 12)}">
         <span class="hist-res">${result === "upcoming" ? "Next" : result === "tie" ? "T" : result === "win" ? "W" : "L"}</span>
-        <span class="hist-vs">vs <b>${esc(tname[home ? s.away : s.home] ?? "TBD")}</b></span>
+        <span class="hist-vs">vs <b>${tname[home ? s.away : s.home] ? teamLink(src, tname[home ? s.away : s.home], home ? s.away : s.home) : "TBD"}</b></span>
         <span class="hist-score">${played ? `${us}–${them}` : ""}</span>
         <span class="hist-games">${gs.map(({ m, side }, j) => `<a href="${src.link(m)}" class="${m.winner === side ? "w" : "l"}">G${j + 1} ${m.winner === side ? "W" : "L"}</a>`).join("")}</span>
         <span class="hist-date">${s.time ? new Date(s.time * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : ""}</span>
@@ -825,7 +865,7 @@ async function renderTeams(src, slug) {
       const [us, them] = side === "a" ? [m.score_a, m.score_b] : [m.score_b, m.score_a];
       return `<a class="hist-row ${won ? "win" : "loss"}" href="${src.link(m)}" style="--i:${Math.min(i, 12)}">
         <span class="hist-res">${won ? "W" : "L"}</span>
-        <span class="hist-vs">vs <b>${esc(opp)}</b></span>
+        <span class="hist-vs">vs <b>${teamLink(src, opp, null, true)}</b></span>
         <span class="hist-score">${us}–${them}</span>
         <span class="hist-games">${dur(m.duration_sec)}${m.private ? ' · <span class="priv">Private</span>' : ""}</span>
         <span class="hist-date">${when(m.createdAt)}</span>
@@ -893,7 +933,7 @@ async function renderTiers(src) {
       const name = p.account_id ? `<a href="https://www.opendota.com/players/${p.account_id}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
       return `<div class="chip ${p.role}" style="--i:${i}" title="${esc(tip)}">
         <div class="chip-top"><span class="chip-name">${name}</span><span class="chip-rating">${p.rating}</span></div>
-        <div class="chip-meta">${p.team ? esc(p.team) : ""}${p.standin ? " · stand-in" : ""}</div>
+        <div class="chip-meta">${p.team ? teamLink(src, p.team) : ""}${p.standin ? " · stand-in" : ""}</div>
         <div class="chip-foot"><span class="role-tag">${p.role === "core" ? "Core" : "Support"}</span><span>${p.wins}–${p.games - p.wins}</span>${rank ? `<span>${esc(rank)}</span>` : ""}</div>
       </div>`;
     };
@@ -981,5 +1021,14 @@ playerIndex().then((idx) => {
   document.getElementById("player-list").innerHTML = names.map((n) => `<option value="${esc(n)}">`).join("");
 }).catch(() => {});
 app.addEventListener("input", (e) => { if (upload.draft && e.target.closest(".edit")) onDraftInput(e); });
+// Team names inside a card that's itself a link: open the team, not the card.
+const openNested = (e) => {
+  const t = e.target.closest?.("[data-href]");
+  if (!t || (e.type === "keydown" && e.key !== "Enter")) return;
+  e.preventDefault(); e.stopPropagation();
+  location.hash = t.dataset.href;
+};
+app.addEventListener("click", openNested);
+app.addEventListener("keydown", openNested);
 window.addEventListener("hashchange", route);
 route();
