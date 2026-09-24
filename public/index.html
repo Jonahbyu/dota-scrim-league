@@ -17,16 +17,19 @@
   <div class="grain" aria-hidden="true"></div>
 
   <header class="top">
-    <a class="brand" href="#/">
-      <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
-      <span class="brand-word">Scrim<b>League</b></span>
-    </a>
-    <nav>
-      <a href="#/" data-nav="matches">Matches</a>
-      <a href="#/players" data-nav="players">Players</a>
-      <a href="#/heroes" data-nav="heroes">Heroes</a>
-      <a href="#/upload" data-nav="upload" class="nav-cta">Upload</a>
-    </nav>
+    <div class="switcher">
+      <button class="brand" id="league-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="league-menu">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+        <span class="brand-word" id="league-name">Scrim<b>League</b></span>
+        <span class="caret" aria-hidden="true"></span>
+      </button>
+      <div class="league-menu" id="league-menu" hidden>
+        <div class="menu-label">Switch league</div>
+        <a href="#/" data-league="scrim"><b>Scrim League</b><span>Our scrims · uploaded screenshots</span></a>
+        <a href="#/ad2l/" data-league="ad2l"><b>AD2L · S48 Champion</b><span>Ticketed league games · synced from OpenDota</span></a>
+      </div>
+    </div>
+    <nav id="nav"></nav>
   </header>
   <main id="app"></main>
   <footer class="foot">

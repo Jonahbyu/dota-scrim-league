@@ -37,14 +37,21 @@ export function withDerived(match) {
   return { ...match, players, teamTotals };
 }
 
-// One row per player name (case-insensitive). Rates use totals across games, not
-// averages of per-game rates, so a short game doesn't count as much as a long one.
+// One row per player: by `player_key` when the data has one (AD2L: main account id, so
+// smurfs merge and same-named players on different teams don't), else by name
+// (case-insensitive, scrims). Rates use totals across games, not averages of per-game
+// rates, so a short game doesn't count as much as a long one.
 export function playerLeaderboard(matches) {
   const rows = new Map();
   for (const m of matches) {
     for (const p of m.players) {
-      const key = p.name.trim().toLowerCase();
-      const r = rows.get(key) ?? { name: p.name, games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, gold: 0, xp: 0, minutes: 0, damage: 0, net_worth: 0, kp: [], heroes: new Set() };
+      const key = p.player_key ?? p.name.trim().toLowerCase();
+      const r = rows.get(key) ?? { name: p.name, teams: {}, games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, gold: 0, xp: 0, minutes: 0, damage: 0, net_worth: 0, kp: [], heroes: new Set() };
+      // Count roster games and stand-in games per team separately.
+      if (p.team_name) {
+        const t = (r.teams[p.team_name] ??= { roster: 0, standin: 0 });
+        t[p.standin ? "standin" : "roster"]++;
+      }
       const minutes = m.duration_sec / 60;
       const teamScore = p.team === "a" ? m.score_a : m.score_b;
       r.games++;
@@ -57,8 +64,19 @@ export function playerLeaderboard(matches) {
       rows.set(key, r);
     }
   }
+  // A player's team is the one they're rostered on; someone who only ever filled in
+  // is shown with the team they played for most and marked as a stand-in.
+  const teamOf = (r) => {
+    const t = Object.entries(r.teams);
+    if (!t.length) return { team: null, standin: false, standin_games: 0 };
+    const rostered = t.filter(([, c]) => c.roster > 0).sort((a, b) => b[1].roster - a[1].roster)[0];
+    const standin_games = t.reduce((s, [, c]) => s + c.standin, 0);
+    if (rostered) return { team: rostered[0], standin: false, standin_games };
+    return { team: t.sort((a, b) => b[1].standin - a[1].standin)[0][0], standin: true, standin_games };
+  };
   return [...rows.values()].map((r) => ({
     name: r.name,
+    ...teamOf(r),
     games: r.games,
     wins: r.wins,
     win_rate: r.wins / r.games,

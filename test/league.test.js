@@ -84,6 +84,21 @@ test("derived stats match hand calculations", () => {
   assert.equal(m.teamTotals.b.hero_damage, 108609);
 });
 
+test("league players are keyed by account, not name, and stand-ins are attributed", () => {
+  const g1 = stored();
+  const g2 = stored();
+  // Two different people called "Twin" on opposite teams; player 1 also stands in for team B.
+  g1.players[0] = { ...g1.players[0], name: "Twin", player_key: "111", team_name: "Alpha", standin: false };
+  g1.players[5] = { ...g1.players[5], name: "Twin", player_key: "222", team_name: "Bravo", standin: false };
+  g2.players[5] = { ...g2.players[5], name: "Twin", player_key: "111", team_name: "Bravo", standin: true };
+  const rows = playerLeaderboard([g1, g2]).filter((r) => r.name === "Twin");
+  assert.equal(rows.length, 2);
+  const p111 = rows.find((r) => r.team === "Alpha");
+  assert.equal(p111.games, 2);
+  assert.equal(p111.standin, false);
+  assert.equal(p111.standin_games, 1);
+});
+
 test("leaderboards aggregate across games", () => {
   const g1 = stored();
   const g2 = stored();

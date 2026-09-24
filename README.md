@@ -26,6 +26,29 @@ Measured on one real game (`npm run ocr:robustness`, needs the local test screen
 ~83% when the screenshot has been shrunk to 1440p-size (real 1440p captures are sharper
 than that test). One game is a small sample — the review step is there for the misses.
 
+## AD2L view (top-left switcher)
+
+The switcher flips between our scrims and **AD2L S48 Champion**: standings, every
+ticketed game with full stats, players and heroes for that one division.
+
+It's a static file, `public/data/ad2l.json`, rebuilt with:
+
+```
+npm run ad2l:sync     # ~3 min first run; cached after that
+npm run deploy        # after committing
+```
+
+How it finds games (all public data, no keys): PlayOn gives the division's teams,
+rosters (account ids + smurfs) and series scores; OpenDota has no match list for this
+amateur league, so the sync walks every rostered account's practice-lobby games since the
+season started and keeps the ones tagged with the season's Dota league id (S48 = 20077)
+where both sides are Champion rosters. Stand-ins are kept and labelled.
+
+Coverage check on the first run: 38 of the 40 games the series scores say were played
+(a game can be missed if nobody on either side has public match history for it).
+Other divisions/seasons: `node scripts/ad2l-sync.js --season <playon id> --league <dota league id>`
+(PlayOn ids are on dota.playon.gg/seasons; the Dota league id is on OpenDota's league list).
+
 ## Develop
 
 ```

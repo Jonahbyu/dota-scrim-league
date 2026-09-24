@@ -264,17 +264,50 @@ function renderUpload() {
   }
 }
 
+// ---------- Leagues ----------
+// Two data sources share the same pages: community scrims (screenshots uploaded to
+// Firestore) and one AD2L division's ticketed games (data/ad2l.json, built offline by
+// `npm run ad2l:sync` from PlayOn rosters + OpenDota match details).
+
+let ad2lCache = null;
+async function ad2lData() {
+  if (!ad2lCache) {
+    const res = await fetch("data/ad2l.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("The AD2L data hasn't been published yet.");
+    const d = await res.json();
+    d.games = d.games.map((g) => withDerived({ ...g, createdAt: new Date(g.start_time * 1000) }));
+    ad2lCache = d;
+  }
+  return ad2lCache;
+}
+
+const SOURCES = {
+  scrim: {
+    key: "scrim", kicker: "The ledger", load: allMatches,
+    link: (m) => `#/match/${m.id}`, base: "#/",
+    empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
+    nav: [["#/", "matches", "Matches"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/upload", "upload", "Upload", "nav-cta"]],
+  },
+  ad2l: {
+    key: "ad2l", kicker: "AD2L · S48 Champion", load: async () => (await ad2lData()).games,
+    link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/games",
+    empty: "No ticketed Champion games found yet.",
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"]],
+  },
+};
+
 // ---------- Matches ----------
 
-async function renderMatches() {
-  app.innerHTML = loading("The ledger", "Matches");
+async function renderMatches(src) {
+  const title = src.key === "ad2l" ? "Games" : "Matches";
+  app.innerHTML = loading(src.kicker, title);
   let data;
-  try { data = await allMatches(); } catch (e) { app.innerHTML = `${pageHead("The ledger", "Matches")}${errorBox(e)}`; return; }
-  const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record`;
+  try { data = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, title)}${errorBox(e)}`; return; }
+  const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record${src.key === "ad2l" ? " · ticketed league games only" : ""}`;
   app.innerHTML = `
-    ${pageHead("The ledger", "Matches", data.length ? count : "")}
+    ${pageHead(src.kicker, title, data.length ? count : "")}
     ${data.length ? `<div class="fixtures reveal">${data.map((m, i) => `
-      <a class="fixture win-${m.winner}" href="#/match/${m.id}" style="--i:${Math.min(i, 12)}">
+      <a class="fixture win-${m.winner}" href="${src.link(m)}" style="--i:${Math.min(i, 12)}">
         <div class="fx-team a ${m.winner === "a" ? "" : "lost"}">${esc(m.team_a)}${m.winner === "a" ? "<small>Victory</small>" : ""}</div>
         <div class="fx-score">
           <div class="n">${m.score_a}<i>/</i>${m.score_b}</div>
@@ -282,13 +315,15 @@ async function renderMatches() {
         </div>
         <div class="fx-team b ${m.winner === "b" ? "" : "lost"}">${esc(m.team_b)}${m.winner === "b" ? "<small>Victory</small>" : ""}</div>
       </a>`).join("")}</div>`
-    : `<div class="panel empty"><strong>No games yet</strong>The ledger is empty. <a href="#/upload">Upload the first scrim</a>.</div>`}`;
+    : `<div class="panel empty"><strong>No games yet</strong>${src.empty}</div>`}`;
 }
 
-async function renderMatch(id) {
+async function renderMatch(id, src) {
   app.innerHTML = `<div class="panel empty">Loading…</div>`;
   let raw;
-  try { raw = matchesCache?.find((m) => m.id === id) ?? (await getMatch(id)); } catch (e) { app.innerHTML = errorBox(e); return; }
+  try {
+    raw = (await src.load().catch(() => [])).find((m) => m.id === id) ?? (src.key === "scrim" ? await getMatch(id) : null);
+  } catch (e) { app.innerHTML = errorBox(e); return; }
   if (!raw) { app.innerHTML = `<div class="notice err">No such match.</div>`; return; }
   const m = raw.teamTotals ? raw : withDerived(raw);
 
@@ -299,9 +334,13 @@ async function renderMatch(id) {
     ["dmg_per_1k_nw", "Dmg per 1k NW", fmt], ["dmg_share", "Dmg share", pct], ["kill_participation", "KP", pct], ["hero_healing", "Heal", fmt],
   ];
   const highlight = new Set(["kills", "net_worth", "gpm", "hero_damage", "dmg_per_min", "dmg_per_1k_nw", "kill_participation", "hero_healing"]);
+  const playerCell = (p) => {
+    const label = `${esc(p.name)}${p.tag ? ` <span class="tag">[${esc(p.tag)}]</span>` : ""}`;
+    return p.account_id ? `<a href="https://www.opendota.com/players/${p.account_id}" target="_blank" rel="noopener">${label}</a>` : label;
+  };
   const rows = (t) => m.players.filter((p) => p.team === t).map((p) => `
     <tr class="team-${t}">
-      <td class="l">${esc(p.name)}${p.tag ? ` <span class="tag">[${esc(p.tag)}]</span>` : ""}</td>
+      <td class="l">${playerCell(p)}</td>
       <td class="l">${esc(p.hero)}</td>
       ${cols.map(([k, , f]) => `<td class="${highlight.has(k) && p[k] === best(k) && p[k] > 0 ? "best" : ""}">${(f ?? ((x) => x))(p[k])}</td>`).join("")}
     </tr>`).join("");
@@ -314,18 +353,24 @@ async function renderMatch(id) {
     ["Richest", top("net_worth", fmt)],
   ];
   const ta = m.teamTotals.a.hero_damage, tb = m.teamTotals.b.hero_damage;
+  const ad2l = src.key === "ad2l";
 
   const plate = (t) => {
     const won = m.winner === t;
     return `<div class="plate ${t} ${won ? "" : "lost"}">
-      <div class="top-line"><span class="side">${t === "a" ? "Team A" : "Team B"}</span>${won ? '<span class="win-badge">Victory</span>' : ""}</div>
+      <div class="top-line"><span class="side">${ad2l ? (t === "a" ? "Radiant" : "Dire") : (t === "a" ? "Team A" : "Team B")}</span>${won ? '<span class="win-badge">Victory</span>' : ""}</div>
       <div class="team">${esc(t === "a" ? m.team_a : m.team_b)}</div>
       <div class="n">${t === "a" ? m.score_a : m.score_b}</div>
     </div>`;
   };
+  const footer = ad2l
+    ? `Played ${when(m.createdAt)} · AD2L S48 ticketed game ${m.match_id} ·
+       <a href="https://www.opendota.com/matches/${m.match_id}" target="_blank" rel="noopener">OpenDota</a> ·
+       <a href="https://www.dotabuff.com/matches/${m.match_id}" target="_blank" rel="noopener">Dotabuff</a>`
+    : `Uploaded ${when(m.createdAt)}. Wrong? Ask the league admin to remove it.`;
 
   app.innerHTML = `
-    <div class="kicker" style="margin-bottom:16px"><a href="#/">← The ledger</a></div>
+    <div class="kicker" style="margin-bottom:16px"><a href="${src.base}">← ${ad2l ? "All games" : "The ledger"}</a></div>
     <section class="banner">
       ${plate("a")}${plate("b")}
       <div class="banner-meta">${esc(m.game_mode || "Match")} · <b>${dur(m.duration_sec)}</b></div>
@@ -342,8 +387,50 @@ async function renderMatch(id) {
         <tr class="sep a"><td colspan="${cols.length + 2}">${esc(m.team_a)}</td></tr>${rows("a")}
         <tr class="sep b"><td colspan="${cols.length + 2}">${esc(m.team_b)}</td></tr>${rows("b")}
       </tbody></table></div>
-    <p class="table-note">▲ best in match. Dmg/min = hero damage ÷ minutes. Dmg per 1k NW = hero damage per 1,000 net worth (efficiency). KP = (kills + assists) ÷ team score.
-      Uploaded ${when(m.createdAt)}. Wrong? Ask the league admin to remove it.</p>`;
+    <p class="table-note">▲ best in match. Dmg/min = hero damage ÷ minutes. Dmg per 1k NW = hero damage per 1,000 net worth (efficiency). KP = (kills + assists) ÷ team score.<br>${footer}</p>`;
+}
+
+// ---------- AD2L standings ----------
+
+async function renderStandings() {
+  const kicker = SOURCES.ad2l.kicker;
+  app.innerHTML = loading(kicker, "Standings");
+  let d;
+  try { d = await ad2lData(); } catch (e) { app.innerHTML = `${pageHead(kicker, "Standings")}${errorBox(e)}`; return; }
+
+  const played = d.series.filter((s) => s.home_score != null && s.away_score != null && s.home_score + s.away_score > 0);
+  const upcoming = d.series.filter((s) => !played.includes(s) && s.time && s.time * 1000 > Date.now() - 6 * 3600e3);
+  const name = Object.fromEntries(d.teams.map((t) => [t.id, t.name]));
+  const rows = d.teams.map((t) => {
+    const mine = played.filter((s) => s.home === t.id || s.away === t.id);
+    let w = 0, tie = 0, l = 0, gw = 0, gl = 0;
+    for (const s of mine) {
+      const [us, them] = s.home === t.id ? [s.home_score, s.away_score] : [s.away_score, s.home_score];
+      gw += us; gl += them;
+      if (us > them) w++; else if (us < them) l++; else tie++;
+    }
+    const tracked = d.games.filter((g) => g.team_a_id === t.id || g.team_b_id === t.id).length;
+    return { team: t.name, id: t.id, series: mine.length, w, tie, l, gw, gl, game_rate: gw + gl ? gw / (gw + gl) : null, tracked };
+  });
+
+  const date = (s) => new Date(s * 1000).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  app.innerHTML = `
+    ${pageHead(kicker, "Standings", `Series results from PlayOn; game stats from ${d.games.length} ticketed games found on OpenDota.
+      Updated ${new Date(d.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}.`)}
+    <div id="t" class="reveal"></div>
+    <p class="table-note">Sorted by game wins; official standings and tiebreakers live on
+      <a href="https://dota.playon.gg/seasons/${d.playon_season_id}" target="_blank" rel="noopener">PlayOn</a>.
+      "Stats" = games whose full stats were found (players whose match history is private can hide a game).</p>
+    ${upcoming.length ? `<h2>Up next</h2><div class="fixtures reveal">${upcoming.slice(0, 10).map((s, i) => `
+      <div class="fixture" style="--i:${i}">
+        <div class="fx-team a">${esc(name[s.home] ?? "TBD")}</div>
+        <div class="fx-score"><div class="n" style="font-size:22px">VS</div><div class="meta">${date(s.time)}</div></div>
+        <div class="fx-team b">${esc(name[s.away] ?? "TBD")}</div>
+      </div>`).join("")}</div>` : ""}`;
+  sortableTable(document.getElementById("t"), [
+    ["team", "Team", (v) => esc(v), "l"], ["series", "Series"], ["w", "W"], ["tie", "T"], ["l", "L"],
+    ["gw", "Games won", null, "", "jade"], ["gl", "Games lost"], ["game_rate", "Game win %", pct, "", "jade"], ["tracked", "Stats"],
+  ], rows, "gw");
 }
 
 // ---------- Leaderboards ----------
@@ -368,7 +455,7 @@ function sortableTable(el, columns, rows, sortKey) {
       <thead><tr><th class="rank">#</th>${columns.map(([k, label, , cls]) => `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}">${label}${k === key ? (dir < 0 ? " ▾" : " ▴") : ""}</th>`).join("")}</tr></thead>
       <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " top" : ""}">${String(i + 1).padStart(2, "0")}</td>${columns.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
     </table></div>`;
-    el.querySelectorAll("th").forEach((th) => (th.onclick = () => {
+    el.querySelectorAll("th.sortable").forEach((th) => (th.onclick = () => {
       if (th.dataset.k === key) dir = -dir; else { key = th.dataset.k; dir = -1; }
       draw();
     }));
@@ -376,31 +463,33 @@ function sortableTable(el, columns, rows, sortKey) {
   draw();
 }
 
-async function renderPlayers() {
-  app.innerHTML = loading("Individual records", "Players");
+async function renderPlayers(src) {
+  app.innerHTML = loading(src.kicker, "Players");
   let matches;
-  try { matches = await allMatches(); } catch (e) { app.innerHTML = `${pageHead("Individual records", "Players")}${errorBox(e)}`; return; }
+  try { matches = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Players")}${errorBox(e)}`; return; }
   const data = playerLeaderboard(matches);
-  app.innerHTML = `${pageHead("Individual records", "Players", data.length ? `${data.length} players across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Click a column to sort.` : "")}
+  app.innerHTML = `${pageHead(src.kicker, "Players", data.length ? `${data.length} players across ${matches.length} ${matches.length === 1 ? "game" : "games"}. Click a column to sort.` : "")}
     ${data.length ? `<div id="t" class="reveal"></div>
-    <p class="table-note">GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. Players are matched by name. Bars compare against the column's best.</p>`
-    : `<div class="panel empty"><strong>No players yet</strong><a href="#/upload">Upload a scrim</a> to start the table.</div>`}`;
+    <p class="table-note">GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. ${src.key === "ad2l" ? "Players are matched by their PlayOn name (smurfs included)." : "Players are matched by name."} Bars compare against the column's best.</p>`
+    : `<div class="panel empty"><strong>No players yet</strong>${src.empty}</div>`}`;
   if (!data.length) return;
+  const teamCol = src.key === "ad2l"
+    ? [["team", "Team", (v, r) => `${esc(v ?? "")}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l"]] : [];
   sortableTable(document.getElementById("t"), [
-    ["name", "Player", (v) => esc(v), "l"], ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
+    ["name", "Player", (v) => esc(v), "l"], ...teamCol, ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
     ["kills", "K"], ["deaths", "D"], ["assists", "A"], ["kda", "KDA", (v) => v.toFixed(2), "", "jade"],
     ["avg_gpm", "GPM", null, "", "gold"], ["avg_xpm", "XPM"], ["dmg_per_min", "Dmg/min", fmt, "", "ember"], ["dmg_per_1k_nw", "Dmg per 1k NW", fmt, "", "ember"],
     ["avg_kp", "Avg KP", pct], ["heroes", "Heroes", (v) => esc(v), "l"],
   ], data, "games");
 }
 
-async function renderHeroes() {
-  app.innerHTML = loading("The draft", "Heroes");
+async function renderHeroes(src) {
+  app.innerHTML = loading(src.kicker, "Heroes");
   let matches;
-  try { matches = await allMatches(); } catch (e) { app.innerHTML = `${pageHead("The draft", "Heroes")}${errorBox(e)}`; return; }
+  try { matches = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Heroes")}${errorBox(e)}`; return; }
   const rows = heroStats(matches);
-  app.innerHTML = `${pageHead("The draft", "Heroes", rows.length ? `${rows.length} heroes picked across ${matches.length} ${matches.length === 1 ? "game" : "games"}.` : "")}
-    ${rows.length ? `<div id="t" class="reveal"></div>` : `<div class="panel empty"><strong>No picks yet</strong><a href="#/upload">Upload a scrim</a> to fill the draft table.</div>`}`;
+  app.innerHTML = `${pageHead(src.kicker, "Heroes", rows.length ? `${rows.length} heroes picked across ${matches.length} ${matches.length === 1 ? "game" : "games"}.` : "")}
+    ${rows.length ? `<div id="t" class="reveal"></div>` : `<div class="panel empty"><strong>No picks yet</strong>${src.empty}</div>`}`;
   if (!rows.length) return;
   sortableTable(document.getElementById("t"), [
     ["hero", "Hero", (v) => esc(v), "l"], ["picks", "Picks", null, "", "gold"], ["pick_rate", "Pick rate", pct], ["wins", "Wins"],
@@ -408,18 +497,44 @@ async function renderHeroes() {
   ], rows, "picks");
 }
 
-// ---------- Router ----------
+// ---------- League switcher + router ----------
+
+const leagueBtn = document.getElementById("league-btn");
+const leagueMenu = document.getElementById("league-menu");
+const setMenu = (open) => { leagueMenu.hidden = !open; leagueBtn.setAttribute("aria-expanded", String(open)); };
+leagueBtn.onclick = (e) => { e.stopPropagation(); setMenu(leagueMenu.hidden); };
+document.addEventListener("click", (e) => { if (!e.target.closest(".switcher")) setMenu(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
 
 function route() {
+  setMenu(false);
   const h = location.hash || "#/";
-  const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];
-  const section = matchId ? "matches" : h.startsWith("#/upload") ? "upload" : h.startsWith("#/players") ? "players" : h.startsWith("#/heroes") ? "heroes" : "matches";
-  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.nav === section));
-  if (matchId) return renderMatch(matchId);
-  if (section === "upload") return renderUpload();
-  if (section === "players") return renderPlayers();
-  if (section === "heroes") return renderHeroes();
-  return renderMatches();
+  const isAd2l = h.startsWith("#/ad2l");
+  const src = isAd2l ? SOURCES.ad2l : SOURCES.scrim;
+  document.body.dataset.league = src.key;
+  document.title = isAd2l ? "AD2L S48 Champion · Scrim League" : "Scrim League";
+  document.getElementById("league-name").innerHTML = isAd2l ? "AD2L<b>S48 Champion</b>" : "Scrim<b>League</b>";
+  leagueMenu.querySelectorAll("a").forEach((a) => a.classList.toggle("current", a.dataset.league === src.key));
+
+  let section, page;
+  if (isAd2l) {
+    const gameId = /^#\/ad2l\/game\/(\d+)$/.exec(h)?.[1];
+    if (gameId) { section = "games"; page = () => renderMatch(gameId, src); }
+    else if (h.startsWith("#/ad2l/games")) { section = "games"; page = () => renderMatches(src); }
+    else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
+    else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
+    else { section = "standings"; page = renderStandings; }
+  } else {
+    const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];
+    if (matchId) { section = "matches"; page = () => renderMatch(matchId, src); }
+    else if (h.startsWith("#/upload")) { section = "upload"; page = renderUpload; }
+    else if (h.startsWith("#/players")) { section = "players"; page = () => renderPlayers(src); }
+    else if (h.startsWith("#/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
+    else { section = "matches"; page = () => renderMatches(src); }
+  }
+  document.getElementById("nav").innerHTML = src.nav
+    .map(([href, key, label, cls]) => `<a href="${href}" data-nav="${key}" class="${cls ?? ""}${key === section ? " active" : ""}">${label}</a>`).join("");
+  return page();
 }
 
 document.getElementById("hero-list").innerHTML = HEROES.map((h) => `<option value="${esc(h)}">`).join("");

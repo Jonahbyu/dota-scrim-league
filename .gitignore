@@ -12,3 +12,6 @@ data/sample-game1.json
 
 # Tesseract language data for Node tests (downloaded automatically, 5 MB).
 data/tessdata/
+
+# Sync caches (PlayOn pages, OpenDota match details)
+.cache/
