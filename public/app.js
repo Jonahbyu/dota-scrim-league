@@ -691,9 +691,9 @@ async function renderPlayers(src) {
     : `<div class="panel empty"><strong>No players yet</strong>${src.empty}</div>`}`;
   if (!data.length) return;
   const teamCol = src.key === "ad2l"
-    ? [["team", "Team", (v, r) => `${v ? teamLink(src, v) : ""}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l"]] : [];
+    ? [["team", "Team", (v, r) => `${v ? teamLink(src, v) : ""}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l name"]] : [];
   sortableTable(document.getElementById("t"), [
-    ["name", "Player", (v, r) => playerLink(src, r), "l"], ...teamCol, ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
+    ["name", "Player", (v, r) => playerLink(src, r), "l name"], ...teamCol, ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
     ["kills", "K"], ["deaths", "D"], ["assists", "A"], ["kda", "KDA", (v) => v.toFixed(2), "", "jade"],
     ["avg_gpm", "GPM", null, "", "gold"], ["avg_xpm", "XPM"], ["dmg_per_min", "Dmg/min", fmt, "", "ember"], ["dmg_per_1k_nw", "Dmg per 1k NW", fmt, "", "ember"],
     ["avg_kp", "Avg KP", pct],
@@ -701,7 +701,7 @@ async function renderPlayers(src) {
       ["stacks_pg", "Stacks/g", dec], ["obs_pg", "Obs/g", dec, "", "jade"], ["sen_pg", "Sentries/g", dec], ["dewards_pg", "Dewards/g", dec, "", "ember"],
       ["lane_pg", "Lane creeps/g", dec], ["neutral_pg", "Neutrals/g", dec], ["neutral_share", "Neutral %", pct], ["roshans", "Roshans"], ["tormentors", "Tormentors"],
     ] : []),
-    ["heroes", "Heroes", (v) => esc(v), "l"],
+    ["heroes", "Heroes", (v) => esc(v), "l wrap"],
   ], data, "games", { toolbar: true });
 }
 
@@ -1232,7 +1232,7 @@ async function renderTeams(src, slug) {
     sortableTable(document.getElementById("t"), [
       ["name", "Player", (v, r) => playerLink(src, r), "l"], ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
       ["kda", "KDA", (v) => v.toFixed(2), "", "jade"], ["avg_gpm", "GPM", null, "", "gold"], ["dmg_per_min", "Dmg/min", fmt, "", "ember"],
-      ["avg_kp", "Avg KP", pct], ["heroes", "Heroes", (v) => esc(v), "l"],
+      ["avg_kp", "Avg KP", pct], ["heroes", "Heroes", (v) => esc(v), "l wrap"],
     ], playerLeaderboard(ownSide.map((m) => ({ ...m, players: m.players }))), "games");
   }
 }
