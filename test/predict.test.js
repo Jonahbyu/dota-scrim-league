@@ -59,3 +59,30 @@ test("backtest predicts each night only from earlier nights", () => {
   assert.equal(bt.length, 2); // the unplayed series isn't scored
   assert.ok(bt.every((x) => Math.abs(x.odds.game - 0.5) < 1e-9)); // first night: no results yet
 });
+
+import { readFileSync } from "node:fs";
+import { predictDraft, CM_ORDER, modelCall } from "../public/lib/predict.js";
+
+test("predicted draft follows S48's order: first-pick team bans 3/2/2, the other 4/1/2, 5 picks each, no hero twice", () => {
+  const d = JSON.parse(readFileSync(new URL("../public/data/ad2l.json", import.meta.url), "utf8"));
+  const [a, b] = d.teams;
+  const steps = predictDraft(d, a, b, 0);
+  assert.equal(steps.length, 24);
+  const count = (team, kind, phase) => steps.filter((s) => s.team === team && s.kind === kind && (phase == null || s.phase === phase)).length;
+  assert.deepEqual([1, 2, 3].map((ph) => count(a, "ban", ph)), [3, 2, 2]);
+  assert.deepEqual([1, 2, 3].map((ph) => count(b, "ban", ph)), [4, 1, 2]);
+  assert.equal(count(a, "pick"), 5);
+  assert.equal(count(b, "pick"), 5);
+  const heroes = steps.map((s) => s.hero).filter(Boolean);
+  assert.equal(new Set(heroes).size, heroes.length);
+  // every pick goes to a different player of the picking team
+  for (const t of [a, b]) assert.equal(new Set(steps.filter((s) => s.team === t && s.kind === "pick").map((s) => s.player?.name)).size, 5);
+  // the order matches a real S48 draft
+  const real = [...d.games[0].draft].sort((x, y) => x.order - y.order);
+  assert.deepEqual(CM_ORDER.map(([, k]) => k), real.map((s) => (s.pick ? "pick" : "ban")));
+});
+
+test("the model's call always takes a side", () => {
+  assert.equal(modelCall({ game: 0.51 }), "home");
+  assert.equal(modelCall({ game: 0.49 }), "away");
+});

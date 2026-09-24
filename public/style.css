@@ -733,3 +733,26 @@ details.dr summary { cursor: pointer; font: 600 10px/1 var(--mono); letter-spaci
 .dr-name .muted { font: 11px var(--mono); }
 h3.pred-night { font: 800 16px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--dust); margin: 20px 0 8px; }
 @media (max-width: 640px) { .dr-cols { grid-template-columns: 1fr; } .pred-teams { font-size: 16px; } }
+
+/* predicted draft */
+.pred-call { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.pred-call b { font: 800 22px/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+.pred-conf { font: 600 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.pd-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0; }
+.pd-lbl { font: 600 9px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
+.pd-toggle button { background: var(--ink); color: var(--dust); border: 1px solid var(--seam-2); padding: 6px 10px; font: 600 12px var(--body); cursor: pointer; }
+.pd-toggle button[aria-pressed="true"] { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.pd { display: grid; gap: 8px; }
+.pd-row { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; }
+.pd-title { font: 600 9px/1.3 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); padding-top: 6px; }
+.pd-steps { display: flex; flex-wrap: wrap; gap: 4px; }
+.pd-step { position: relative; display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px 2px 2px; background: var(--stone-2); border: 1px solid var(--seam); border-left: 3px solid var(--seam-2); font-size: 12px; max-width: 100%; }
+.pd-step.a { border-left-color: var(--jade); }
+.pd-step.b { border-left-color: var(--ember); }
+.pd-step img { width: 30px; height: 17px; object-fit: cover; }
+.pd-step.ban img { filter: grayscale(1) brightness(.7); }
+.pd-step.ban .pd-hero { color: var(--dust); text-decoration: line-through; text-decoration-color: rgba(255, 90, 54, .6); }
+.pd-step.pick { flex-direction: row; }
+.pd-n { font: 600 9px var(--mono); color: var(--dim); min-width: 14px; text-align: right; }
+.pd-player { font: 11px var(--mono); color: var(--gold); }
+@media (max-width: 640px) { .pd-row { grid-template-columns: 1fr; gap: 4px; } }

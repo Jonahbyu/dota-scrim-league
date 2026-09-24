@@ -9,6 +9,8 @@
 // the following week best (log loss). A series is two games, treated as independent:
 // 2-0 = p², 1-1 = 2p(1-p), 0-2 = (1-p)².
 
+import { phasedDraft } from "./draft.js";
+
 const sig = (x) => 1 / (1 + Math.exp(-x));
 
 // PlayOn / OpenDota rank_tier (11 = Herald 1 … 75 = Divine 5, 80 = Immortal) as a number
@@ -66,7 +68,7 @@ export function backtest(teams, series, params) {
     for (const s of series.filter((x) => x.time === t && isPlayed(x))) {
       const o = seriesOdds(r.get(s.home) ?? 0, r.get(s.away) ?? 0);
       const actual = outcomeOf(s);
-      out.push({ s, odds: o, pick: favourite(o), actual, correct: favourite(o) === actual, p_actual: o[actual] });
+      out.push({ s, odds: o, pick: modelCall(o), actual, correct: modelCall(o) === actual, p_actual: o[actual] });
     }
   }
   return out;
@@ -225,4 +227,130 @@ export function crowd(preds, s) {
   const n = mine.length;
   const share = (o) => (n ? mine.filter((p) => p.pick === o).length / n : 0);
   return { n, home: share("home"), tie: share("tie"), away: share("away") };
+}
+
+// ---------- the model's call ----------
+// The odds stay honest; the call doesn't hedge. It takes the favourite to win 2-0 (1-1 is
+// often the single likeliest result between close teams, but it's never the bold call).
+export const modelCall = (o) => (o.game >= 0.5 ? "home" : "away");
+
+// ---------- predicted draft ----------
+// Captains Mode order as S48 plays it, from the first-pick team's (X) point of view; the
+// same in all 38 drafts: X bans 3/2/2 across the phases, Y bans 4/1/2.
+export const CM_ORDER = [
+  ["X", "ban", 1], ["X", "ban", 1], ["Y", "ban", 1], ["Y", "ban", 1], ["X", "ban", 1], ["Y", "ban", 1], ["Y", "ban", 1],
+  ["X", "pick", 1], ["Y", "pick", 1],
+  ["X", "ban", 2], ["X", "ban", 2], ["Y", "ban", 2],
+  ["Y", "pick", 2], ["X", "pick", 2], ["X", "pick", 2], ["Y", "pick", 2], ["Y", "pick", 2], ["X", "pick", 2],
+  ["X", "ban", 3], ["Y", "ban", 3], ["X", "ban", 3], ["Y", "ban", 3],
+  ["X", "pick", 3], ["Y", "pick", 3],
+];
+
+const HALF_LIFE = 14 * 86400; // league games lose half their weight every two weeks
+
+// Plays a whole draft step by step. Each ban goes to the hero with the best mix of: how
+// often (and how recently) this team bans it in this phase, how much the other team's
+// players still to pick play it (recent league games + pubs since the last league night),
+// and how often the division bans it in this phase. Early bans lean on habit and meta, late
+// bans on the opponents' remaining pools. Each pick gives a still-unpicked player a hero
+// from their own pool; the first picks favour heroes that get contested a lot (grab them
+// before they're banned), the last picks are pure comfort.
+export function predictDraft(d, first, second, since, now = Date.now() / 1000) {
+  const w = (t) => 0.5 ** (Math.max(0, now - (t ?? now)) / HALF_LIFE);
+  const drafted = d.games.filter((g) => g.draft?.length);
+  const sideOf = (g, id) => (g.team_a_id === id ? "a" : g.team_b_id === id ? "b" : null);
+  const phased = (g) => phasedDraft(g.draft);
+
+  // Per team, per phase: recency-weighted ban habit (plus a little of its overall habit).
+  const habit = (teamId) => {
+    const by = [new Map(), new Map(), new Map()];
+    let total = 0;
+    for (const g of drafted) {
+      const side = sideOf(g, teamId);
+      if (!side) continue;
+      const gw = w(g.start_time);
+      total += gw;
+      for (const s of phased(g)) if (s.kind === "ban" && s.side === side) by[Math.min(s.phase, 3) - 1].set(s.hero, (by[Math.min(s.phase, 3) - 1].get(s.hero) ?? 0) + gw);
+    }
+    return (h, phase) => (total ? ((by[phase - 1].get(h) ?? 0) + 0.3 * by.reduce((a, m) => a + (m.get(h) ?? 0), 0)) / total : 0);
+  };
+  const meta = [new Map(), new Map(), new Map()], contest = new Map();
+  for (const g of drafted) {
+    const seen = new Set();
+    for (const s of phased(g)) {
+      if (s.kind === "ban") meta[Math.min(s.phase, 3) - 1].set(s.hero, (meta[Math.min(s.phase, 3) - 1].get(s.hero) ?? 0) + 1);
+      seen.add(s.hero);
+    }
+    for (const h of seen) contest.set(h, (contest.get(h) ?? 0) + 1);
+  }
+  const metaRate = (h, phase) => (drafted.length ? (meta[phase - 1].get(h) ?? 0) / (drafted.length * 2) : 0);
+  const contestRate = (h) => (drafted.length ? (contest.get(h) ?? 0) / drafted.length : 0);
+
+  // Player pools: recent league games x2 (decayed), pubs since the last league night x1.
+  const pools = (team) => team.players.map((p) => {
+    const score = new Map(), league = new Map(), pub = new Map();
+    for (const g of d.games) for (const q of g.players) {
+      if (String(q.account_id) !== String(p.account_id)) continue;
+      score.set(q.hero, (score.get(q.hero) ?? 0) + 2 * w(g.start_time));
+      league.set(q.hero, (league.get(q.hero) ?? 0) + 1);
+    }
+    for (const g of pubsSince(d, p.account_id, since)) {
+      score.set(g.hero, (score.get(g.hero) ?? 0) + 1);
+      pub.set(g.hero, (pub.get(g.hero) ?? 0) + 1);
+    }
+    const total = [...score.values()].reduce((a, b) => a + b, 0) || 1;
+    return { player: p, share: (h) => (score.get(h) ?? 0) / total, heroes: [...score.keys()], league, pub };
+  });
+
+  const side = {
+    X: { team: first, habit: habit(first.id), left: pools(first) },
+    Y: { team: second, habit: habit(second.id), left: pools(second) },
+  };
+  const taken = new Set();
+  const allHeroes = new Set([...contest.keys(), ...side.X.left.flatMap((p) => p.heroes), ...side.Y.left.flatMap((p) => p.heroes)]);
+  const why = (p, h) => [p.league.get(h) ? `${p.league.get(h)} league game${p.league.get(h) === 1 ? "" : "s"}` : "", p.pub.get(h) ? `${p.pub.get(h)} recent pub${p.pub.get(h) === 1 ? "" : "s"}` : ""].filter(Boolean).join(", ");
+
+  const steps = [];
+  CM_ORDER.forEach(([who, kind, phase], i) => {
+    const us = side[who], them = side[who === "X" ? "Y" : "X"];
+    const base = { n: i + 1, who, team: us.team, kind, phase };
+    if (kind === "ban") {
+      const [wHabit, wThreat, wMeta] = phase === 1 ? [1.0, 0.8, 0.8] : phase === 2 ? [0.6, 1.2, 0.3] : [0.4, 1.5, 0.2];
+      let best = null;
+      for (const h of allHeroes) {
+        if (taken.has(h)) continue;
+        const threatBy = them.left.map((p) => ({ p, v: p.share(h) })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
+        const threat = threatBy.reduce((a, x) => a + x.v, 0);
+        const score = wHabit * us.habit(h, phase) + wThreat * threat + wMeta * metaRate(h, phase);
+        if (!best || score > best.score) best = { h, score, threatBy, habit: us.habit(h, phase), meta: metaRate(h, phase) };
+      }
+      if (!best) return;
+      taken.add(best.h);
+      // Reasons in order of how much each one counted.
+      const threat = best.threatBy.reduce((a, x) => a + x.v, 0);
+      const reasons = [
+        [wThreat * threat, threat >= 0.05 && best.threatBy[0] ? `${best.threatBy[0].p.player.name} plays it (${why(best.threatBy[0].p, best.h)})` : ""],
+        [wHabit * best.habit, best.habit >= 0.1 ? `${us.team.name} ban it a lot` : ""],
+        [wMeta * best.meta, best.meta >= 0.08 ? `a common phase ${phase} ban` : ""],
+      ].filter(([, t]) => t).sort((a, b) => b[0] - a[0]).map(([, t]) => t);
+      steps.push({ ...base, hero: best.h, why: reasons.join(" · ") || "best ban left" });
+    } else {
+      const early = phase === 1 ? 1 : phase === 2 ? 0.4 : 0;
+      let best = null;
+      for (const p of us.left) for (const h of p.heroes) {
+        if (taken.has(h)) continue;
+        const score = p.share(h) * (1 + early * contestRate(h));
+        if (!best || score > best.score) best = { p, h, score };
+      }
+      if (!best) {
+        const p = us.left.shift();
+        steps.push({ ...base, hero: null, player: p?.player ?? null, why: "no hero pool in the data" });
+        return;
+      }
+      taken.add(best.h);
+      us.left = us.left.filter((p) => p !== best.p);
+      steps.push({ ...base, hero: best.h, player: best.p.player, why: `${best.p.player.name}: ${why(best.p, best.h)}` });
+    }
+  });
+  return steps;
 }

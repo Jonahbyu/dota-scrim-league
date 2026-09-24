@@ -29,9 +29,12 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   have predicted each week from earlier weeks only. The model: team ratings fitted to every
   game result (PlayOn scores), pulled toward a roster-medal starting point, with the pull and
   medal weight tuned by replaying the season; games treated as independent (2–0 = p²).
-  Each series has a draft read: likely bans (team ban history, what the opponents play,
-  division ban rates) and likely picks per player (league heroes counted double, pubs since
-  the last league night, minus likely bans). Stored in Firestore `scrimLeague/data/predictions`.
+  The model's call never hedges: it takes the favourite 2–0 (the odds bar stays honest).
+  Each series has the model's full draft: all 24 steps in S48's Captains Mode order (first-pick
+  team bans 3/2/2, the other 4/1/2), with a toggle for who has first pick. Bans weigh the
+  team's recency-weighted ban habit in that phase, what the opponents still to pick have been
+  playing (league games with a two-week half-life, pubs since the last league night), and the
+  division's usual bans; picks give each player the best hero left in their pool. Stored in Firestore `scrimLeague/data/predictions`.
 - **Recent pubs** (AD2L) — each rostered player's public/ranked games since the last league
   night (smurfs included), from OpenDota at sync time: columns on the Players table and a
   section on player pages.

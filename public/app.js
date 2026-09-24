@@ -10,7 +10,7 @@ import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.
 import { buildPlayerIndex, matchPlayers, nameKey } from "./lib/players.js";
 import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
 import { asAd2l, guessTeams, teamByName } from "./lib/unticketed.js";
-import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks } from "./lib/predict.js";
+import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks, modelCall, predictDraft } from "./lib/predict.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid, listPredictions, savePrediction } from "./lib/store.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
@@ -433,9 +433,9 @@ const SOURCES = {
   },
   ad2l: {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
-    link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/games",
+    link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/week",
     empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/games", "games", "Games"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/teams", "teams", "Teams"], ["#/ad2l/tiers", "tiers", "Tiers"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/draft", "draft", "Draft"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
   },
 };
 
@@ -486,7 +486,7 @@ async function renderMatch(id, src) {
       b.textContent = "Deleting…";
       try {
         await deleteMatch(m.id, m.unticketed ? "ad2l" : "scrim");
-        if (m.unticketed) { await ad2lUploaded(true); location.hash = "#/ad2l/games"; }
+        if (m.unticketed) { await ad2lUploaded(true); location.hash = "#/ad2l/week"; }
         else { await allMatches(true); location.hash = "#/"; }
       } catch (e) {
         b.disabled = false;
@@ -558,7 +558,7 @@ async function renderMatch(id, src) {
     : `Uploaded ${when(m.createdAt)}. Wrong? ${canDelete ? "You uploaded it, so you can delete it below." : "The uploader (from the browser they used) or the league admin can remove it."}`;
 
   app.innerHTML = `
-    <div class="kicker" style="margin-bottom:16px"><a href="${src.base}">← ${ad2l ? "All games" : "The ledger"}</a></div>
+    <div class="kicker" style="margin-bottom:16px"><a href="${src.base}">← ${ad2l ? "Weekly" : "The ledger"}</a></div>
     <section class="banner">
       ${plate("a")}${plate("b")}
       <div class="banner-meta">${esc(m.game_mode || "Match")} · <b>${dur(m.duration_sec)}</b></div>
@@ -811,22 +811,39 @@ async function renderPredict() {
   const label = (s, o) => (o === "tie" ? "1–1" : `${esc(teamName[o === "home" ? s.home : s.away])} 2–0`);
   const bar = (o, cls = "") => `<div class="pred-bar ${cls}">${OUTCOMES.map((k) => `<span class="seg ${k}" style="flex:${Math.max(o[k], 0.001)}" title="${Math.round(o[k] * 100)}%">${o[k] >= 0.12 ? `${Math.round(o[k] * 100)}%` : ""}</span>`).join("")}</div>`;
 
+  // The model's full draft for a series, in Captains Mode order, for either team on first
+  // pick (not known ahead of time); a toggle switches between the two.
+  const PHASE_ROWS = [["ban", 1, "Ban phase 1"], ["pick", 1, "First picks"], ["ban", 2, "Ban phase 2"], ["pick", 2, "Picks"], ["ban", 3, "Ban phase 3"], ["pick", 3, "Last picks"]];
+  const draftHtml = (steps, home) => PHASE_ROWS.map(([kind, phase, title]) => {
+    const row = steps.filter((x) => x.kind === kind && x.phase === phase);
+    return `<div class="pd-row ${kind}"><div class="pd-title">${title}</div><div class="pd-steps">${row.map((x) => `
+      <div class="pd-step ${x.team.id === home.id ? "a" : "b"} ${kind}" title="${x.n}. ${esc(x.team.name)} ${kind === "ban" ? "ban" : "pick"}${x.hero ? ` ${esc(x.hero)}` : ""} — ${esc(x.why)}">
+        <span class="pd-n">${x.n}</span>${x.hero ? portrait(x.hero) : ""}<span class="pd-hero">${x.hero ? esc(x.hero) : "?"}</span>${x.player ? `<span class="pd-player">${esc(x.player.name)}</span>` : ""}
+      </div>`).join("")}</div></div>`;
+  }).join("");
+
   const read = (s) => {
     const home = d.teams.find((t) => t.id === s.home), away = d.teams.find((t) => t.id === s.away);
     if (!home || !away) return "";
-    const col = (us, them) => {
+    const pools = (us, them) => {
       const r = draftRead(d, us, them, since);
       return `<div class="dr-col"><h4>${teamLink(SOURCES.ad2l, us.name, us.id)}</h4>
-        <div class="dr-sub">Likely bans <span class="muted">(from ${r.drafted} drafts)</span></div>
-        <div class="dr-bans">${r.bans.map((b) => `<span class="dr-chip" title="${esc([b.from_bans ? `They banned it ${b.from_bans} of ${b.bans_n}` : "", ...b.who.map((w) => `${w.name}: ${w.league} league, ${w.pub} pubs`)].filter(Boolean).join(" · ") || "Often banned in the division")}">${portrait(b.hero)}${esc(b.hero)} <b>${Math.round(b.chance * 100)}%</b></span>`).join("")}</div>
-        <div class="dr-sub">Likely picks</div>
         ${r.picks.map((p) => `<div class="dr-player"><div class="dr-name">${playerLink(SOURCES.ad2l, { name: p.player.name, account_id: p.player.account_id, key: String(p.player.account_id) })}
             <span class="muted">${p.pub ? `${p.pub.games} pubs since ${sinceLabel()} · ${p.pub.wins}–${p.pub.games - p.pub.wins}` : "no recent pubs"}</span></div>
           <div class="dr-heroes">${p.heroes.map((h) => `<span class="dr-chip" title="${h.league} league games, ${h.pub} recent pubs${h.ban_risk >= 0.2 ? ` · ${Math.round(h.ban_risk * 100)}% ban risk` : ""}">${portrait(h.hero)}${esc(h.hero)} <b>${Math.round(h.chance * 100)}%</b></span>`).join("") || '<span class="muted">—</span>'}</div></div>`).join("")}
       </div>`;
     };
-    return `<details class="dr"><summary>Model's draft read</summary><div class="dr-cols">${col(home, away)}${col(away, home)}</div>
-      <p class="table-note">Bans: how often that team bans it, how much the other side plays it (league games and pubs since ${sinceLabel()}), and how often the division bans it. Picks: each player's league heroes (counted double) and recent pubs, minus what the other side is likely to ban. Percentages are rough.</p></details>`;
+    return `<details class="dr"><summary>Model's draft</summary>
+      <div class="pd-toggle" role="group" aria-label="First pick">
+        <span class="pd-lbl">First pick</span>
+        <button type="button" data-fp="home" aria-pressed="true">${esc(home.name)}</button>
+        <button type="button" data-fp="away" aria-pressed="false">${esc(away.name)}</button>
+      </div>
+      <div class="pd" data-for="home">${draftHtml(predictDraft(d, home, away, since), home)}</div>
+      <div class="pd" data-for="away" hidden>${draftHtml(predictDraft(d, away, home, since), home)}</div>
+      <p class="table-note">All 24 steps in S48's Captains Mode order: the first-pick team bans 3, 2 and 2 across the phases and the other team 4, 1 and 2. Each ban weighs how often (and how recently) that team bans the hero in that phase, what the other team's players still to pick have been playing (league games from the last few weeks count most, plus pubs since ${sinceLabel()}), and the division's usual bans. Each pick gives an unpicked player the best hero left in their pool; early picks lean toward heroes that get contested. Hover any step for why.</p>
+      <div class="dr-sub">Player pools</div>
+      <div class="dr-cols">${pools(home, away)}${pools(away, home)}</div></details>`;
   };
 
   const card = (s) => {
@@ -837,7 +854,9 @@ async function renderPredict() {
     return `<article class="pred-card" data-sid="${s.id}">
       <div class="pred-when">${new Date(s.time * 1000).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}${locked ? ' · <b class="s-b">Locked</b>' : ""}</div>
       <div class="pred-teams"><span class="a">${teamLink(SOURCES.ad2l, teamName[s.home], s.home)}</span><i>vs</i><span class="b">${teamLink(SOURCES.ad2l, teamName[s.away], s.away)}</span></div>
-      <div class="pred-row"><span class="pred-lbl">Model</span>${bar(o)}</div>
+      <div class="pred-call"><span class="pred-lbl">Model's call</span><b class="${modelCall(o) === "home" ? "s-a" : "s-b"}">${label(s, modelCall(o))}</b>
+        <span class="pred-conf">${(() => { const e = Math.abs(o.game - 0.5); return e >= 0.15 ? "Lock it in." : e >= 0.07 ? "Confident." : "Gut call, still sweeping."; })()}</span></div>
+      <div class="pred-row"><span class="pred-lbl">Odds</span>${bar(o)}</div>
       ${c && c.n ? `<div class="pred-row"><span class="pred-lbl">Crowd <small>${c.n}</small></span>${bar(c, "crowd")}</div>` : ""}
       <div class="pred-picks" role="group" aria-label="Your pick">${OUTCOMES.map((k) => `<button type="button" data-pick="${k}" aria-pressed="${my?.pick === k}" ${locked || !preds ? "disabled" : ""}>${label(s, k)}</button>`).join("")}</div>
       ${read(s)}
@@ -866,6 +885,7 @@ async function renderPredict() {
 
   const called = bt.filter((x) => x.correct).length;
   const ties = bt.filter((x) => x.actual === "tie").length;
+  const decisive = bt.filter((x) => x.actual !== "tie");
   app.innerHTML = `${pageHead(kicker, "Predictions", `Call each series: a 2–0 either way or a 1–1 split. One point per correct call. Picks lock when the series starts, and you can change yours until then. The model plays too.`)}
     <div class="pred-name panel">
       <label>Your name <input id="pred-name" maxlength="24" value="${esc(name)}" placeholder="Type your name" autocomplete="nickname"></label>
@@ -882,7 +902,7 @@ async function renderPredict() {
     ${st.length ? `<div id="pred-st"></div>` : `<div class="panel empty">No scored picks yet. Standings start once a series you picked has been played.</div>`}
     <details class="how"><summary>How the model works</summary>
       <p>Each team has a strength rating fitted to every game result so far (PlayOn's series scores, so games OpenDota never saw still count). With only ${playedNights.length} weeks played, results alone jump around, so each rating is pulled toward a starting point from the roster's average PlayOn medal. How hard to pull, and how much medals matter, were chosen by replaying the season: predicting each week from only the weeks before it and keeping what did best.</p>
-      <p>Honest read so far: results haven't predicted the next week much better than a coin flip, so the chosen settings lean on medals and keep most series close. A two-game series between even teams ends 1–1 half the time, which is why the model often calls a split. Replayed over the season it called <b>${called} of ${bt.length}</b> series; always guessing 1–1 would have got ${ties}.</p>
+      <p>The model's call never hedges: it takes the favourite to win 2–0, even when a 1–1 split is the single likeliest result. The odds bar stays honest: results so far haven't predicted the next week much better than a coin flip, so the settings lean on medals and most series look close. Replayed over the season, the bold calls got <b>${called} of ${bt.length}</b> series exactly right${decisive.length ? ` and picked the right team in ${decisive.filter((x) => x.pick === x.actual).length} of the ${decisive.length} that weren't 1–1` : ""}; always calling 1–1 would have got ${ties}.</p>
       <p>Game odds are treated as independent, so a 2–0 is the single-game chance squared. Settings in use: pull ${params.lambda}, medal weight ${params.beta}.</p>
     </details>
     ${past ? `<h2>Past weeks</h2>${past}<p class="table-note">Model = what it would have picked that week from earlier results only. Crowd = most-picked call (count after it). Picks saved after a series started don't count.</p>` : ""}`;
@@ -892,6 +912,10 @@ async function renderPredict() {
     ["points", "Points", null, "", "gold"], ["picks", "Picks"], ["accuracy", "Correct %", pct, "", "jade"],
   ], st, "points");
 
+  app.querySelectorAll("details.dr").forEach((dr) => dr.querySelectorAll("[data-fp]").forEach((b) => b.onclick = () => {
+    dr.querySelectorAll("[data-fp]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    dr.querySelectorAll(".pd").forEach((x) => (x.hidden = x.dataset.for !== b.dataset.fp));
+  }));
   const input = document.getElementById("pred-name");
   document.getElementById("pred-name-save").onclick = () => {
     const n = input.value.trim().slice(0, 24);
@@ -1622,8 +1646,8 @@ function route() {
   let section, page;
   if (isAd2l) {
     const gameId = /^#\/ad2l\/game\/(\d+|[0-9a-f]{32})$/.exec(h)?.[1];
-    if (gameId) { section = "games"; page = () => renderMatch(gameId, src); }
-    else if (h.startsWith("#/ad2l/games")) { section = "games"; page = () => renderMatches(src); }
+    if (gameId) { section = "week"; page = () => renderMatch(gameId, src); }
+    else if (h.startsWith("#/ad2l/games")) { section = "week"; page = () => renderWeek(src, 0); } // old Games tab: Weekly lists every game
     else if (h.startsWith("#/ad2l/teams")) { section = "teams"; page = () => renderTeams(src, decodeURIComponent(h.split("/")[3] ?? "")); }
     else if (h.startsWith("#/ad2l/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
     else if (h.startsWith("#/ad2l/tiers")) { section = "tiers"; page = () => renderTiers(src); }
