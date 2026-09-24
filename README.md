@@ -26,6 +26,11 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   in; the league admin can delete any.
 - **Player pages** — click any player name: record, KDA, GPM, damage, kill participation,
   tier, best games, hero pool (W–L per hero) and every game they played (sortable).
+- **Gold graphs** (AD2L) — each game: gold lead minute by minute with each side's biggest lead
+  marked, XP lead, and every player's gold. Team pages: average lead curve, record when
+  ahead/behind at 20', comebacks and throws (5k+ leads). Player and hero pages: average
+  gold curve against the division's average core and support. Weekly: biggest comeback.
+  Data is OpenDota's parsed-replay gold (total gold earned, like OpenDota's own graph).
 - **Hero pages** — click any hero: record, pick and ban rates, average draft slot (AD2L),
   best team and player on it, biggest games, a teams table (picks, W–L, win % on the hero,
   who played it, bans for and against), a players table and every game it was in.

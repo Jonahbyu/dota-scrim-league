@@ -178,6 +178,10 @@ for (const id of [...candidates].sort()) {
     winner: d.radiant_win ? "a" : "b",
     duration_sec: d.duration,
     game_mode: "Captains Mode",
+    // Per-minute series from the parsed replay (null if OpenDota hasn't parsed it):
+    // team A's net-worth and XP lead (negative = team B ahead).
+    gold_adv: Array.isArray(d.radiant_gold_adv) ? d.radiant_gold_adv : null,
+    xp_adv: Array.isArray(d.radiant_xp_adv) ? d.radiant_xp_adv : null,
     players: [...d.players].sort((x, y) => x.player_slot - y.player_slot).map((p) => ({
       team: p.isRadiant ? "a" : "b",
       name: owner.get(p.account_id)?.name ?? p.personaname ?? (p.account_id ? `account ${p.account_id}` : "anonymous"),
@@ -192,6 +196,8 @@ for (const id of [...candidates].sort()) {
       level: p.level, kills: p.kills, deaths: p.deaths, assists: p.assists,
       net_worth: p.net_worth ?? p.total_gold ?? 0, last_hits: p.last_hits, denies: p.denies,
       gpm: p.gold_per_min, xpm: p.xp_per_min, hero_damage: p.hero_damage ?? 0, hero_healing: p.hero_healing ?? 0,
+      // Gold at each minute (OpenDota gold_t), for per-player and per-hero curves.
+      gold_t: Array.isArray(p.gold_t) ? p.gold_t : null,
     })),
   });
 }
@@ -207,6 +213,8 @@ const out = {
   games,
 };
 await mkdir(path.dirname(OUT), { recursive: true });
-await writeFile(OUT, JSON.stringify(out, null, 1) + "\n");
+// Pretty-printed, but arrays of numbers (the per-minute series) stay on one line.
+const json = JSON.stringify(out, null, 1).replace(/\[\s*(-?\d+(?:\s*,\s*-?\d+)*)\s*\]/g, (_, xs) => `[${xs.replace(/\s+/g, "")}]`);
+await writeFile(OUT, json + "\n");
 console.log(`  ${games.length} division games from league ${LEAGUE_ID}; ${odCalls} OpenDota calls this run`);
 console.log(`wrote ${path.relative(ROOT, OUT)}`);

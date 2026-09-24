@@ -328,6 +328,49 @@ td.bar.ember { --bar: rgba(255, 90, 54, .55); }
 .week-btn { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--seam-2); color: var(--bone); }
 .week-btn:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
 .week-btn.off { color: var(--dim); border-color: var(--seam); }
+/* charts (lib/charts.js): team A jade, team B ember, the subject gold, averages dashed */
+figure.chart { margin: 0 0 6px; padding: 14px 14px 10px; background: var(--stone); border: 1px solid var(--seam); }
+figure.chart svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+figure.chart .grid { stroke: var(--seam); stroke-width: 1; }
+figure.chart .zero { stroke: var(--seam-2); stroke-width: 1.5; }
+figure.chart .tick { font: 500 10px var(--mono); fill: var(--dim); }
+figure.chart .side-label { font: 600 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+figure.chart .s-a { color: var(--jade); fill: var(--jade); stroke: var(--jade); }
+figure.chart .s-b { color: var(--ember); fill: var(--ember); stroke: var(--ember); }
+figure.chart text.s-a, figure.chart text.s-b { stroke: none; }
+figure.chart .area { stroke: none; opacity: .22; }
+figure.chart .lead-line { fill: none; stroke: var(--bone); stroke-width: 2; }
+figure.chart .xp-line { fill: none; stroke: var(--dust); stroke-width: 1.5; stroke-dasharray: 5 4; }
+figure.chart .peak { stroke: var(--ink); stroke-width: 2; }
+figure.chart .peak-label { font: 600 11px var(--mono); }
+figure.chart .cross { stroke: var(--gold); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+figure.chart path.line { fill: none; stroke-width: 1.6; opacity: .8; transition: opacity .15s, stroke-width .15s; }
+figure.chart path.line.s-a { stroke: var(--jade); }
+figure.chart path.line.s-b { stroke: var(--ember); }
+figure.chart path.line.s-mine { stroke: var(--gold); }
+figure.chart path.line.s-ref { stroke: var(--bone); }
+figure.chart path.line.s-ref2 { stroke: var(--dust); }
+figure.chart path.line.dash { stroke-dasharray: 6 5; opacity: .6; }
+figure.chart path.line.strong { stroke-width: 3; opacity: 1; }
+figure.chart.focus path.line { opacity: .12; }
+figure.chart.focus path.line.on { opacity: 1; stroke-width: 3; }
+.chart-read { font: 500 11px/1.6 var(--mono); color: var(--dust); margin-top: 8px; min-height: 1.6em; }
+.chart-read b { color: var(--bone); }
+.chart-read b.s-a { color: var(--jade); }
+.chart-read b.s-b { color: var(--ember); }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font: 500 11px var(--mono); color: var(--dust); }
+.chart-legend .lg-item { display: inline-flex; align-items: center; gap: 6px; cursor: default; }
+.chart-legend .lg-item i { width: 14px; height: 3px; background: currentColor; }
+.chart-legend .lg-item.dash i { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px); }
+.chart-legend .lg-item.s-a { color: var(--jade); }
+.chart-legend .lg-item.s-b { color: var(--ember); }
+.chart-legend .lg-item.s-mine { color: var(--gold); }
+.chart-legend .lg-item.s-ref { color: var(--bone); }
+.chart-legend .lg-item.s-ref2 { color: var(--dust); }
+.chart-legend .lg-item:hover { text-decoration: underline; }
+.swing-story { margin: 8px 0 0; color: var(--dust); }
+.swing-story b { color: var(--bone); }
+
 /* hero names that open the hero page */
 a.hero-link, span.hero-link { color: inherit; cursor: pointer; text-decoration: none; }
 a.hero-link:hover, span.hero-link:hover, span.hero-link:focus-visible { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }

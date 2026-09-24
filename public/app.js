@@ -3,7 +3,9 @@ import { validateMatch } from "./lib/validate.js";
 import { withDerived, playerLeaderboard, heroStats, hasDetails, playerKey, playerHistory, heroHistory, heroSlug } from "./lib/stats.js";
 import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
 import { heroImg } from "./lib/hero-meta.js";
-import { listTeams, teamHistory, teamSlug } from "./lib/teams.js";
+import { listTeams, teamHistory, teamSlug, sideOf } from "./lib/teams.js";
+import { hasTimeline, swings, teamTimeline, goldCurves, byPlayer, byHero, BIG_LEAD } from "./lib/timeline.js";
+import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
 import { buildPlayerIndex, matchPlayers } from "./lib/players.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, listMatches, getMatch, deleteMatch, currentUid } from "./lib/store.js";
@@ -58,6 +60,23 @@ function heroLink(src, hero, nested = false) {
     ? `<span class="hero-link" role="link" tabindex="0" data-href="${href}">${esc(hero)}</span>`
     : `<a class="hero-link" href="${href}">${esc(hero)}</a>`;
 }
+// Short gold figure: 8,200 -> "8.2k".
+const kg = (v) => (Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v)));
+const GOLD_NOTE = "Gold = total gold earned per minute from the replay (OpenDota's graph); gold lost on death isn't subtracted, so it can differ from final net worth.";
+
+// Average gold curve for one player or hero against the division's core and support averages.
+function goldCurveSection(matches, match, what) {
+  const c = goldCurves(matches, match);
+  if (c.games < 1 || c.mine.length < 2) return "";
+  return `<h2>Gold over time</h2>
+    ${lineChart([
+      { label: what, values: c.mine, cls: "s-mine", strong: true },
+      { label: "Average core", values: c.core, cls: "s-ref", dash: true },
+      { label: "Average support", values: c.support, cls: "s-ref2", dash: true },
+    ], { caption: `Average gold at each minute over ${c.games} game${c.games === 1 ? "" : "s"}, against the division's average core and support. Hover for values.` })}
+    <p class="table-note">${GOLD_NOTE}</p>`;
+}
+
 const loading = (kicker, title) => `${pageHead(kicker, title)}<div class="panel empty">Loading…</div>`;
 
 const STATS = [
@@ -496,6 +515,7 @@ async function renderMatch(id, src) {
       ${plate("a")}${plate("b")}
       <div class="banner-meta">${esc(m.game_mode || "Match")} · <b>${dur(m.duration_sec)}</b></div>
     </section>
+    ${timelineHtml(m, src)}
     <h2>Standouts</h2>
     <div class="cards reveal">${cards.map(([k, { p, v }], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s"><b>${playerLink(src, p)}</b> · ${heroLink(src, p.hero)}</div></div>`).join("")}
       <div class="card" style="--i:4"><div class="k">Team hero damage</div><div class="v pair">${fmt(ta)} <span class="muted">/</span> ${fmt(tb)}</div>
@@ -510,6 +530,23 @@ async function renderMatch(id, src) {
       </tbody></table></div>
     <p class="table-note">▲ best in match. Dmg/min = hero damage ÷ minutes. Dmg per 1k NW = hero damage per 1,000 net worth (efficiency). KP = (kills + assists) ÷ team score.<br>${footer}</p>${deleteBtn}`;
   wireDelete();
+  wireCharts(app);
+}
+
+// A game's gold story: the lead chart with each side's peak, and every player's gold.
+function timelineHtml(m, src) {
+  if (!hasTimeline(m)) return "";
+  const s = swings(m);
+  const winner = m.winner === "a" ? m.team_a : m.team_b, loser = m.winner === "a" ? m.team_b : m.team_a;
+  const story = s.thrown >= BIG_LEAD
+    ? `<b>${esc(loser)}</b> led by ${kg(s.thrown)} at ${s.thrown_minute}' and lost — a comeback for ${esc(winner)}.`
+    : s.thrown >= 1000 ? `${esc(loser)}'s best was a ${kg(s.thrown)} lead at ${s.thrown_minute}'.` : `${esc(winner)} led wire to wire.`;
+  const lines = m.players.filter((p) => Array.isArray(p.gold_t)).map((p) => ({ label: `${p.name} (${p.hero})`, values: p.gold_t, cls: `s-${p.team}` }));
+  return `<h2>Gold lead</h2>
+    ${leadChart(m.gold_adv, { xp: m.xp_adv, nameA: m.team_a, nameB: m.team_b, id: `lead-${m.id}` })}
+    <p class="swing-story">${story} Lead changed hands ${s.lead_changes} time${s.lead_changes === 1 ? "" : "s"}${s.at10 != null ? ` · at 10': ${s.at10 >= 0 ? esc(m.team_a) : esc(m.team_b)} +${kg(Math.abs(s.at10))}` : ""}${s.at20 != null ? ` · at 20': ${s.at20 >= 0 ? esc(m.team_a) : esc(m.team_b)} +${kg(Math.abs(s.at20))}` : ""}.</p>
+    ${lines.length ? `<h2>Gold by player</h2>${lineChart(lines, { caption: "Each player's gold at every minute. Hover a name to pick out their line; hover the chart for values." })}` : ""}
+    <p class="table-note">${GOLD_NOTE}</p>`;
 }
 
 // ---------- AD2L standings ----------
@@ -638,6 +675,24 @@ async function renderPlayers(src) {
   ], data, "games", { toolbar: true });
 }
 
+// A team's gold story across its games: average lead by minute, comebacks and throws.
+function teamGoldHtml(h, team, src) {
+  const t = teamTimeline(h.games.map(({ m }) => m), (m) => sideOf(m, team));
+  if (!t) return "";
+  const rec = ({ games, wins }) => (games ? `${wins}–${games - wins}` : "—");
+  const gameRef = (r, text) => (r ? `<a href="${src.link(r.m)}">${text}</a> vs ${esc(r.side === "a" ? r.m.team_b : r.m.team_a)}` : "none yet");
+  const cards = [
+    ["Ahead at 20'", rec(t.ahead20), `record when leading at 20 minutes`],
+    ["Behind at 20'", rec(t.behind20), `record when trailing at 20 minutes`],
+    ["Comebacks", String(t.comebacks), `wins after trailing by ${kg(BIG_LEAD)}+ · biggest: ${gameRef(t.best_comeback, t.best_comeback ? kg(t.best_comeback.trail) : "")}`],
+    ["Throws", String(t.throws), `losses after leading by ${kg(BIG_LEAD)}+ · biggest: ${gameRef(t.worst_throw, t.worst_throw ? kg(t.worst_throw.led) : "")}`],
+  ];
+  return `<h2>Gold lead</h2>
+    <div class="cards reveal">${cards.map(([k, v, s], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>
+    ${leadChart(t.curve, { nameA: team.name, nameB: "Opponents", id: `team-lead-${team.slug}` })}
+    <p class="table-note">Average gold lead at each minute over ${t.games} game${t.games === 1 ? "" : "s"} with replay data. ${GOLD_NOTE}</p>`;
+}
+
 // ---------- Player page ----------
 
 async function renderPlayer(src, key) {
@@ -685,11 +740,13 @@ async function renderPlayer(src, key) {
       ${bestCard("Best KDA", h.best.kda, `${h.best.kda.p.kills}/${h.best.kda.p.deaths}/${h.best.kda.p.assists}`, 1)}
       ${bestCard("Top GPM", h.best.gpm, fmt(h.best.gpm.p.gpm), 2)}
     </div>
+    ${goldCurveSection(matches, byPlayer(key), s.name)}
     <h2>Hero pool</h2>
     <div class="hero-chips">${h.heroes.map((x) => `<div class="hero-chip" title="KDA ${x.kda.toFixed(2)}">${portrait(x.hero)}<span>${heroLink(src, x.hero)}</span><b>${x.wins}–${x.games - x.wins}</b></div>`).join("")}</div>
     <h2>Every game</h2>
     <div id="t"></div>
     <p class="table-note">Newest first. Sort with the menu or any column header; the arrow opens the game.</p>`;
+  wireCharts(app);
 
   sortableTable(document.getElementById("t"), [
     ["date", "Date", (v) => when(new Date(v)), "l"],
@@ -769,12 +826,14 @@ async function renderHero(src, slug) {
   app.innerHTML = `${head}
     <div class="cards reveal">${cards.map(([k, v, t], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
     ${hl.length ? `<h2>Highlights</h2><div class="cards reveal">${hl.map(([k, v, t], i) => `<div class="card hl" style="--i:${i}"><div class="k">${k}</div><div class="v small">${v}</div><div class="s">${t}</div></div>`).join("")}</div>` : ""}
+    ${goldCurveSection(matches, byHero(hero), hero)}
     <h2>Teams</h2>
     <div id="teams"></div>
     <p class="table-note">Win % is that team's record when they picked ${esc(hero)}.${S.drafted ? " Bans come from Captains Mode drafts; “Banned vs them” = opponents banned it against that team." : ""}</p>
     ${h.players.length ? `<h2>Players</h2><div id="players"></div>` : ""}
     ${h.games.length ? `<h2>Every game</h2><div id="games"></div><p class="table-note">Newest first. The arrow opens the game.</p>` : ""}`;
 
+  wireCharts(app);
   sortableTable(document.getElementById("teams"), [
     ["name", "Team", (v, r) => teamLink(src, v, r.id), "l"],
     ["picks", "Picks", null, "", "gold"], ["wins", "Wins"],
@@ -950,6 +1009,14 @@ async function renderWeek(src, back = 0) {
   // Highlights only from games with details (private scrims are results only).
   const detailed = inWeek.filter(hasDetails);
   const hl = detailed.length ? weekHighlights(detailed, src) : [];
+  // Biggest comeback of the week (games with a gold timeline).
+  const swung = detailed.filter(hasTimeline).map((m) => ({ m, s: swings(m) })).sort((a, b) => b.s.thrown - a.s.thrown)[0];
+  if (swung && swung.s.thrown >= 1000) {
+    const { m, s } = swung;
+    const winner = m.winner === "a" ? m.team_a : m.team_b, loser = m.winner === "a" ? m.team_b : m.team_a;
+    hl.push(["Biggest comeback", `<a href="${src.link(m)}">${kg(s.thrown)}</a>`,
+      `${teamLink(src, winner, m.winner === "a" ? m.team_a_id : m.team_b_id)} came back after ${teamLink(src, loser, m.winner === "a" ? m.team_b_id : m.team_a_id)} led by ${kg(s.thrown)} at ${s.thrown_minute}'`, null]);
+  }
   app.innerHTML = `
     <div class="week-top">
       ${pageHead(src.kicker, "Weekly recap", `Week of ${shortDate(start)} – ${shortDate(end)} · ${inWeek.length} game${inWeek.length === 1 ? "" : "s"}${src.key === "ad2l" ? " · drafts in pick/ban order" : ""}`)}
@@ -957,7 +1024,7 @@ async function renderWeek(src, back = 0) {
     </div>
     <div class="week-nav">${navBtn(back + 1, "← Earlier week", back < weeks.length - 1)}${navBtn(back - 1, "Later week →", back > 0)}</div>
     ${hl.length ? `<h2>Highlights</h2>
-    <div class="cards reveal">${hl.map(([k, v, s, hero], i) => `<div class="card hl" style="--i:${i}">${portrait(hero, "card-hero")}<div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>` : ""}
+    <div class="cards reveal">${hl.map(([k, v, s, hero], i) => `<div class="card hl" style="--i:${i}">${hero ? portrait(hero, "card-hero") : ""}<div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>` : ""}
     <h2>${src.key === "ad2l" ? "Series" : "Games"}</h2>
     ${body}`;
 }
@@ -1084,7 +1151,9 @@ async function renderTeams(src, slug) {
         <section><h2>Banned against them</h2><div class="hero-chips">${heroChips(h.banned_against, (x) => `×${x.n}`)}</div></section>
       </div>
       <p class="table-note">From ${h.drafted} drafted game${h.drafted === 1 ? "" : "s"}. Hero pool shows win–loss on each hero.</p>` : ""}
+    ${teamGoldHtml(h, team, src)}
     ${h.detailed.length ? `<h2>Player stats for this team</h2><div id="t"></div>` : ""}`;
+  wireCharts(app);
 
   document.getElementById("team-select").onchange = (e) => { location.hash = `${base}/${e.target.value}`; };
   if (h.detailed.length) {
