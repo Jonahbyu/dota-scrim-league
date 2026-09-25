@@ -10,7 +10,7 @@ import { routeOf, sharePath } from "../public/lib/share.js";
 
 const OUT = path.resolve(process.argv[2] ?? "_site");
 const SITE = "https://dota2scrimcircuittracker.github.io";
-const COLOR = { scrim: "#5fd39b", ad2l: "#e8b64c", heroic: "#a58bff" };
+const COLOR = { scrim: "#5fd39b", ad2l: "#e8b64c", heroic: "#a58bff", conqueror: "#5aa9e6" };
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const TZ = "America/Los_Angeles";
 const day = (sec) => new Date(sec * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: TZ });
@@ -98,6 +98,7 @@ league("ad2l", "ad2l", "AD2L S48 Champion", champ);
 const heroic = await load("heroic.json");
 league("heroic", "heroic", "AD2L S48 Heroic/Aegis", heroic, null);
 for (const div of ["A", "B"]) league(`heroic/${div.toLowerCase()}`, "heroic", "AD2L S48 Heroic/Aegis", inDivision(heroic, div), `Division ${div}`);
+league("conqueror", "conqueror", "AD2L S48 Conqueror", await load("conqueror.json"));
 
 // ---------- write ----------
 for (const { p, title, description, color } of pages) {

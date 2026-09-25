@@ -103,10 +103,12 @@ test("roster questions skip known aliases, division names and names answered sta
 });
 
 test("a forfeit against a bye week isn't a game anyone can upload", () => {
-  const h = JSON.parse(readFileSync(new URL("../public/data/heroic.json", import.meta.url), "utf8"));
-  const bye = h.teams.find((t) => /bye week/i.test(t.name));
-  assert.ok(bye, "Heroic/Aegis has a bye-week placeholder team");
-  const open = openGames(h);
-  assert.ok(open.length > 0);
-  assert.equal(open.filter((g) => g.series.home === bye.id || g.series.away === bye.id).length, 0);
+  for (const file of ["heroic.json", "conqueror.json"]) {
+    const h = JSON.parse(readFileSync(new URL(`../public/data/${file}`, import.meta.url), "utf8"));
+    const bye = h.teams.find((t) => /bye week/i.test(t.name));
+    assert.ok(bye, `${file} has a bye-week placeholder team`);
+    const open = openGames(h);
+    assert.ok(open.length > 0, file);
+    assert.equal(open.filter((g) => g.series.home === bye.id || g.series.away === bye.id).length, 0, file);
+  }
 });

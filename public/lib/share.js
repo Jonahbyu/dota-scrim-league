@@ -5,7 +5,7 @@
 // which then forwards to the #/ route. These two functions are the mapping both ways.
 
 const TABS = "week|players|heroes|predict|upload";
-const SHAREABLE = new RegExp(`^(?:(?:${TABS}|teams)|(?:ad2l|heroic(?:/[ab])?)(?:/(?:${TABS}))?|(?:ad2l|heroic)/(?:teams|game)/\\d+)?$`);
+const SHAREABLE = new RegExp(`^(?:(?:${TABS}|teams)|(?:ad2l|conqueror|heroic(?:/[ab])?)(?:/(?:${TABS}))?|(?:ad2l|heroic|conqueror)/(?:teams|game)/\\d+)?$`);
 
 // "#/heroic/b/week" -> "/heroic/b/week/"; null when the route has no preview page.
 export function sharePath(hash) {
@@ -16,5 +16,5 @@ export function sharePath(hash) {
 // "heroic/b/week" -> "#/heroic/b/week"; a bare league root keeps its trailing slash.
 export function routeOf(path) {
   const p = path.replace(/^\/+|\/+$/g, "");
-  return /^(ad2l|heroic(\/[ab])?)$/.test(p) ? `#/${p}/` : `#/${p}`;
+  return /^(ad2l|conqueror|heroic(\/[ab])?)$/.test(p) ? `#/${p}/` : `#/${p}`;
 }

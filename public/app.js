@@ -105,7 +105,7 @@ const STATS = [
 let matchesCache = null;
 async function allMatches(force = false) {
   if (!matchesCache || force) {
-    const [list, d] = await Promise.all([listMatches(), ad2lData().catch(() => null)]);
+    const [list, d] = await Promise.all([listMatches(), divData("ad2l").catch(() => null)]);
     // A known other name (aliases.js) counts as the player's roster name, as in AD2L games.
     matchesCache = list.map((m) => withDerived(m.players ? { ...m, players: m.players.map((p) => ({ ...p, name: aliasOf(d, p.name) ?? p.name })) } : m));
   }
@@ -121,8 +121,8 @@ function errorBox(e) {
 // ---------- Upload + review ----------
 
 const engine = createBrowserEngine();
-// league: "scrim" (the ledger), or "ad2l" / "heroic" (an unticketed game in that AD2L
-// division, same form).
+// league: "scrim" (the ledger), or an AD2L division key ("ad2l" = Champion, "heroic",
+// "conqueror"; see DIVISIONS) for an unticketed game in that division, same form.
 const upload = { images: [], draft: null, check: null, notes: [], names: [], standins: new Set(), busy: false, progress: "", message: null, isPrivate: false, league: "scrim", seriesId: null,
   // Private result form (scrims): no screenshots or players, just the result.
   quick: false, teams: [], newTeam: { a: false, b: false },
@@ -133,10 +133,10 @@ const upload = { images: [], draft: null, check: null, notes: [], names: [], sta
   // matched to the scrim by teams and time, not by this.
   fixture: null, fixtureQuick: false };
 // Is this league one of the AD2L divisions (vs the scrim ledger)?
-const isDiv = (league) => league === "ad2l" || league === "heroic";
+const isDiv = (league) => league in DIVISIONS;
 // Rosters the upload form checks names against: the division being uploaded to, and for
 // scrims the Champion teams (scrim teams are the Champion teams).
-const upData = () => (upload.league === "heroic" ? heroicCache : ad2lCache);
+const upData = () => divCache[isDiv(upload.league) ? upload.league : "ad2l"];
 // Private uploads only need a valid result; public ones need every player too. AD2L
 // uploads must name two division teams, so the game lands on the right team pages.
 function checkDraft(d) {
@@ -233,7 +233,7 @@ function addFiles(files) {
 
 // Snipping Tool: Win+Shift+S, then Ctrl+V anywhere on the upload page.
 document.addEventListener("paste", (e) => {
-  if (!/^#\/((ad2l|heroic(\/[ab])?)\/)?upload/.test(location.hash) || e.target.closest?.("input")) return;
+  if (!/^#\/(([a-z0-9]+)(\/[a-z])?\/)?upload/.test(location.hash) || e.target.closest?.("input")) return;
   const files = [...(e.clipboardData?.items ?? [])].filter((i) => i.kind === "file").map((i) => i.getAsFile()).filter(Boolean);
   if (files.length) { e.preventDefault(); addFiles(files); }
 });
@@ -255,7 +255,7 @@ async function runParse() {
     if (isDiv(upload.league)) { await SOURCES[upload.league].data(); await divUploaded(upload.league); upload.notes = [...upload.notes, ...guessTeams(match, upData())]; guessSeries(match); }
     // Scrim teams are the Champion teams: name a side after the roster most of it is on
     // (unless the schedule already named both sides).
-    else if (!upload.fixture && ad2lCache) upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)];
+    else if (!upload.fixture && divCache.ad2l) upload.notes = [...upload.notes, ...guessTeams(match, divCache.ad2l)];
     upload.check = checkDraft(match);
     upload.message = { kind: "ok", text: "Done. Check every value against your screenshots: red boxes couldn't be read." };
   } catch (e) {
@@ -269,7 +269,7 @@ async function runParse() {
 // Known players: the division's rosters (plus stand-ins; Champion for scrims) and names
 // from saved scrims.
 async function playerIndex(league = upload.league) {
-  const [ad2l, scrims] = await Promise.all([(league === "heroic" ? heroicData() : ad2lData()).catch(() => null), allMatches().catch(() => [])]);
+  const [ad2l, scrims] = await Promise.all([divData(isDiv(league) ? league : "ad2l").catch(() => null), allMatches().catch(() => [])]);
   return buildPlayerIndex(ad2l, scrims);
 }
 
@@ -455,7 +455,7 @@ function privateHtml(d) {
 async function privateTeams() {
   const names = new Map();
   const add = (n) => { if (n && !names.has(n.trim().toLowerCase())) names.set(n.trim().toLowerCase(), n.trim()); };
-  for (const t of (await ad2lData().catch(() => null))?.teams ?? []) add(t.name);
+  for (const t of (await divData("ad2l").catch(() => null))?.teams ?? []) add(t.name);
   try { for (const t of listTeams(await allMatches())) add(t.name); } catch { /* offline: new-team entry still works */ }
   return [...names.values()].sort((x, y) => x.localeCompare(y));
 }
@@ -556,7 +556,7 @@ async function renderEdit(id, league) {
   try { m = await getMatch(id, league); } catch (e) { app.innerHTML = errorBox(e); return; }
   if (!m) { app.innerHTML = `<div class="notice err">No such game.</div>`; return; }
   if (m.uid !== (await currentUid()) && !editUnlocked()) { location.hash = back; return; }
-  await (league === "heroic" ? heroicData() : ad2lData()).catch(() => null); // rosters: AD2L teams, and the name questions
+  await divData(isDiv(league) ? league : "ad2l").catch(() => null); // rosters: AD2L teams, and the name questions
   if (upload.editing?.id !== id) {
     let teams = [];
     if (m.private) teams = await privateTeams();
@@ -638,7 +638,7 @@ function renderUpload() {
   document.getElementById("parse").onclick = runParse;
   const priv = document.getElementById("private-result");
   if (priv) priv.onclick = startPrivate;
-  document.getElementById("manual").onclick = async () => { await (upload.league === "heroic" ? heroicData() : ad2lData()).catch(() => null); upload.quick = false; upload.draft = blankDraft(); fillFixtureTeams(upload.draft); upload.seriesId = null; upload.notes = []; upload.names = []; upload.standins = new Set(); upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
+  document.getElementById("manual").onclick = async () => { await divData(isDiv(upload.league) ? upload.league : "ad2l").catch(() => null); upload.quick = false; upload.draft = blankDraft(); fillFixtureTeams(upload.draft); upload.seriesId = null; upload.notes = []; upload.names = []; upload.standins = new Set(); upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
   const clear = document.getElementById("clear");
   if (clear) clear.onclick = () => { for (const i of upload.images) URL.revokeObjectURL(i.url); upload.images = []; renderUpload(); };
 
@@ -711,12 +711,16 @@ function wireDraft() {
 }
 
 // ---------- Leagues ----------
-// Three data sources share the same pages: community scrims (screenshots uploaded to
-// Firestore) and two AD2L divisions' ticketed games: Champion (data/ad2l.json, from
-// `npm run ad2l:sync`) and Heroic (data/heroic.json, `npm run heroic:sync`), both built
-// offline from PlayOn rosters + OpenDota match details. Each division has its own unticketed
-// uploads and predictions; the scrim
-// team lists use Champion's, so `ad2lCache` is always Champion.
+// The same pages show community scrims (screenshots uploaded to Firestore) and each AD2L
+// division's ticketed games (DIVISIONS: one data file each, built offline from PlayOn
+// rosters + OpenDota match details by `npm run <division>:sync`). Each division has its own
+// unticketed uploads and predictions under its key; the scrim team lists use Champion's
+// ("ad2l"). `views`: the division is played in sub-divisions (Heroic/Aegis: A and B).
+const DIVISIONS = {
+  ad2l: { name: "S48 Champion", short: "Champion", file: "data/ad2l.json" },
+  heroic: { name: "S48 Heroic/Aegis", short: "Heroic/Aegis", file: "data/heroic.json", views: ["a", "b"] },
+  conqueror: { name: "S48 Conqueror", short: "Conqueror", file: "data/conqueror.json" },
+};
 
 async function loadDivision(file) {
   const res = await fetch(file, { cache: "no-cache" });
@@ -725,15 +729,10 @@ async function loadDivision(file) {
   d.games = d.games.map((g) => withDerived({ ...g, createdAt: new Date(g.start_time * 1000) }));
   return d;
 }
-let ad2lCache = null;
-async function ad2lData() {
-  ad2lCache ??= await loadDivision("data/ad2l.json");
-  return ad2lCache;
-}
-let heroicCache = null;
-async function heroicData() {
-  heroicCache ??= await loadDivision("data/heroic.json");
-  return heroicCache;
+const divCache = {};
+async function divData(key) {
+  divCache[key] ??= await loadDivision(DIVISIONS[key].file);
+  return divCache[key];
 }
 
 // Unticketed games uploaded from screenshots (Firestore), per division. If the database
@@ -775,35 +774,31 @@ const SOURCES = {
     empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
     nav: [["#/", "matches", "Standings"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/predict", "predict", "Predict"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
-  // AD2L divisions: `ad2l` marks the PlayOn/OpenDota pages, `root` prefixes their routes,
-  // `data`/`cache` give that division's file.
-  ad2l: {
-    key: "ad2l", ad2l: true, root: "#/ad2l", data: ad2lData, cache: () => ad2lCache,
-    division: "S48 Champion", kicker: "AD2L · S48 Champion", load: () => divGames(SOURCES.ad2l),
-    link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/week",
-    empty: "No ticketed Champion games found yet.",
-    nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
-  },
-  heroic: {
-    key: "heroic", ad2l: true, root: "#/heroic", data: heroicData, cache: () => heroicCache,
-    division: "S48 Heroic/Aegis", kicker: "AD2L · S48 Heroic/Aegis", load: () => divGames(SOURCES.heroic),
-    link: (m) => `#/heroic/game/${m.id}`, base: "#/heroic/week",
-    empty: "No ticketed Heroic/Aegis games found yet.",
-    nav: [["#/heroic/", "standings", "Standings"], ["#/heroic/week", "week", "Weekly"], ["#/heroic/players", "players", "Players"], ["#/heroic/heroes", "heroes", "Heroes"], ["#/heroic/predict", "predict", "Predict"], ["#/heroic/upload", "upload", "Upload", "nav-cta"]],
-  },
 };
-// Heroic's Division A and B views (#/heroic/a/..., #/heroic/b/...): same pages and league key,
-// data narrowed to the division. Plain #/heroic/... is Combined.
-for (const v of ["a", "b"]) {
-  const div = v.toUpperCase(), root = `#/heroic/${v}`, h = SOURCES.heroic;
-  const src = SOURCES[`heroic_${v}`] = {
-    ...h, view: v, root,
-    data: async () => inDivision(await heroicData(), div), cache: () => heroicCache && inDivision(heroicCache, div),
-    kicker: `${h.kicker} · Division ${div}`, load: () => divGames(src),
+// AD2L divisions: `ad2l` marks the PlayOn/OpenDota pages, `root` prefixes their routes
+// (#/ad2l for Champion, #/<key> for the rest), `data`/`cache` give that division's file.
+for (const [key, dv] of Object.entries(DIVISIONS)) {
+  const root = `#/${key}`;
+  SOURCES[key] = {
+    key, ad2l: true, root, data: () => divData(key), cache: () => divCache[key],
+    division: dv.name, kicker: `AD2L · ${dv.name}`, load: () => divGames(SOURCES[key]),
     link: (m) => `${root}/game/${m.id}`, base: `${root}/week`,
-    empty: `No ticketed Division ${div} games found yet.`,
-    nav: h.nav.map(([href, ...rest]) => [href.replace("#/heroic", root), ...rest]),
+    empty: `No ticketed ${dv.short} games found yet.`,
+    nav: [[`${root}/`, "standings", "Standings"], [`${root}/week`, "week", "Weekly"], [`${root}/players`, "players", "Players"], [`${root}/heroes`, "heroes", "Heroes"], [`${root}/predict`, "predict", "Predict"], [`${root}/upload`, "upload", "Upload", "nav-cta"]],
   };
+  // Sub-division views (#/heroic/a/..., #/heroic/b/...): same pages and league key, data
+  // narrowed to that sub-division. Plain #/<key>/... is Combined.
+  for (const v of dv.views ?? []) {
+    const div = v.toUpperCase(), vroot = `${root}/${v}`, h = SOURCES[key];
+    const src = SOURCES[`${key}_${v}`] = {
+      ...h, view: v, root: vroot,
+      data: async () => inDivision(await divData(key), div), cache: () => divCache[key] && inDivision(divCache[key], div),
+      kicker: `${h.kicker} · Division ${div}`, load: () => divGames(src),
+      link: (m) => `${vroot}/game/${m.id}`, base: `${vroot}/week`,
+      empty: `No ticketed Division ${div} games found yet.`,
+      nav: h.nav.map(([href, ...rest]) => [href.replace(root, vroot), ...rest]),
+    };
+  }
 }
 
 // ---------- Matches ----------
@@ -2418,17 +2413,19 @@ leagueBtn.onclick = (e) => { e.stopPropagation(); setMenu(leagueMenu.hidden); };
 document.addEventListener("click", (e) => { if (!e.target.closest(".switcher")) setMenu(false); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
 
-// Heroic/Aegis division switch: Division A, Division B or Combined, keeping the current tab.
-// Pages tied to one team or game fall back to that tab's list, which may not include it.
+// Sub-division switch (Heroic/Aegis): Division A, Division B or Combined, keeping the current
+// tab. Pages tied to one team or game fall back to that tab's list, which may not include it.
 function divisionBar(src, h) {
   const bar = document.getElementById("div-switch");
-  bar.hidden = src.key !== "heroic";
+  const views = DIVISIONS[src.key]?.views;
+  bar.hidden = !views;
   if (bar.hidden) return;
+  const base = `#/${src.key}`;
   const rest = h.slice(src.root.length).replace(/^\/+/, "");
   const [first] = rest.split("/");
   const keep = { game: "week", games: "week", edit: "week", teams: "", player: "players", tiers: "players", draft: "heroes" };
   const path = first in keep ? keep[first] : rest;
-  bar.innerHTML = `<span class="div-label">View</span>${[["#/heroic/a", "Division A"], ["#/heroic/b", "Division B"], ["#/heroic", "Combined"]]
+  bar.innerHTML = `<span class="div-label">View</span>${[...views.map((v) => [`${base}/${v}`, `Division ${v.toUpperCase()}`]), [base, "Combined"]]
     .map(([root, label]) => `<a href="${root}/${path}" class="${root === src.root ? "active" : ""}"${root === src.root ? ' aria-current="page"' : ""}>${label}</a>`).join("")}
     <span class="div-note">${src.view ? `Only Division ${src.view.toUpperCase()} teams and the games between them` : "Both divisions together"}</span>`;
 }
@@ -2448,18 +2445,19 @@ shareBtn.onclick = async () => {
 function route() {
   setMenu(false);
   const h = location.hash || "#/";
-  const view = /^#\/heroic\/([ab])(?=\/|$)/.exec(h)?.[1];
-  const src = h.startsWith("#/ad2l") ? SOURCES.ad2l : view ? SOURCES[`heroic_${view}`] : h.startsWith("#/heroic") ? SOURCES.heroic : SOURCES.scrim;
+  // #/<division>/..., or #/<division>/<view>/... for a sub-division.
+  const [, key, view] = /^#\/([a-z0-9]+)(?:\/([a-z])(?=\/|$))?/.exec(h) ?? [];
+  const src = !isDiv(key) ? SOURCES.scrim : view && SOURCES[`${key}_${view}`] || SOURCES[key];
   const isAd2l = src.ad2l, r = src.root;
   document.body.dataset.league = src.key;
-  const divLabel = src.key === "heroic" ? (view ? `Division ${view.toUpperCase()}` : "Combined") : "";
+  const divLabel = DIVISIONS[src.key]?.views ? (src.view ? `Division ${src.view.toUpperCase()}` : "Combined") : "";
   document.title = isAd2l ? `AD2L ${src.division}${divLabel ? ` · ${divLabel}` : ""} · Scrim League` : "Scrim League";
-  document.getElementById("league-name").innerHTML = isAd2l ? `AD2L<b>${src.division}</b>${divLabel ? `<em class="div-badge">${view ? `Div ${view.toUpperCase()}` : "A + B"}</em>` : ""}` : "Scrim<b>League</b>";
+  document.getElementById("league-name").innerHTML = isAd2l ? `AD2L<b>${src.division}</b>${divLabel ? `<em class="div-badge">${src.view ? `Div ${src.view.toUpperCase()}` : DIVISIONS[src.key].views.join(" + ").toUpperCase()}</em>` : ""}` : "Scrim<b>League</b>";
   leagueMenu.querySelectorAll("a").forEach((a) => a.classList.toggle("current", a.dataset.league === src.key));
 
   let section, page;
   if (isAd2l) {
-    // Champion (#/ad2l) and Heroic (#/heroic) share these pages.
+    // Every AD2L division (#/ad2l, #/heroic, #/conqueror) shares these pages.
     const gameId = new RegExp(`^${r}/game/(\\d+|[0-9a-f]{32})$`).exec(h)?.[1];
     if (gameId) { section = "week"; page = () => renderMatch(gameId, src); }
     else if (h.startsWith(`${r}/games`)) { section = "week"; page = () => renderWeek(src, 0); } // old Games tab: Weekly lists every game

@@ -11,6 +11,7 @@
     "rules:test": "node scripts/rules-dry-test.cjs",
     "ad2l:sync": "node scripts/ad2l-sync.js",
     "heroic:sync": "node scripts/ad2l-sync.js --season 676 --out heroic.json",
+    "conqueror:sync": "node scripts/ad2l-sync.js --season 674 --out conqueror.json",
     "config:write": "node scripts/write-firebase-config.js"
   },
   "devDependencies": {

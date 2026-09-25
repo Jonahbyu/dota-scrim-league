@@ -139,6 +139,12 @@ const cases = [
   ["heroic: delete", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/heroic_unticketed/") } }, "ALLOW"],
   ["heroic: unknown collection still denied", { ...req(match({ series_id: 20690 })), path: PATH.replace("/matches/", "/aegis_unticketed/") }, "DENY"],
   ["prediction: heroic", predReq(pred({ league: "heroic" })), "ALLOW"],
+  // Conqueror: same again.
+  ["conqueror: unticketed game", { ...req(match({ series_id: 20690 })), path: PATH.replace("/matches/", "/conqueror_unticketed/") }, "ALLOW"],
+  ["conqueror: unticketed without series_id", { ...req(match()), path: PATH.replace("/matches/", "/conqueror_unticketed/") }, "DENY"],
+  ["conqueror: delete", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/conqueror_unticketed/") } }, "ALLOW"],
+  ["prediction: conqueror", predReq(pred({ league: "conqueror" })), "ALLOW"],
+  ["prediction: unknown league", predReq(pred({ league: "knight" })), "DENY"],
   ["prediction: heroic with a fixture id", { ...predReq(pred({ league: "heroic", series_id: FIX_ID })), path: SCRIM_PRED_PATH }, "DENY"],
 ];
 

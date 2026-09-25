@@ -21,6 +21,12 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   table holds bye placeholders and is dropped). A switch under the header picks the view:
   Division A (`#/heroic/a/`), Division B (`#/heroic/b/`) or Combined (`#/heroic/`), each
   showing only that division's teams, series and games on every tab.
+- **AD2L S48 Conqueror** — a third division in the switcher (PlayOn season 674), from
+  `public/data/conqueror.json` (`npm run conqueror:sync`), under `#/conqueror/`. Same pages as
+  Champion; predictions use `league: "conqueror"` and unticketed uploads go to
+  `conqueror_unticketed`. One division, no A/B split. Divisions are one table (`DIVISIONS` in
+  `public/app.js`): a new one needs an entry there, a sync script, a menu link, a colour, its
+  collection in `lib/store.js` and the rules.
 - **Tier list** (top of the Players tab) — every player with 3+ games, ranked S–D by in-season performance
   against same-role players plus win rate (see "Tier list" below).
 - **Weekly recap** — one week at a time: highlights (player of the week, biggest damage,

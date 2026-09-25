@@ -9,12 +9,12 @@
     // read from their post-game screenshots, so these rules are the only thing standing
     // between the league tables and junk. They check shape and plausible values; they do
     // not (cannot) prove a scoreboard is real.
-    // Three collections share the same rules: `matches` (scrims), and `ad2l_unticketed`
-    // (Champion) and `heroic_unticketed` (Heroic/Aegis): AD2L division games played without
-    // a league ticket, uploaded from screenshots the same way.
+    // These collections share the same rules: `matches` (scrims), and `ad2l_unticketed`
+    // (Champion), `heroic_unticketed` (Heroic/Aegis) and `conqueror_unticketed`: AD2L
+    // division games played without a league ticket, uploaded from screenshots the same way.
     match /scrimLeague/data/{coll}/{matchId} {
 
-      function knownColl() { return coll in ['matches', 'ad2l_unticketed', 'heroic_unticketed']; }
+      function knownColl() { return coll in ['matches', 'ad2l_unticketed', 'heroic_unticketed', 'conqueror_unticketed']; }
 
       // Anyone may read: the league tables are the point. The limit bound applies to
       // `list` because Firestore evaluates it against the query's potential result set.
@@ -120,9 +120,9 @@
         && request.resource.data.keys().hasOnly(['v', 'league', 'series_id', 'pick', 'name', 'uid', 'updatedAt'])
         && request.resource.data.keys().size() == 7
         && request.resource.data.v == 1
-        // AD2L picks (Champion "ad2l", "heroic") are on PlayOn series (int ids); scrim picks
+        // AD2L picks (Champion "ad2l", "heroic", "conqueror") are on PlayOn series (int ids); scrim picks
         // on a fixture's document ID.
-        && (request.resource.data.league in ['ad2l', 'heroic']
+        && (request.resource.data.league in ['ad2l', 'heroic', 'conqueror']
               ? request.resource.data.series_id is int
               : request.resource.data.league == 'scrim'
                 && request.resource.data.series_id is string

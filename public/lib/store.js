@@ -15,9 +15,9 @@ const app = initializeApp(FIREBASE_CONFIG, "scrim-league");
 const auth = getAuth(app);
 const db = getFirestore(app);
 // Scrims in `matches`; AD2L division games played without a league ticket, uploaded from
-// screenshots the same way, in `ad2l_unticketed` (Champion) and `heroic_unticketed`
-// (Heroic/Aegis). Same document shape and rules for all three.
-const COLLECTIONS = { scrim: "matches", ad2l: "ad2l_unticketed", heroic: "heroic_unticketed" };
+// screenshots the same way, in `ad2l_unticketed` (Champion), `heroic_unticketed`
+// (Heroic/Aegis) and `conqueror_unticketed`. Same document shape and rules for all of them.
+const COLLECTIONS = { scrim: "matches", ad2l: "ad2l_unticketed", heroic: "heroic_unticketed", conqueror: "conqueror_unticketed" };
 const coll = (league = "scrim") => collection(db, "scrimLeague", "data", COLLECTIONS[league]);
 
 export const MAX_MATCHES = 500;
@@ -147,7 +147,7 @@ export async function listPredictions() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data(), updatedAt: d.data().updatedAt?.toDate?.() ?? null }));
 }
 
-// league "ad2l" (Champion) or "heroic": seriesId is a PlayOn series (number); "scrim": a
+// league "ad2l" (Champion), "heroic" or "conqueror": seriesId is a PlayOn series (number); "scrim": a
 // fixture's document ID.
 export async function savePrediction(seriesId, pick, name, league = "ad2l") {
   await signedIn();

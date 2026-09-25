@@ -102,6 +102,11 @@ body[data-league="heroic"] .brand-mark i { background: #a58bff; }
 body[data-league="heroic"] .brand-mark i + i { background: #6a4fd6; }
 body[data-league="heroic"] .brand-word b { color: #b9a6ff; }
 body[data-league="heroic"] .league-menu a.current { border-left-color: #a58bff; background: rgba(165, 139, 255, .08); }
+/* Conqueror: steel blue, clear of gold, violet, jade and ember. */
+body[data-league="conqueror"] .brand-mark i { background: #5aa9e6; }
+body[data-league="conqueror"] .brand-mark i + i { background: #2f78b5; }
+body[data-league="conqueror"] .brand-word b { color: #8cc4f0; }
+body[data-league="conqueror"] .league-menu a.current { border-left-color: #5aa9e6; background: rgba(90, 169, 230, .08); }
 .div-badge {
   font: 600 11px/1 var(--mono); font-style: normal; letter-spacing: .12em; text-transform: uppercase;
   color: var(--ink); background: #a58bff; padding: 4px 6px; margin-left: 8px; vertical-align: middle; border-radius: 2px; white-space: nowrap;
