@@ -6,6 +6,9 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
 
 - **Scrims** — paste two post-game screenshots; the stats are read **in your browser**
   (Tesseract OCR — no AI, no API keys), you check them, and the game is saved.
+- **Scrim standings** — the scrim home page: every team ranked by game wins (then fewest
+  losses), with win %, average kill difference, last-five form and streak, above the match
+  list. Private scrims count.
 - **AD2L S48 Champion** — switch league in the top-left: standings, every ticketed game
   with full stats, players and heroes, pulled from PlayOn + OpenDota.
 - **Tier list** (top of the Players tab) — every player with 3+ games, ranked S–D by in-season performance
@@ -35,6 +38,14 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   team's recency-weighted ban habit in that phase, what the opponents still to pick have been
   playing (league games with a two-week half-life, pubs since the last league night), and the
   division's usual bans; picks give each player the best hero left in their pool. Stored in Firestore `scrimLeague/data/predictions`.
+- **Scrim predictions** (Scrims → Predict) — anyone adds an upcoming scrim (two teams, start
+  time, Bo1/Bo2/Bo3); everyone calls it until it starts, same name-based leaderboard as AD2L.
+  Each card has **Upload game N** and **Private result** buttons that open the upload page with
+  the scrim's team names filled in (and a one-click fix if the in-game names differ). No link
+  is stored: a game counts toward a scrim when it's between the same two teams and was uploaded
+  from 2 hours before the start to 3 days after (`public/lib/fixtures.js`). Odds come from a
+  rating per team fitted to every scrim result, pulled toward even. Stored in Firestore
+  `scrimLeague/data/scrim_fixtures`; picks share `predictions` with `league: "scrim"`.
 - **Recent pubs** (AD2L) — each rostered player's public/ranked games since the last league
   night (smurfs included), from OpenDota at sync time: columns on the Players table and a
   section on player pages.

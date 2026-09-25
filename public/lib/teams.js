@@ -35,6 +35,29 @@ export function record(matches, team) {
   return { wins, losses, games: wins + losses };
 }
 
+// Scrim standings: one row per team, ranked by game wins, then fewest losses, then name.
+// Private games count (they carry teams, winner and kill score). `form` is the last five
+// results, oldest first; `streak` is the current run, e.g. "W3".
+export function standingsRows(matches) {
+  return listTeams(matches).map((t) => {
+    const games = matches.map((m) => ({ m, side: sideOf(m, t) })).filter((x) => x.side)
+      .sort((a, b) => (a.m.createdAt ?? 0) - (b.m.createdAt ?? 0));
+    const results = games.map(({ m, side }) => (m.winner === side ? "W" : "L"));
+    let diff = 0;
+    for (const { m, side } of games) diff += side === "a" ? m.score_a - m.score_b : m.score_b - m.score_a;
+    let run = 0;
+    while (run < results.length && results[results.length - 1 - run] === results.at(-1)) run++;
+    return {
+      team: t.name, slug: t.slug, games: t.games, wins: t.wins, losses: t.losses,
+      win_rate: t.games ? t.wins / t.games : null,
+      kill_diff: t.games ? diff / t.games : null,
+      form: results.slice(-5),
+      streak: run ? `${results.at(-1)}${run}` : "",
+      last: games.at(-1)?.m.createdAt ?? null,
+    };
+  });
+}
+
 // Full history for one team: its games (newest first), plus aggregates.
 export function teamHistory(matches, team) {
   const games = matches.map((m) => ({ m, side: sideOf(m, team) })).filter((x) => x.side)

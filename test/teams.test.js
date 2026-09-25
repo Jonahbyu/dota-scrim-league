@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { listTeams, teamHistory, teamSlug, sideOf } from "../public/lib/teams.js";
+import { listTeams, teamHistory, teamSlug, sideOf, standingsRows } from "../public/lib/teams.js";
 import { parseDuration } from "../public/lib/validate.js";
 import { fingerprint } from "../public/lib/stats.js";
 
@@ -58,4 +58,23 @@ test("a private upload and a public upload of the same game share an id", () => 
   const other = game();
   other.players[0].hero = "Kez";
   assert.equal(fingerprint(other), fingerprint(pub));
+});
+
+test("standings: ranked by wins, with kill diff, form and streak", () => {
+  const at = (d) => new Date(`2026-09-${d}T20:00:00Z`);
+  const r = (a, b, sa, sb, winner, d) => ({ team_a: a, team_b: b, score_a: sa, score_b: sb, winner, duration_sec: 1800, createdAt: at(d), players: [] });
+  const rows = standingsRows([
+    r("Alpha", "Bravo", 30, 10, "a", 10),
+    r("bravo", "Alpha", 25, 20, "a", 11), // same team, different case
+    r("Alpha", "Charlie", 40, 20, "a", 12),
+    { ...r("Charlie", "Bravo", 15, 18, "b", 13), private: true },
+  ]);
+  assert.deepEqual(rows.map((x) => [x.team, x.wins, x.losses]), [["Alpha", 2, 1], ["Bravo", 2, 1], ["Charlie", 0, 2]]);
+  const alpha = rows[0];
+  assert.equal(alpha.kill_diff, (20 - 5 + 20) / 3);
+  assert.deepEqual(alpha.form, ["W", "L", "W"]);
+  assert.equal(alpha.streak, "W1");
+  assert.equal(rows[1].streak, "W2");
+  assert.equal(rows[2].streak, "L2");
+  assert.equal(rows[2].win_rate, 0);
 });

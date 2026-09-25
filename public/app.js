@@ -3,7 +3,7 @@ import { validateMatch } from "./lib/validate.js";
 import { withDerived, playerLeaderboard, heroStats, hasDetails, playerKey, playerHistory, heroHistory, heroSlug, hasMapStats, mapSummary, draftSlotRecord } from "./lib/stats.js";
 import { tierList, rankLabel, MIN_GAMES, K_PRIOR } from "./lib/tiers.js";
 import { heroImg } from "./lib/hero-meta.js";
-import { listTeams, teamHistory, teamSlug, sideOf } from "./lib/teams.js";
+import { listTeams, teamHistory, teamSlug, sideOf, standingsRows } from "./lib/teams.js";
 import { hasTimeline, swings, teamTimeline, teamObjectives, goldCurves, byPlayer, byHero, BIG_LEAD } from "./lib/timeline.js";
 import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
 import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.js";
@@ -685,7 +685,7 @@ const SOURCES = {
     key: "scrim", kicker: "The ledger", load: allMatches,
     link: (m) => `#/match/${m.id}`, base: "#/",
     empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
-    nav: [["#/", "matches", "Matches"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/predict", "predict", "Predict"], ["#/upload", "upload", "Upload", "nav-cta"]],
+    nav: [["#/", "matches", "Standings"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/predict", "predict", "Predict"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
   ad2l: {
     key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
@@ -698,7 +698,8 @@ const SOURCES = {
 // ---------- Matches ----------
 
 async function renderMatches(src) {
-  const title = src.key === "ad2l" ? "Games" : "Matches";
+  // Scrims have no official table, so the matches page leads with standings built from the games.
+  const title = src.key === "ad2l" ? "Games" : "Standings";
   app.innerHTML = loading(src.kicker, title);
   let data;
   try { data = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, title)}${errorBox(e)}`; return; }
@@ -706,6 +707,10 @@ async function renderMatches(src) {
   const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record${src.key === "ad2l" ? ` · ${data.length - unt} ticketed (from replays)${unt ? `, ${unt} unticketed (uploaded)` : ""} · <a href="#/ad2l/upload">Upload an unticketed game</a>` : ""}`;
   app.innerHTML = `
     ${pageHead(src.kicker, title, data.length ? count : "")}
+    ${src.key === "scrim" && data.length ? `<div id="standings" class="reveal"></div>
+      <p class="table-note">Ranked by game wins, then fewest losses. Private scrims count. <b>Kill ±</b> = average kill score
+        difference per game. <b>Form</b> = last five games, oldest first. Click a team for its history.</p>
+      <h2>Matches</h2>` : ""}
     ${data.length ? `<div class="fixtures reveal">${data.map((m, i) => `
       <a class="fixture win-${m.winner}" href="${src.link(m)}" style="--i:${Math.min(i, 12)}">
         <div class="fx-team a ${m.winner === "a" ? "" : "lost"}">${teamLink(src, m.team_a, m.team_a_id, true)}${m.winner === "a" ? "<small>Victory</small>" : ""}</div>
@@ -716,6 +721,14 @@ async function renderMatches(src) {
         <div class="fx-team b ${m.winner === "b" ? "" : "lost"}">${teamLink(src, m.team_b, m.team_b_id, true)}${m.winner === "b" ? "<small>Victory</small>" : ""}</div>
       </a>`).join("")}</div>`
     : `<div class="panel empty"><strong>No games yet</strong>${src.empty}</div>`}`;
+  const el = document.getElementById("standings");
+  if (!el) return;
+  const signed = (x) => (x == null ? "—" : `${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(x).toFixed(1)}`);
+  const form = (f) => `<span class="sos-faced">${f.map((r) => `<span class="sos-sq ${r.toLowerCase()}" title="${r === "W" ? "Won" : "Lost"}">${r}</span>`).join("")}</span>`;
+  sortableTable(el, [
+    ["team", "Team", (v) => teamLink(src, v), "l"], ["games", "GP"], ["wins", "W", null, "", "jade"], ["losses", "L"],
+    ["win_rate", "Win %", pct, "", "jade"], ["kill_diff", "Kill ±", signed], ["form", "Form", form, "l"], ["streak", "Streak"],
+  ], standingsRows(data), "wins");
 }
 
 async function renderMatch(id, src) {
