@@ -839,3 +839,27 @@ h3.pred-night { font: 800 16px/1.2 var(--display); letter-spacing: .06em; text-t
 .pd-n { font: 600 9px var(--mono); color: var(--dim); min-width: 14px; text-align: right; }
 .pd-player { font: 11px var(--mono); color: var(--gold); }
 @media (max-width: 640px) { .pd-row { grid-template-columns: 1fr 1fr; gap: 4px 8px; } .pd-title { grid-column: 1 / -1; padding-top: 4px; } .pd-sides > div:first-child { display: none; } }
+
+/* ---------- scrim schedule (Predict) ---------- */
+.pred-picks.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fx-meta { font: 12px/1.4 var(--mono); color: var(--dim); }
+.fx-meta b { color: var(--bone); font-weight: 600; }
+.fx-sofar { color: var(--gold); }
+.fx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fx-actions > button { padding: 8px 12px; }
+.fx-game { font: 600 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.fx-manage { margin-left: auto; display: flex; gap: 10px; }
+.fx-manage button.linkish { padding: 4px 0; line-height: 1.2; }
+.fx-move[hidden] { display: none; }
+.fx-move, .fx-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 14px; }
+.fx-move input, .fx-move select, .fx-form input, .fx-form select {
+  background: var(--ink); color: var(--bone); border: 1px solid var(--seam-2); padding: 9px 10px; font: 14px var(--body); color-scheme: dark;
+}
+.fx-form label { display: grid; gap: 6px; font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dust); }
+.fx-form input:not([type]), .fx-form input[list] { width: 200px; max-width: 80vw; }
+details.fx-add { margin: 18px 0 8px; background: var(--stone); border: 1px solid var(--seam); padding: 14px 18px; }
+details.fx-add summary { cursor: pointer; font: 600 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+details.fx-add[open] summary { margin-bottom: 14px; }
+.notice.fx-banner b { display: inline; font: 600 14px var(--body); letter-spacing: 0; text-transform: none; margin: 0; color: var(--bone); }
+.fx-sides { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+@media (max-width: 520px) { .fx-manage { margin-left: 0; } }
