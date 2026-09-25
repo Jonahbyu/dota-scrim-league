@@ -9,7 +9,7 @@ import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
 import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.js";
 import { buildPlayerIndex, matchPlayers, nameKey } from "./lib/players.js";
 import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
-import { asAd2l, guessTeams, openGames, sameTeams, teamByName } from "./lib/unticketed.js";
+import { aliasOf, asAd2l, guessTeams, openGames, rosterQuestions, sameTeams, teamByName } from "./lib/unticketed.js";
 import { tune, backtest, fitRatings, seriesOdds, isPlayed, outcomeOf, favourite, draftRead, pubsSince, pubSummary, standings, crowd, validPicks, modelCall, TIE_EDGE, predictDraft } from "./lib/predict.js";
 import { strengthOfSchedule } from "./lib/schedule.js";
 import { submitMatch, editMatch, listMatches, getMatch, deleteMatch, moveMatch, currentUid, listPredictions, savePrediction, listFixtures, addFixture, moveFixture, deleteFixture } from "./lib/store.js";
@@ -101,7 +101,11 @@ const STATS = [
 // League data is small; load it once per visit and refresh after uploads.
 let matchesCache = null;
 async function allMatches(force = false) {
-  if (!matchesCache || force) matchesCache = (await listMatches()).map(withDerived);
+  if (!matchesCache || force) {
+    const [list, d] = await Promise.all([listMatches(), ad2lData().catch(() => null)]);
+    // A known other name (aliases.js) counts as the player's roster name, as in AD2L games.
+    matchesCache = list.map((m) => withDerived(m.players ? { ...m, players: m.players.map((p) => ({ ...p, name: aliasOf(d, p.name) ?? p.name })) } : m));
+  }
   return matchesCache;
 }
 
@@ -115,7 +119,7 @@ function errorBox(e) {
 
 const engine = createBrowserEngine();
 // league: "scrim" (the ledger) or "ad2l" (an unticketed AD2L division game, same form).
-const upload = { images: [], draft: null, check: null, notes: [], names: [], busy: false, progress: "", message: null, isPrivate: false, league: "scrim", seriesId: null,
+const upload = { images: [], draft: null, check: null, notes: [], names: [], standins: new Set(), busy: false, progress: "", message: null, isPrivate: false, league: "scrim", seriesId: null,
   // Private result form (scrims): no screenshots or players, just the result.
   quick: false, teams: [], newTeam: { a: false, b: false },
   // Editing a saved upload: { id, league, back, title }. Same form; saves in place (editMatch).
@@ -127,9 +131,13 @@ const upload = { images: [], draft: null, check: null, notes: [], names: [], bus
 // Private uploads only need a valid result; public ones need every player too. AD2L
 // uploads must name two division teams, so the game lands on the right team pages.
 function checkDraft(d) {
-  const c = validateMatch(d, { resultOnly: upload.isPrivate && upload.league !== "ad2l" });
-  if (upload.league !== "ad2l" || !ad2lCache) return c;
-  const errors = [d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n)).map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`);
+  const resultOnly = upload.isPrivate && upload.league !== "ad2l";
+  const c = validateMatch(d, { resultOnly });
+  // Unknown names on a Champion team's side: same player under another name, or a stand-in?
+  upload.rosterQs = resultOnly || upload.quick ? [] : rosterQuestions(d, ad2lCache, upload.standins);
+  const asked = upload.rosterQs.map((q) => `Say who “${q.from}” is (${q.team}): one of their players under another name, or a stand-in.`);
+  if (upload.league !== "ad2l" || !ad2lCache) return asked.length ? { ...c, ok: false, errors: [...(c.errors ?? []), ...asked] } : c;
+  const errors = [...asked, ...[d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n)).map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`)];
   // Unticketed uploads must fill a game the league is missing (see seriesPickHtml).
   if (upload.editing) { /* an edit keeps the series it was saved in */ }
   else if (!ad2lMissing().length) errors.push("No AD2L games are missing right now, so there's nothing to upload.");
@@ -230,8 +238,12 @@ async function runParse() {
     upload.draft = match;
     upload.notes = notes;
     upload.names = await fixNames(match);
+    upload.standins = new Set();
     fillFixtureTeams(match);
     if (upload.league === "ad2l") { await ad2lData(); await ad2lUploaded(); upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)]; guessSeries(match); }
+    // Scrim teams are the Champion teams: name a side after the roster most of it is on
+    // (unless the schedule already named both sides).
+    else if (!upload.fixture && ad2lCache) upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)];
     upload.check = checkDraft(match);
     upload.message = { kind: "ok", text: "Done. Check every value against your screenshots: red boxes couldn't be read." };
   } catch (e) {
@@ -251,7 +263,13 @@ async function playerIndex() {
 // Fix clear misreads of known names in place; return every match for the review form
 // (fixed ones to show what changed, loose ones as suggestions to accept or ignore).
 async function fixNames(match) {
-  const found = matchPlayers(match.players, await playerIndex());
+  const index = await playerIndex();
+  const aliased = [];
+  for (const [i, p] of match.players.entries()) {
+    const to = aliasOf(ad2lCache, p.name);
+    if (to && to !== p.name) { aliased.push({ i, from: p.name, to, sure: true, teams: [] }); p.name = to; }
+  }
+  const found = [...aliased, ...matchPlayers(match.players, index)];
   for (const f of found) if (f.sure) match.players[f.i].name = f.to;
   return found;
 }
@@ -267,6 +285,16 @@ function namesHtml(names) {
   </ul></div>`;
 }
 
+// Asked for each player on a Champion team's side whose name isn't a division name.
+function rosterQsHtml(qs) {
+  if (!qs.length) return "";
+  return `<div class="notice warn roster-qs"><b>Same player or a stand-in?</b>
+    <p class="muted">These names aren't on the team's roster. If it's one of their players under another in-game name, pick them so the game counts on that player's page.</p>
+    <ul>${qs.map((q, k) => `<li>“${esc(q.from)}” on <strong>${esc(q.team)}</strong> is
+      ${q.options.map((o) => `<button class="small" data-roster-q="${k}" data-roster-to="${esc(o)}">${esc(o)}</button>`).join(" ")}
+      <button class="small" data-roster-q="${k}" data-roster-standin>A different player (stand-in)</button></li>`).join("")}</ul></div>`;
+}
+
 function revalidate() {
   upload.check = checkDraft(upload.draft);
   renderChecks();
@@ -274,7 +302,7 @@ function revalidate() {
 
 function checksHtml(check) {
   if (!check) return "";
-  let h = "";
+  let h = rosterQsHtml(upload.rosterQs ?? []);
   if (check.errors?.length) h += `<div class="notice err"><b>Fix before saving:</b><ul>${check.errors.map((e) => `<li>${esc(e)}</li>`).join("")}</ul></div>`;
   if (check.warnings?.length) h += `<div class="notice warn"><b>Double-check:</b><ul>${check.warnings.map((e) => `<li>${esc(e)}</li>`).join("")}</ul></div>`;
   if (check.ok && !check.warnings?.length) h += `<div class="notice ok">${upload.quick ? "Ready to post." : "All checks pass. Kills match scores on both sides."}</div>`;
@@ -409,10 +437,19 @@ function privateHtml(d) {
     </div>`;
 }
 
+// Teams to pick from for a private result: the Champion teams (scrim teams are the same
+// teams) and any other team the ledger has, one entry per name, Champion spelling first.
+async function privateTeams() {
+  const names = new Map();
+  const add = (n) => { if (n && !names.has(n.trim().toLowerCase())) names.set(n.trim().toLowerCase(), n.trim()); };
+  for (const t of (await ad2lData().catch(() => null))?.teams ?? []) add(t.name);
+  try { for (const t of listTeams(await allMatches())) add(t.name); } catch { /* offline: new-team entry still works */ }
+  return [...names.values()].sort((x, y) => x.localeCompare(y));
+}
+
 async function startPrivate() {
-  let teams = [];
-  try { teams = listTeams(await allMatches()).map((t) => t.name).sort((x, y) => x.localeCompare(y)); } catch { /* offline: new-team entry still works */ }
-  Object.assign(upload, { quick: true, isPrivate: true, teams, newTeam: { a: !teams.length, b: !teams.length }, notes: [], names: [], message: null });
+  const teams = await privateTeams();
+  Object.assign(upload, { quick: true, isPrivate: true, teams, newTeam: { a: !teams.length, b: !teams.length }, notes: [], names: [], standins: new Set(), message: null });
   upload.draft = blankDraft();
   fillFixtureTeams(upload.draft);
   for (const t of ["a", "b"]) {
@@ -478,7 +515,7 @@ async function saveDraft() {
     const fromFixture = !ad2l && upload.fixture;
     upload.fixture = null;
     if (upload.quick) upload.isPrivate = false;
-    Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], message: null, seriesId: null, quick: false });
+    Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], standins: new Set(), message: null, seriesId: null, quick: false });
     if (ad2l) { await ad2lUploaded(true); location.hash = `#/ad2l/game/${res.id}`; }
     else { await allMatches(true); location.hash = fromFixture ? "#/predict" : `#/match/${res.id}`; }
   } catch (e) {
@@ -506,12 +543,12 @@ async function renderEdit(id, league) {
   try { m = await getMatch(id, league); } catch (e) { app.innerHTML = errorBox(e); return; }
   if (!m) { app.innerHTML = `<div class="notice err">No such game.</div>`; return; }
   if (m.uid !== (await currentUid()) && !editUnlocked()) { location.hash = back; return; }
-  if (league === "ad2l") await ad2lData().catch(() => null);
+  await ad2lData().catch(() => null); // rosters: AD2L teams, and the name questions
   if (upload.editing?.id !== id) {
     let teams = [];
-    if (m.private) try { teams = listTeams(await allMatches()).map((t) => t.name).sort((x, y) => x.localeCompare(y)); } catch { /* typed names still work */ }
+    if (m.private) teams = await privateTeams();
     Object.assign(upload, { editing: { id, league, back, title: `${m.team_a} vs ${m.team_b}` }, league, draft: editDraft(m), isPrivate: !!m.private, quick: !!m.private,
-      seriesId: m.series_id ?? null, teams, newTeam: { a: false, b: false }, notes: [], names: [], message: null });
+      seriesId: m.series_id ?? null, teams, newTeam: { a: false, b: false }, notes: [], names: [], standins: new Set(), message: null });
   }
   upload.check = checkDraft(upload.draft);
   renderUpload();
@@ -588,7 +625,7 @@ function renderUpload() {
   document.getElementById("parse").onclick = runParse;
   const priv = document.getElementById("private-result");
   if (priv) priv.onclick = startPrivate;
-  document.getElementById("manual").onclick = () => { upload.quick = false; upload.draft = blankDraft(); fillFixtureTeams(upload.draft); upload.seriesId = null; upload.notes = []; upload.names = []; upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
+  document.getElementById("manual").onclick = async () => { await ad2lData().catch(() => null); upload.quick = false; upload.draft = blankDraft(); fillFixtureTeams(upload.draft); upload.seriesId = null; upload.notes = []; upload.names = []; upload.standins = new Set(); upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
   const clear = document.getElementById("clear");
   if (clear) clear.onclick = () => { for (const i of upload.images) URL.revokeObjectURL(i.url); upload.images = []; renderUpload(); };
 
@@ -608,6 +645,17 @@ function renderUpload() {
 // Review-form handlers, shared by uploads and edits.
 function wireDraft() {
   document.getElementById("save").onclick = saveDraft;
+  // #checks is redrawn as you type, so its buttons are handled on the container.
+  const checks = document.getElementById("checks");
+  if (checks) checks.onclick = (e) => {
+    const b = e.target.closest("[data-roster-q]");
+    const q = b && upload.rosterQs?.[Number(b.dataset.rosterQ)];
+    if (!q) return;
+    if (b.hasAttribute("data-roster-standin")) { upload.standins.add(nameKey(q.from)); revalidate(); return; }
+    upload.draft.players[q.i].name = b.dataset.rosterTo;
+    upload.check = checkDraft(upload.draft);
+    renderUpload();
+  };
   const pick = document.getElementById("series-pick");
   if (pick) pick.onchange = () => {
     upload.seriesId = Number(pick.value) || null;
@@ -622,7 +670,7 @@ function wireDraft() {
   document.getElementById("discard").onclick = () => {
     if (upload.editing) { const { back } = upload.editing; endEdit(); location.hash = back; return; }
     if (upload.quick) upload.isPrivate = false;
-    Object.assign(upload, { draft: null, check: null, notes: [], names: [], quick: false });
+    Object.assign(upload, { draft: null, check: null, notes: [], names: [], standins: new Set(), quick: false });
     renderUpload();
   };
   app.querySelectorAll("select[data-team]").forEach((sel) => (sel.onchange = () => {

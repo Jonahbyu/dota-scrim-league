@@ -3,6 +3,7 @@
 // Firestore (scrimLeague/data/ad2l_unticketed), then merged into the AD2L view here.
 import { nameKey } from "./players.js";
 import { ALIASES } from "./aliases.js";
+import { levenshtein } from "./heroes.js";
 
 export const teamByName = (d, n) => d?.teams.find((t) => nameKey(t.name) === nameKey(n ?? "")) ?? null;
 
@@ -90,4 +91,40 @@ export function guessTeams(match, d) {
     if (t && n >= 3) { notes.push(`Team ${side.toUpperCase()} set to ${t.name}: ${n} of its players are on that roster (read “${match[key] || "nothing"}”).`); match[key] = t.name; }
   }
   return notes;
+}
+
+// The roster name a known other name (aliases.js) stands for, or null.
+export function aliasOf(d, name) {
+  const id = Object.entries(ALIASES).find(([a]) => nameKey(a) === nameKey(name))?.[1];
+  if (id == null) return null;
+  return d?.teams.flatMap((t) => t.players).find((p) => String(p.account_id) === String(id))?.name ?? null;
+}
+
+// Scrim teams are the Champion teams, so on a side named for one, a player whose name isn't
+// a division name is either a rostered player under another in-game name or a stand-in.
+// Only the person uploading knows which. One question per such player: { i, from, team,
+// options } where options are that team's roster players missing from the side, closest
+// name first. `standins` holds the name keys already answered "different player".
+export function rosterQuestions(match, d, standins = new Set()) {
+  if (!d) return [];
+  const known = new Set([
+    ...d.teams.flatMap((t) => t.players.map((p) => nameKey(p.name))),
+    ...d.games.flatMap((g) => g.players.map((p) => nameKey(p.name))),
+  ]);
+  const out = [];
+  for (const side of ["a", "b"]) {
+    const team = teamByName(d, side === "a" ? match.team_a : match.team_b);
+    if (!team) continue;
+    const players = (match.players ?? []).map((p, i) => ({ p, i })).filter(({ p }) => p.team === side && nameKey(p.name));
+    const here = new Set(players.map(({ p }) => nameKey(aliasOf(d, p.name) ?? p.name)));
+    const missing = team.players.filter((r) => !here.has(nameKey(r.name)));
+    if (!missing.length) continue;
+    for (const { p, i } of players) {
+      const k = nameKey(p.name);
+      if (known.has(k) || aliasOf(d, p.name) || standins.has(k)) continue;
+      const options = missing.map((r) => r.name).sort((x, y) => levenshtein(k, nameKey(x)) - levenshtein(k, nameKey(y)));
+      out.push({ i, from: p.name, team: team.name, options });
+    }
+  }
+  return out;
 }

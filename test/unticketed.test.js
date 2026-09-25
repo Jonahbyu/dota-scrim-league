@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { asAd2l, guessTeams } from "../public/lib/unticketed.js";
+import { aliasOf, asAd2l, guessTeams, rosterQuestions } from "../public/lib/unticketed.js";
 import { playerLeaderboard } from "../public/lib/stats.js";
 
 const d = JSON.parse(readFileSync(new URL("../public/data/ad2l.json", import.meta.url), "utf8"));
@@ -75,4 +75,29 @@ test("missing games: PlayOn score beyond the games on record, filled by uploads"
   assert.deepEqual(missingGames(d, [{ series_id: 10 }]), []);
   assert.ok(sameTeams(d, d.series[0], "swm.twinks", "Damage over Time"));
   assert.ok(!sameTeams(d, d.series[0], "SWM.Twinks", "No Immortals"));
+});
+
+// Damage Over Time's roster: Fav, Big Red, Merc-Ury, Icarus, han.
+const dotSide = (names) => ({ team_a: "damage over time", team_b: "Not A Division Team",
+  players: [...names.map((name) => ({ team: "a", name })), ...["q", "w", "e", "r", "t"].map((name) => ({ team: "b", name }))] });
+
+test("an unknown name on a Champion team's side asks: roster player or stand-in", () => {
+  const qs = rosterQuestions(dotSide(["Fav", "Pips", "Merc-Ury", "Icarus", "han"]), d);
+  assert.equal(qs.length, 1);
+  assert.deepEqual({ ...qs[0] }, { i: 1, from: "Pips", team: "Damage Over Time", options: ["Big Red"] });
+});
+
+test("roster questions: closest missing name first, none for the full roster or a non-division side", () => {
+  const qs = rosterQuestions(dotSide(["Fav pips", "Zed", "Merc-Ury", "Icarus", "han"]), d);
+  assert.deepEqual(qs.map((q) => q.from), ["Fav pips", "Zed"]);
+  assert.deepEqual(qs[0].options, ["Fav", "Big Red"]);
+  assert.equal(rosterQuestions(dotSide(["Fav", "Big Red", "Merc-Ury", "Icarus", "han"]), d).length, 0);
+});
+
+test("roster questions skip known aliases, division names and names answered stand-in", () => {
+  assert.equal(aliasOf(d, "red alert"), "Big Red");
+  assert.equal(rosterQuestions(dotSide(["Fav", "Red Alert", "Merc-Ury", "Icarus", "han"]), d).length, 0);
+  const otherTeam = d.teams.find((t) => t.name !== "Damage Over Time").players[0].name; // a known stand-in
+  assert.equal(rosterQuestions(dotSide([otherTeam, "Big Red", "Merc-Ury", "Icarus", "han"]), d).length, 0);
+  assert.equal(rosterQuestions(dotSide(["Pips", "Big Red", "Merc-Ury", "Icarus", "han"]), d, new Set(["pips"])).length, 0);
 });
