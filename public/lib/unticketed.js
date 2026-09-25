@@ -2,6 +2,7 @@
 // reach OpenDota's league list. They're uploaded from screenshots like scrims and stored in
 // Firestore (scrimLeague/data/ad2l_unticketed), then merged into the AD2L view here.
 import { nameKey } from "./players.js";
+import { ALIASES } from "./aliases.js";
 
 export const teamByName = (d, n) => d?.teams.find((t) => nameKey(t.name) === nameKey(n ?? "")) ?? null;
 
@@ -12,6 +13,11 @@ export function asAd2l(u, d) {
   const acct = new Map();
   for (const g of d.games) for (const p of g.players) if (p.account_id) acct.set(nameKey(p.name), { name: p.name, account_id: p.account_id, rank_tier: p.rank_tier });
   for (const t of d.teams) for (const p of t.players) acct.set(nameKey(p.name), { name: p.name, account_id: p.account_id, rank_tier: p.rank_tier });
+  // Known other names: counted under the roster name for that account.
+  for (const [alias, id] of Object.entries(ALIASES)) {
+    const k = d.teams.flatMap((t) => t.players).find((p) => String(p.account_id) === String(id));
+    if (k) acct.set(nameKey(alias), { name: k.name, account_id: k.account_id, rank_tier: k.rank_tier });
+  }
   const home = new Map(d.teams.flatMap((t) => t.players.map((p) => [String(p.account_id), t.id])));
   const ta = teamByName(d, u.team_a), tb = teamByName(d, u.team_b);
   return {

@@ -33,6 +33,13 @@ test("an uploaded game counts for the same leaderboard row as ticketed games", (
   assert.deepEqual(g.players.map((p) => p.team_name), real.players.map((p) => p.team_name));
 });
 
+test("a known other name counts for that roster player", () => {
+  const g = asAd2l({ team_a: "Damage Over Time", team_b: "x", players: [{ team: "a", name: "red alert", hero: "Axe" }] }, d);
+  assert.equal(g.players[0].name, "Big Red");
+  assert.equal(g.players[0].player_key, "80518956");
+  assert.equal(g.players[0].standin, false);
+});
+
 test("unknown names and teams pass through unmatched", () => {
   const g = asAd2l({ ...uploaded, team_a: "Some Pub Team", players: [{ team: "a", name: "zzz not a player", hero: "Axe" }] }, d);
   assert.equal(g.team_a_id, null);
