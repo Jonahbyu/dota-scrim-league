@@ -232,7 +232,7 @@ function addFiles(files) {
 
 // Snipping Tool: Win+Shift+S, then Ctrl+V anywhere on the upload page.
 document.addEventListener("paste", (e) => {
-  if (!/^#\/((ad2l|heroic)\/)?upload/.test(location.hash) || e.target.closest?.("input")) return;
+  if (!/^#\/((ad2l|heroic(\/[ab])?)\/)?upload/.test(location.hash) || e.target.closest?.("input")) return;
   const files = [...(e.clipboardData?.items ?? [])].filter((i) => i.kind === "file").map((i) => i.getAsFile()).filter(Boolean);
   if (files.length) { e.preventDefault(); addFiles(files); }
 });
@@ -743,9 +743,27 @@ async function divUploaded(league, force = false) {
   return uploadsBy[league];
 }
 
+// Heroic/Aegis is one league played in two divisions. Its A and B views are the same data
+// narrowed to that division's teams, the series they played and the games between them;
+// Combined is the whole file. Uploads and predictions stay under the league's own key.
+const divViews = new WeakMap();
+function inDivision(d, div) {
+  const views = divViews.get(d) ?? divViews.set(d, {}).get(d);
+  if (views[div]) return views[div];
+  const ids = new Set(d.teams.filter((t) => t.division === div).map((t) => t.id));
+  return views[div] = {
+    ...d, division: div,
+    teams: d.teams.filter((t) => ids.has(t.id)),
+    series: d.series.filter((s) => ids.has(s.home) && ids.has(s.away)),
+    games: d.games.filter((g) => ids.has(g.team_a_id) && ids.has(g.team_b_id)),
+  };
+}
+
 async function divGames(src) {
   const d = await src.data();
-  const up = (await divUploaded(src.key)).filter((u) => !u.private).map((u) => withDerived(asAd2l(u, d)));
+  const ids = src.view ? new Set(d.teams.map((t) => t.id)) : null;
+  const up = (await divUploaded(src.key)).filter((u) => !u.private).map((u) => withDerived(asAd2l(u, d)))
+    .filter((g) => !ids || (ids.has(g.team_a_id) && ids.has(g.team_b_id)));
   return up.length ? [...d.games, ...up].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)) : d.games;
 }
 
@@ -773,6 +791,19 @@ const SOURCES = {
     nav: [["#/heroic/", "standings", "Standings"], ["#/heroic/week", "week", "Weekly"], ["#/heroic/players", "players", "Players"], ["#/heroic/heroes", "heroes", "Heroes"], ["#/heroic/predict", "predict", "Predict"], ["#/heroic/upload", "upload", "Upload", "nav-cta"]],
   },
 };
+// Heroic's Division A and B views (#/heroic/a/..., #/heroic/b/...): same pages and league key,
+// data narrowed to the division. Plain #/heroic/... is Combined.
+for (const v of ["a", "b"]) {
+  const div = v.toUpperCase(), root = `#/heroic/${v}`, h = SOURCES.heroic;
+  const src = SOURCES[`heroic_${v}`] = {
+    ...h, view: v, root,
+    data: async () => inDivision(await heroicData(), div), cache: () => heroicCache && inDivision(heroicCache, div),
+    kicker: `${h.kicker} · Division ${div}`, load: () => divGames(src),
+    link: (m) => `${root}/game/${m.id}`, base: `${root}/week`,
+    empty: `No ticketed Division ${div} games found yet.`,
+    nav: h.nav.map(([href, ...rest]) => [href.replace("#/heroic", root), ...rest]),
+  };
+}
 
 // ---------- Matches ----------
 
@@ -1047,7 +1078,7 @@ async function renderStandings(src) {
       if (us > them) w++; else if (us < them) l++; else tie++;
     }
     const tracked = d.games.filter((g) => g.team_a_id === t.id || g.team_b_id === t.id).length;
-    return { team: t.name, id: t.id, series: mine.length, w, tie, l, gw, gl, game_rate: gw + gl ? gw / (gw + gl) : null, tracked };
+    return { team: t.name, id: t.id, division: t.division, series: mine.length, w, tie, l, gw, gl, game_rate: gw + gl ? gw / (gw + gl) : null, tracked };
   });
 
   const date = (s) => new Date(s * 1000).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -1070,8 +1101,10 @@ async function renderStandings(src) {
         <div class="fx-score"><div class="n" style="font-size:22px">VS</div><div class="meta">${date(s.time)}</div></div>
         <div class="fx-team b">${name[s.away] ? teamLink(src, name[s.away], s.away) : "TBD"}</div>
       </div>`).join("")}</div>` : ""}`;
+  // Combined Heroic view: both divisions in one table, so say which each team plays in.
+  const divCol = d.teams.some((t) => t.division) && !d.division ? [["division", "Div", (v) => (v ? `<span class="div-tag">${esc(v)}</span>` : "—"), "", null, false]] : [];
   sortableTable(document.getElementById("t"), [
-    ["team", "Team", (v, r) => teamLink(src, v, r.id), "l"], ["series", "Series"], ["w", "W"], ["tie", "T"], ["l", "L"],
+    ["team", "Team", (v, r) => teamLink(src, v, r.id), "l"], ...divCol, ["series", "Series"], ["w", "W"], ["tie", "T"], ["l", "L"],
     ["gw", "Games won", null, "", "jade"], ["gl", "Games lost"], ["game_rate", "Game win %", pct, "", "jade"], ["tracked", "Stats"],
   ], rows, "gw");
 
@@ -1081,14 +1114,14 @@ async function renderStandings(src) {
   const faced = (fs) => `<span class="sos-faced">${fs.map((f) => `<a class="sos-sq ${f.result}" href="${src.root}/teams/${f.opp}"
       title="${f.result === "w" ? "Won" : f.result === "l" ? "Lost" : "Tied"} ${f.us}–${f.them} vs ${esc(name[f.opp])} (their other games: ${pct(f.opp_rate)})">${esc(initials(name[f.opp] ?? "?"))}</a>`).join("")}</span>`;
   sortableTable(document.getElementById("sos"), [
-    ["team", "Team", (v, r) => teamLink(src, v, r.id), "l"],
+    ["team", "Team", (v, r) => teamLink(src, v, r.id), "l"], ...divCol,
     ["record", "Series W–T–L", null],
     ["sos", "SOS", pct, "", "gold"],
     ["owp", "Opp. win %", pct],
     ["oowp", "Opp. opp. win %", pct],
     ["faced", "Opponents faced", (v) => faced(v), "l"],
     ["remaining_sos", "Still to play", (v, r) => r.remaining.length ? `${pct(v)} <span class="muted">· ${r.remaining.length} left</span>` : "—", "", "ember"],
-  ], sos.map((x) => ({ ...x, team: name[x.id], record: `${byId[x.id].w}–${byId[x.id].tie}–${byId[x.id].l}` })), "sos");
+  ], sos.map((x) => ({ ...x, team: name[x.id], division: byId[x.id].division, record: `${byId[x.id].w}–${byId[x.id].tie}–${byId[x.id].l}` })), "sos");
 }
 
 // ---------- Leaderboards ----------
@@ -2384,14 +2417,31 @@ leagueBtn.onclick = (e) => { e.stopPropagation(); setMenu(leagueMenu.hidden); };
 document.addEventListener("click", (e) => { if (!e.target.closest(".switcher")) setMenu(false); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
 
+// Heroic/Aegis division switch: Division A, Division B or Combined, keeping the current tab.
+// Pages tied to one team or game fall back to that tab's list, which may not include it.
+function divisionBar(src, h) {
+  const bar = document.getElementById("div-switch");
+  bar.hidden = src.key !== "heroic";
+  if (bar.hidden) return;
+  const rest = h.slice(src.root.length).replace(/^\/+/, "");
+  const [first] = rest.split("/");
+  const keep = { game: "week", games: "week", edit: "week", teams: "", player: "players", tiers: "players", draft: "heroes" };
+  const path = first in keep ? keep[first] : rest;
+  bar.innerHTML = `<span class="div-label">View</span>${[["#/heroic/a", "Division A"], ["#/heroic/b", "Division B"], ["#/heroic", "Combined"]]
+    .map(([root, label]) => `<a href="${root}/${path}" class="${root === src.root ? "active" : ""}"${root === src.root ? ' aria-current="page"' : ""}>${label}</a>`).join("")}
+    <span class="div-note">${src.view ? `Only Division ${src.view.toUpperCase()} teams and the games between them` : "Both divisions together"}</span>`;
+}
+
 function route() {
   setMenu(false);
   const h = location.hash || "#/";
-  const src = h.startsWith("#/ad2l") ? SOURCES.ad2l : h.startsWith("#/heroic") ? SOURCES.heroic : SOURCES.scrim;
+  const view = /^#\/heroic\/([ab])(?=\/|$)/.exec(h)?.[1];
+  const src = h.startsWith("#/ad2l") ? SOURCES.ad2l : view ? SOURCES[`heroic_${view}`] : h.startsWith("#/heroic") ? SOURCES.heroic : SOURCES.scrim;
   const isAd2l = src.ad2l, r = src.root;
   document.body.dataset.league = src.key;
-  document.title = isAd2l ? `AD2L ${src.division} · Scrim League` : "Scrim League";
-  document.getElementById("league-name").innerHTML = isAd2l ? `AD2L<b>${src.division}</b>` : "Scrim<b>League</b>";
+  const divLabel = src.key === "heroic" ? (view ? `Division ${view.toUpperCase()}` : "Combined") : "";
+  document.title = isAd2l ? `AD2L ${src.division}${divLabel ? ` · ${divLabel}` : ""} · Scrim League` : "Scrim League";
+  document.getElementById("league-name").innerHTML = isAd2l ? `AD2L<b>${src.division}</b>${divLabel ? `<em class="div-badge">${view ? `Div ${view.toUpperCase()}` : "A + B"}</em>` : ""}` : "Scrim<b>League</b>";
   leagueMenu.querySelectorAll("a").forEach((a) => a.classList.toggle("current", a.dataset.league === src.key));
 
   let section, page;
@@ -2402,10 +2452,10 @@ function route() {
     else if (h.startsWith(`${r}/games`)) { section = "week"; page = () => renderWeek(src, 0); } // old Games tab: Weekly lists every game
     else if (h.startsWith(`${r}/teams`)) {
       // Standings doubles as the team list; a team's own page still lives under <root>/teams/<id>.
-      const slug = decodeURIComponent(h.split("/")[3] ?? "");
+      const slug = decodeURIComponent(h.slice(r.length).split("/")[2] ?? "");
       section = "standings"; page = slug ? () => renderTeams(src, slug) : () => renderStandings(src);
     }
-    else if (h.startsWith(`${r}/week`)) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
+    else if (h.startsWith(`${r}/week`)) { section = "week"; page = () => renderWeek(src, Number(h.slice(r.length).split("/")[2] ?? 0) || 0); }
     else if (h.startsWith(`${r}/tiers`)) { section = "players"; page = () => renderPlayers(src); }
     else if (h.startsWith(`${r}/player/`)) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice(`${r}/player/`.length))); }
     else if (h.startsWith(`${r}/players`)) { section = "players"; page = () => renderPlayers(src); }
@@ -2442,6 +2492,7 @@ function route() {
   }
   document.getElementById("nav").innerHTML = src.nav
     .map(([href, key, label, cls]) => `<a href="${href}" data-nav="${key}" class="${cls ?? ""}${key === section ? " active" : ""}">${label}</a>`).join("");
+  divisionBar(src, h);
   return page();
 }
 

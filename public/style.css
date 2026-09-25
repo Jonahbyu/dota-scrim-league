@@ -102,6 +102,25 @@ body[data-league="heroic"] .brand-mark i { background: #a58bff; }
 body[data-league="heroic"] .brand-mark i + i { background: #6a4fd6; }
 body[data-league="heroic"] .brand-word b { color: #b9a6ff; }
 body[data-league="heroic"] .league-menu a.current { border-left-color: #a58bff; background: rgba(165, 139, 255, .08); }
+.div-badge {
+  font: 600 11px/1 var(--mono); font-style: normal; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink); background: #a58bff; padding: 4px 6px; margin-left: 8px; vertical-align: middle; border-radius: 2px; white-space: nowrap;
+}
+/* Heroic/Aegis division switch: Division A / Division B / Combined, under the header. */
+.div-switch {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 10px clamp(16px, 4vw, 48px); border-bottom: 1px solid var(--seam); background: rgba(165, 139, 255, .05);
+}
+.div-switch[hidden] { display: none; }
+.div-label { font: 600 10px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
+.div-switch a {
+  font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase;
+  color: var(--dust); padding: 9px 14px; border: 1px solid var(--seam); border-radius: 2px;
+}
+.div-switch a:hover { color: var(--bone); border-color: #6a4fd6; text-decoration: none; }
+.div-switch a.active { color: var(--ink); background: #a58bff; border-color: #a58bff; }
+.div-note { font-size: 12px; color: var(--dust); margin-left: 8px; }
+.div-tag { font: 600 11px/1 var(--mono); color: #b9a6ff; }
 .brand-mark { position: relative; width: 26px; height: 26px; transform: rotate(45deg); }
 .brand-mark i { position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, 0 100%); background: var(--jade); }
 .brand-mark i + i { clip-path: polygon(100% 0, 100% 100%, 0 100%); background: var(--ember); transform: translate(3px, 3px); }

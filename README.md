@@ -17,6 +17,10 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   predictions (picks stored with `league: "heroic"`) and unticketed uploads (Firestore
   `scrimLeague/data/heroic_unticketed`, same rules as Champion's). Scrim team lists stay
   Champion's. Forfeits against PlayOn's "Heroic Bye Week" placeholder aren't uploadable games.
+  It plays in two divisions (A and B, read from PlayOn's Participants tables; the "Refund"
+  table holds bye placeholders and is dropped). A switch under the header picks the view:
+  Division A (`#/heroic/a/`), Division B (`#/heroic/b/`) or Combined (`#/heroic/`), each
+  showing only that division's teams, series and games on every tab.
 - **Tier list** (top of the Players tab) — every player with 3+ games, ranked S–D by in-season performance
   against same-role players plus win rate (see "Tier list" below).
 - **Weekly recap** — one week at a time: highlights (player of the week, biggest damage,

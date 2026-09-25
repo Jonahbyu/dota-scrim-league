@@ -106,7 +106,16 @@ function parseSeason(html) {
   const teams = new Map();
   for (const m of html.matchAll(/href="\/teams\/(\d+)"[^>]*>([^<]+)<\/a>/g)) teams.set(Number(m[1]), decode(m[2]));
   const series = [...new Set([...html.matchAll(/href="\/matches\/(\d+)"/g)].map((m) => Number(m[1])))];
-  return { title, teams, series };
+  // Seasons split into divisions have one Participants table per division, headed
+  // "Division A" etc. (Champion has none). "Division Refund" holds bye placeholders, not
+  // teams, so those are dropped.
+  const division = new Map();
+  for (const table of html.split("<table").slice(1)) {
+    const div = table.match(/<th colspan=3>\s*Division\s+([^<]+?)\s*<\/th>/)?.[1];
+    if (div) for (const m of table.matchAll(/href="\/teams\/(\d+)"/g)) division.set(Number(m[1]), decode(div));
+  }
+  for (const [id] of teams) if (division.get(id) === "Refund") teams.delete(id);
+  return { title, teams, series, division };
 }
 
 function parseSeries(html, id) {
@@ -143,7 +152,7 @@ console.log(`  ${season.title}: ${season.teams.size} teams, ${season.series.leng
 const teams = [];
 for (const [id, name] of season.teams) {
   const roster = parseRoster(await playon(`/teams/${id}`, 72));
-  teams.push({ id, name, players: roster });
+  teams.push({ id, name, ...(season.division.has(id) && { division: season.division.get(id) }), players: roster });
 }
 const owner = new Map(); // account id -> { team, player name }
 // `main` is the player's main account: smurf games count for the same person.
@@ -271,7 +280,7 @@ const out = {
   playon_season_id: SEASON_ID,
   league_id: LEAGUE_ID,
   updated: new Date().toISOString(),
-  teams: teams.map((t) => ({ id: t.id, name: t.name, players: t.players.map((p) => ({ name: p.name, captain: p.captain, account_id: p.account_ids[0], rank_tier: p.rank_tier })) })),
+  teams: teams.map((t) => ({ id: t.id, name: t.name, ...(t.division && { division: t.division }), players: t.players.map((p) => ({ name: p.name, captain: p.captain, account_id: p.account_ids[0], rank_tier: p.rank_tier })) })),
   series,
   games,
   // Recent pubs per player (main account; smurf games merged), last PUB_DAYS days, newest
