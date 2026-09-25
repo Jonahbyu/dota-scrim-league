@@ -18,3 +18,6 @@ data/tessdata/
 
 # Generated at deploy time from the FIREBASE_WEB_API_KEY secret (scripts/write-firebase-config.js).
 public/firebase-config.js
+
+# Deploy build: public/ plus link-preview pages (scripts/share-pages.js).
+_site/

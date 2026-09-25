@@ -141,6 +141,12 @@ nav a.nav-cta {
 }
 nav a.nav-cta.active::after { display: none; }
 nav a.nav-cta:hover { background: #f5c862; color: var(--ink); }
+.share-btn {
+  font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+  color: var(--dust); background: none; border: 1px solid var(--seam); padding: 9px 12px; border-radius: 2px;
+}
+.share-btn:hover { color: var(--bone); border-color: var(--dust); }
+.share-btn.done { color: var(--jade); border-color: var(--jade); }
 
 /* ---------- page frame ---------- */
 main { width: 100%; max-width: 2400px; margin: 0 auto; padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px) 72px; flex: 1; }

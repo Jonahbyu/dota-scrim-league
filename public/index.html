@@ -6,6 +6,13 @@
   <title>Scrim League</title>
   <meta name="description" content="Paste Dota 2 post-game screenshots; league standings, player and hero stats.">
   <meta name="theme-color" content="#0c0b0a">
+  <!-- Link previews. Other pages get their own from scripts/share-pages.js at deploy. -->
+  <meta property="og:site_name" content="Scrim League">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Scrim League">
+  <meta property="og:description" content="Dota 2 scrim and AD2L stats: standings, weekly recaps, players, heroes and predictions.">
+  <meta property="og:url" content="https://dota2scrimcircuittracker.github.io/">
+  <meta name="twitter:card" content="summary">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@600;800;900&family=Epilogue:wght@400;500;600;700&family=Martian+Mono:wght@300;400;600&display=swap" rel="stylesheet">
@@ -31,6 +38,7 @@
       </div>
     </div>
     <nav id="nav"></nav>
+    <button class="share-btn" id="share-btn" type="button" title="Copy a link that previews this page in Discord">Copy link</button>
   </header>
   <div class="div-switch" id="div-switch" hidden></div>
   <main id="app"></main>

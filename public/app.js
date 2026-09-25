@@ -18,6 +18,7 @@ import { settle, asSeries, scrimRatings, fixtureOdds, fixtureCall, fixtureBackte
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
 import { info, wireInfo } from "./lib/glossary.js";
+import { sharePath } from "./lib/share.js";
 
 const app = document.getElementById("app");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -2431,6 +2432,18 @@ function divisionBar(src, h) {
     .map(([root, label]) => `<a href="${root}/${path}" class="${root === src.root ? "active" : ""}"${root === src.root ? ' aria-current="page"' : ""}>${label}</a>`).join("")}
     <span class="div-note">${src.view ? `Only Division ${src.view.toUpperCase()} teams and the games between them` : "Both divisions together"}</span>`;
 }
+
+// Copy link: the /path/ form of this page when it has a preview page (lib/share.js), so
+// Discord shows this page's title instead of the site's; otherwise the address as is.
+const shareBtn = document.getElementById("share-btn");
+shareBtn.onclick = async () => {
+  const p = sharePath(location.hash);
+  const url = p ? `${location.origin}${p}` : location.href;
+  try { await navigator.clipboard.writeText(url); shareBtn.textContent = "Copied"; }
+  catch { prompt("Copy this link:", url); }
+  shareBtn.classList.add("done");
+  setTimeout(() => { shareBtn.textContent = "Copy link"; shareBtn.classList.remove("done"); }, 1800);
+};
 
 function route() {
   setMenu(false);

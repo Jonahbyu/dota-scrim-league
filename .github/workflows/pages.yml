@@ -32,9 +32,12 @@ jobs:
         env:
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
         run: node scripts/write-firebase-config.js
+      # Link-preview pages (/heroic/week/ etc.) go into a copy, so public/ stays as committed.
+      - name: Build site with link-preview pages
+        run: cp -r public _site && node scripts/share-pages.js _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
