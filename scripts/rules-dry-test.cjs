@@ -131,6 +131,15 @@ const cases = [
   ["edit: bad shape", upd(match(), match({ admin: true })), "DENY"],
   ["edit: level 99", upd(match(), withPlayer(3, (p) => ({ ...p, level: 99 }))), "DENY"],
   ["uploader deletes own unticketed game", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/ad2l_unticketed/") } }, "ALLOW"],
+  // Heroic/Aegis: same rules in its own collection; picks with league "heroic".
+  ["heroic: unticketed game", { ...req(match({ series_id: 20690 })), path: PATH.replace("/matches/", "/heroic_unticketed/") }, "ALLOW"],
+  ["heroic: worst case (budget)", { ...req({ ...match({ series_id: 20690 }), players: match().players.map((p, i) => ({ ...p, name: "N".repeat(32), hero: "Vengeful Spirit", level: 30, hero_damage: 150000, tag: "TAG", pick: i + 1 })) }), path: PATH.replace("/matches/", "/heroic_unticketed/") }, "ALLOW"],
+  ["heroic: unticketed without series_id", { ...req(match()), path: PATH.replace("/matches/", "/heroic_unticketed/") }, "DENY"],
+  ["heroic: edit, same series", upd(match({ series_id: 20690 }), match({ series_id: 20690, team_a: "Renamed" }), undefined, PATH.replace("/matches/", "/heroic_unticketed/")), "ALLOW"],
+  ["heroic: delete", { ...del(match(), { uid: "u1" }), request: { ...del(match(), { uid: "u1" }).request, path: PATH.replace("/matches/", "/heroic_unticketed/") } }, "ALLOW"],
+  ["heroic: unknown collection still denied", { ...req(match({ series_id: 20690 })), path: PATH.replace("/matches/", "/aegis_unticketed/") }, "DENY"],
+  ["prediction: heroic", predReq(pred({ league: "heroic" })), "ALLOW"],
+  ["prediction: heroic with a fixture id", { ...predReq(pred({ league: "heroic", series_id: FIX_ID })), path: SCRIM_PRED_PATH }, "DENY"],
 ];
 
 (async () => {

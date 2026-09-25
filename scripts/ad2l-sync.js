@@ -12,16 +12,18 @@
 // rosters. A game counts if it's tagged with the league AND both sides are rosters from
 // this division (3+ of 5 players), which also drops cross-division games.
 //
-// Usage: npm run ad2l:sync   [--season 675 --league 20077]
+// Usage: npm run ad2l:sync   [--season 675 --league 20077 --out ad2l.json]
+//        npm run heroic:sync  (S48 Heroic/Aegis: --season 676 --out heroic.json)
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildingsFrom } from "../public/lib/towermap.js";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CACHE = path.join(ROOT, ".cache");
-const OUT = path.join(ROOT, "public", "data", "ad2l.json");
 const arg = (name, dflt) => { const i = process.argv.indexOf(`--${name}`); return i > 0 ? process.argv[i + 1] : dflt; };
+const OUT = path.join(ROOT, "public", "data", path.basename(arg("out", "ad2l.json")));
 const SEASON_ID = Number(arg("season", 675)); // PlayOn "S48 Champion League"
 const LEAGUE_ID = Number(arg("league", 20077)); // Dota league "AD2L Season 48"
 const UA = "dota-scrim-league/0.1 (AD2L fan stats page; contact: jonahbyu@gmail.com)";
@@ -64,12 +66,12 @@ async function playon(p, ttlHours) {
 }
 
 let lastOD = 0, odCalls = 0;
-async function opendota(p) {
+async function opendota(p, method = "GET") {
   for (let attempt = 0; attempt < 4; attempt++) {
     await sleep(Math.max(0, 1100 - (Date.now() - lastOD))); // free tier: 60/min
     lastOD = Date.now();
     odCalls++;
-    const res = await fetch(`https://api.opendota.com/api${p}`, { headers: { "user-agent": UA } });
+    const res = await fetch(`https://api.opendota.com/api${p}`, { method, headers: { "user-agent": UA } });
     if (res.status === 429) { await sleep(15000 * (attempt + 1)); continue; }
     if (!res.ok) throw new Error(`OpenDota ${p}: HTTP ${res.status}`);
     return res.json();
@@ -77,13 +79,23 @@ async function opendota(p) {
   throw new Error(`OpenDota ${p}: rate limited`);
 }
 
-// Match details never change once a game is over: cache forever.
+// Match details never change once OpenDota has parsed the replay: cache those forever.
+// Before that the response has no per-minute, ward or kill-log data, so an unparsed copy
+// is refetched every run (and a parse requested) instead of being frozen in the cache.
+const isParsed = (d) => Array.isArray(d.radiant_gold_adv) || d.od_data?.has_parsed === true;
 async function matchDetail(id) {
   const file = path.join(CACHE, "opendota", `match_${id}.json`);
-  if (existsSync(file)) return JSON.parse(await readFile(file, "utf8"));
+  if (existsSync(file)) {
+    const cached = JSON.parse(await readFile(file, "utf8"));
+    if (isParsed(cached)) return cached;
+  }
   const d = await opendota(`/matches/${id}`);
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, JSON.stringify(d));
+  if (!isParsed(d)) {
+    console.log(`  match ${id} not parsed by OpenDota yet; requested a parse, rerun later`);
+    await opendota(`/request/${id}`, "POST").catch((e) => console.log(`  parse request failed: ${e.message}`));
+  }
   return d;
 }
 
@@ -217,6 +229,8 @@ for (const id of [...candidates].sort()) {
       const side = o.team === 2 ? "a" : o.team === 3 ? "b" : o.player_slot != null ? (o.player_slot < 128 ? "a" : "b") : null;
       return [{ type, minute: Math.floor(o.time / 60), time: o.time, side }];
     }) : null,
+    // Towers, barracks and Ancients as they fell: owner side, which one, second, who took it.
+    buildings: buildingsFrom(d.objectives, (slot) => heroes[d.players.find((p) => p.player_slot === slot)?.hero_id] ?? null),
     players: [...d.players].sort((x, y) => x.player_slot - y.player_slot).map((p) => ({
       team: p.isRadiant ? "a" : "b",
       name: owner.get(p.account_id)?.name ?? p.personaname ?? (p.account_id ? `account ${p.account_id}` : "anonymous"),

@@ -11,6 +11,12 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   list. Private scrims count.
 - **AD2L S48 Champion** — switch league in the top-left: standings, every ticketed game
   with full stats, players and heroes, pulled from PlayOn + OpenDota.
+- **AD2L S48 Heroic/Aegis** — a second division in the same switcher (PlayOn runs Heroic
+  and Aegis as one season, 676), from its own `public/data/heroic.json` (`npm run heroic:sync`).
+  Everything Champion has, under `#/heroic/`: standings, weekly, players, heroes, teams,
+  predictions (picks stored with `league: "heroic"`) and unticketed uploads (Firestore
+  `scrimLeague/data/heroic_unticketed`, same rules as Champion's). Scrim team lists stay
+  Champion's. Forfeits against PlayOn's "Heroic Bye Week" placeholder aren't uploadable games.
 - **Tier list** (top of the Players tab) — every player with 3+ games, ranked S–D by in-season performance
   against same-role players plus win rate (see "Tier list" below).
 - **Weekly recap** — one week at a time: highlights (player of the week, biggest damage,
@@ -86,6 +92,11 @@ A for-fun stats site for Dota 2 scrims and our AD2L division.
   always "own base bottom left". Filter by ward type and game phase (0–10', 10–20', 20–35',
   35'+). Drawn on the minimap picture in `public/img/minimap.webp`, lined up by its two
   fountains against where players stand before the horn (both axes 4.25 px per map unit).
+- **Tower maps** (AD2L game pages) — every tower, barracks and Ancient on the same minimap,
+  by the same game phases: what's standing at the end of the phase, what fell in it (with
+  the time on the map) and what fell earlier (faded). Hover for who took it, creeps, or a
+  deny. From OpenDota's building kills (`buildings` in `ad2l.json`). Building spots are
+  hand-placed along the lanes, not from replay coordinates, so they can be a map unit or two off.
 - **Hero pages** — click any hero: record, pick and ban rates, average draft slot (AD2L),
   best team and player on it, biggest games, a teams table (picks, W–L, win % on the hero,
   who played it, bans for and against), a players table and every game it was in.
@@ -156,6 +167,7 @@ It's a static file, `public/data/ad2l.json`, rebuilt with:
 
 ```
 npm run ad2l:sync     # ~3 min first run; cached after that
+npm run heroic:sync   # same for the Heroic division -> public/data/heroic.json
 git commit -am "Update AD2L data" && git push   # Actions redeploys the site
 ```
 

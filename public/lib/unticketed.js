@@ -54,10 +54,13 @@ export function missingGames(d, uploads = []) {
 // Every game an unticketed upload can stand for: games missing from series PlayOn has
 // scored (earlier weeks), plus both games of series not scored yet that are scheduled
 // before `until` (this week's, not ticketed yet). Each is { series, game, scored }.
-// `except` is an upload being moved, so its own slot counts as open.
+// `except` is an upload being moved, so its own slot counts as open. Series against a bye
+// (PlayOn's "… Bye Week" placeholder team, scored as a forfeit) were never played.
 export function openGames(d, uploads = [], until = Infinity, except = null) {
+  const bye = new Set(d.teams.filter((t) => /\bbye week\b/i.test(t.name)).map((t) => t.id));
   const out = [];
   for (const s of d.series) {
+    if (bye.has(s.home) || bye.has(s.away)) continue;
     const played = (s.home_score ?? 0) + (s.away_score ?? 0);
     const scored = played > 0;
     const total = scored ? played : s.time && s.time <= until ? 2 : 0;

@@ -2,7 +2,7 @@
  "season": "S48 Champion League - Amateur Dota 2 League",
  "playon_season_id": 675,
  "league_id": 20077,
- "updated": "2026-09-25T03:50:39.963Z",
+ "updated": "2026-09-25T21:21:32.779Z",
  "teams": [
   {
    "id": 15033,
@@ -786,6 +786,197 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 745,
+     "by": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 767,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 972,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 983,
+     "by": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1111,
+     "by": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1655,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 1715,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1955,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2115,
+     "by": "a",
+     "hero": "Techies"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 2176,
+     "by": "a",
+     "hero": "Kez"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2648,
+     "by": "a",
+     "hero": "Void Spirit"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2659,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2660,
+     "by": "a",
+     "hero": "Kez"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2821,
+     "by": "a",
+     "hero": "Kez"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2925,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 3025,
+     "by": "a",
+     "hero": "Kez"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 3121,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 3126,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 3134,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 3136,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 3140,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 3159,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 3440,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 3447,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3473,
+     "by": "b",
+     "hero": "Meepo"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3477,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3483,
+     "by": "b",
+     "hero": "Tiny"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -1339,6 +1530,162 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 649,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 916,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 966,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1238,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1413,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1606,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2046,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2054,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2060,
+     "by": "b",
+     "hero": "Bounty Hunter"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2062,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2287,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2340,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2358,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2369,
+     "by": "b",
+     "hero": "Hoodwink"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2370,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2386,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 2400,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 2406,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 2416,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2640,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2648,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2696,
+     "by": "b",
+     "hero": "Hoodwink"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -1886,6 +2233,148 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 712,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 811,
+     "by": "a",
+     "hero": "Enigma"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 818,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1631,
+     "by": "a",
+     "hero": "Enigma"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1688,
+     "by": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1690,
+     "by": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1960,
+     "by": "a",
+     "hero": "Enigma"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2256,
+     "by": "a",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2270,
+     "by": "a",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2343,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 2415,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2760,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2766,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2771,
+     "by": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2779,
+     "by": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2783,
+     "by": "a",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2789,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3013,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3029,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3041,
+     "by": "a",
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -2427,6 +2916,162 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 673,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 754,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 993,
+     "by": "b",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1083,
+     "by": "b",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1111,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1606,
+     "by": "a",
+     "hero": "Pudge"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1687,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1781,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1931,
+     "by": "a",
+     "hero": "Pudge"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 1939,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 1945,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2026,
+     "by": "b",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2147,
+     "by": "b",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2160,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2196,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2261,
+     "by": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2299,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2306,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2318,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2399,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2418,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2430,
+     "by": "a",
+     "hero": "Lifestealer"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -2940,9 +3585,281 @@
    "winner": "b",
    "duration_sec": 4807,
    "game_mode": "Captains Mode",
-   "gold_adv": null,
-   "xp_adv": null,
-   "objectives": null,
+   "gold_adv": [0,285,449,718,14,-685,-799,-914,-973,-1388,-570,-843,-1166,-139,-289,40,1798,1799,1734,1377,788,-637,-1286,-436,203,-866,-1353,-1708,-2202,-4557,-3657,-5638,-5570,-4818,-6073,-5135,-2893,-5342,-6506,-7764,-6428,-5639,-7195,-6390,-6431,-7135,-8778,-8359,-8616,-8633,-10506,-10957,-11123,-15371,-16374,-21997,-26973,-27037,-19058,-17449,-17811,-18375,-18242,-14383,-10583,-8441,-5654,-1878,1070,2666,1093,186,-51,-35,-2175,-2774,-2740,-1524,2104,-3033,-3988],
+   "xp_adv": [0,-114,16,130,-310,-851,-1210,-1088,-1329,-1450,-710,-1387,-1556,244,51,-840,1762,-169,940,499,257,-1179,-2984,-346,1406,719,-82,953,1038,-898,1007,-4037,-3248,-1767,-2535,37,3911,-1449,-1854,-2149,2031,2137,-836,1041,-2146,-2807,-5000,-4498,-7785,-7813,-4781,-4770,-4221,-9432,-10183,-31013,-32712,-29829,-12784,-12862,-13802,-14643,-15289,-5283,6706,3725,3593,12833,13407,16761,13402,4453,5465,3710,968,-181,6,4300,13632,14600,15359],
+   "objectives": [
+    {
+     "type": "tormentor",
+     "minute": 25,
+     "time": 1513,
+     "side": "a"
+    },
+    {
+     "type": "roshan",
+     "minute": 37,
+     "time": 2258,
+     "side": "b"
+    },
+    {
+     "type": "aegis",
+     "minute": 37,
+     "time": 2261,
+     "side": "b"
+    },
+    {
+     "type": "tormentor",
+     "minute": 39,
+     "time": 2358,
+     "side": "b"
+    },
+    {
+     "type": "roshan",
+     "minute": 48,
+     "time": 2908,
+     "side": "b"
+    },
+    {
+     "type": "aegis",
+     "minute": 48,
+     "time": 2908,
+     "side": "b"
+    },
+    {
+     "type": "tormentor",
+     "minute": 52,
+     "time": 3174,
+     "side": "b"
+    },
+    {
+     "type": "roshan",
+     "minute": 63,
+     "time": 3827,
+     "side": "a"
+    },
+    {
+     "type": "aegis",
+     "minute": 63,
+     "time": 3829,
+     "side": "a"
+    },
+    {
+     "type": "roshan",
+     "minute": 76,
+     "time": 4602,
+     "side": "b"
+    },
+    {
+     "type": "aegis",
+     "minute": 76,
+     "time": 4606,
+     "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 866,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1036,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1269,
+     "by": "a",
+     "hero": "Invoker"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1304,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1390,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1469,
+     "by": "a",
+     "hero": "Grimstroke"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2129,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2199,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2526,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2953,
+     "by": "b",
+     "hero": "Viper"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 3072,
+     "by": "b",
+     "hero": "Viper"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 3307,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 3327,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 3333,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 3339,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 3370,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 3387,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 3413,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 3788,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 3922,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 3925,
+     "by": "a",
+     "hero": "Pudge"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 3929,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 4002,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 4074,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 4079,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 4645,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 4686,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 4787,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 4807,
+     "by": "b",
+     "hero": "Naga Siren"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -2965,19 +3882,19 @@
      "xpm": 966,
      "hero_damage": 118682,
      "hero_healing": 0,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,281,483,803,1192,1505,1884,2299,2812,2902,3834,4232,4813,5541,5938,6719,7820,8355,8656,9106,9538,10119,10554,11087,11901,12533,12998,13710,14178,14887,15528,16146,17481,18550,19078,20169,21018,21266,21908,22936,24028,24661,25810,26535,27181,28004,28110,29261,30010,31078,31501,32110,32611,33783,34668,34826,35060,36889,39332,40522,42185,43023,43677,45069,46707,47872,49061,52075,53149,54515,55077,56262,57177,58149,58965,59902,61000,62541,65748,66465,66577],
+     "lane_kills": 478,
+     "neutral_kills": 372,
+     "ancient_kills": 46,
+     "camps_stacked": 2,
+     "obs_placed": 0,
+     "sen_placed": 0,
+     "obs_killed": 0,
+     "sen_killed": 3,
+     "roshan_kills": 0,
+     "tormentor_kills": 0,
+     "obs_pos": [],
+     "sen_pos": []
     },
     {
      "team": "a",
@@ -3000,19 +3917,19 @@
      "xpm": 794,
      "hero_damage": 52872,
      "hero_healing": 0,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,246,491,901,1230,1482,1807,2019,2498,2869,3185,3368,3793,4192,4472,4975,5500,6160,6836,7378,7562,7775,8678,9282,10009,10395,10979,11862,12469,12565,13293,13606,13899,14631,15116,15678,16265,16653,16753,17323,18148,18633,19123,19785,20387,21069,21631,22860,23735,24508,25006,25465,25883,26595,27306,27412,27518,28215,29795,31230,32112,33089,33711,35525,36786,37609,38498,40209,40960,41864,42118,42693,42973,43427,43696,44257,44796,45448,47075,47800,48677],
+     "lane_kills": 489,
+     "neutral_kills": 38,
+     "ancient_kills": 1,
+     "camps_stacked": 0,
+     "obs_placed": 1,
+     "sen_placed": 1,
+     "obs_killed": 0,
+     "sen_killed": 1,
+     "roshan_kills": 0,
+     "tormentor_kills": 0,
+     "obs_pos": [120,121,-23,361,0],
+     "sen_pos": []
     },
     {
      "team": "a",
@@ -3035,19 +3952,19 @@
      "xpm": 834,
      "hero_damage": 52864,
      "hero_healing": 0,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,210,570,884,1070,1194,1480,1705,1963,2694,3112,3322,3745,4352,4595,5082,5483,5966,6460,7051,7356,7690,8101,8914,9330,9922,10515,11022,11812,11953,12671,13309,13898,15175,15275,15801,16388,16488,17082,17515,17813,18938,19038,19786,20123,20844,21043,21414,21568,21785,21891,22141,22297,22403,22690,22840,23206,24160,26126,27341,27976,28961,29687,32073,33478,34305,35252,37389,38538,39806,40287,41259,42589,43506,43937,44770,45876,47483,50025,50863,50975],
+     "lane_kills": 381,
+     "neutral_kills": 166,
+     "ancient_kills": 9,
+     "camps_stacked": 0,
+     "obs_placed": 0,
+     "sen_placed": 0,
+     "obs_killed": 1,
+     "sen_killed": 0,
+     "roshan_kills": 0,
+     "tormentor_kills": 0,
+     "obs_pos": [],
+     "sen_pos": []
     },
     {
      "team": "a",
@@ -3070,19 +3987,19 @@
      "xpm": 782,
      "hero_damage": 39547,
      "hero_healing": 250,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,216,359,589,685,781,921,1011,1211,1481,1920,2057,2235,3019,3145,3375,3648,4068,4254,4396,4542,4889,5163,5641,6194,6410,6615,6932,7108,7249,7978,8078,8333,8833,8933,9234,10025,10125,10467,10605,11149,11617,12038,12908,13509,14098,14412,15009,15493,16014,16672,17016,17641,17959,18109,18837,19051,19631,21338,21786,22383,23225,23429,24720,25397,25661,26583,28137,28833,29822,30026,30330,30638,31062,31395,31566,31852,32054,34733,35107,35597],
+     "lane_kills": 144,
+     "neutral_kills": 58,
+     "ancient_kills": 3,
+     "camps_stacked": 1,
+     "obs_placed": 6,
+     "sen_placed": 18,
+     "obs_killed": 2,
+     "sen_killed": 8,
+     "roshan_kills": 0,
+     "tormentor_kills": 0,
+     "obs_pos": [177,74,372,360,0,96,155,453,360,0,80,160,563,360,0,109,183,912,360,0,190,133,1983,29,1,136,156,2614,25,1],
+     "sen_pos": [98,164,268,227,1,75,162,412,420,0,90,152,448,420,0,102,161,620,64,1,107,163,894,20,1,163,113,1227,19,1,136,156,1370,420,0,134,102,1457,420,0,97,129,1607,168,1,177,123,1788,420,0,117,88,1876,420,0,191,134,1983,32,1,94,120,2206,420,0,96,132,2331,172,1,149,173,2594,420,0,134,163,2605,420,0,101,91,2754,420,0,80,113,3036,420,0]
     },
     {
      "team": "a",
@@ -3105,19 +4022,19 @@
      "xpm": 674,
      "hero_damage": 25790,
      "hero_healing": 8186,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,210,349,439,631,735,936,1026,1162,1329,1595,1731,1867,2237,2419,2649,3027,3338,3723,4007,4202,4630,5123,5639,5872,6231,6521,6700,6843,6939,7252,7565,8075,8575,8844,9179,9675,9830,9930,10107,10456,11142,11363,12272,12467,12773,12879,13382,13579,13796,14131,14339,14792,15163,15269,15583,16014,16790,18191,18297,18403,18672,20038,20309,21544,21726,22355,24173,24816,25520,25729,25987,26259,26520,27222,27378,27538,28484,30142,30893,31005],
+     "lane_kills": 183,
+     "neutral_kills": 18,
+     "ancient_kills": 0,
+     "camps_stacked": 3,
+     "obs_placed": 29,
+     "sen_placed": 42,
+     "obs_killed": 2,
+     "sen_killed": 6,
+     "roshan_kills": 1,
+     "tormentor_kills": 1,
+     "obs_pos": [170,89,123,360,0,122,137,579,360,0,108,142,979,360,0,146,111,1107,360,0,179,103,1126,38,1,108,143,1421,360,0,146,111,1480,360,0,118,94,1556,360,0,161,95,1593,360,0,164,134,1780,50,1,108,143,2045,360,0,118,94,2265,360,0,91,134,2341,160,1,104,119,2730,360,0,128,132,2807,361,0,78,142,2925,361,0,136,156,3203,360,0,118,94,3623,360,0,119,65,3654,360,0,164,134,3876,288,1,167,150,3891,245,1,136,156,4096,77,1,145,112,4118,360,0,94,120,4274,360,0,109,143,4280,204,1,118,94,4310,276,1,133,98,4546,31,1,121,138,4586,-1,0,136,124,4592,6,1],
+     "sen_pos": [163,99,33,28,1,120,129,376,270,1,90,166,631,420,0,121,153,940,420,0,109,164,949,420,0,119,132,985,420,0,131,121,1030,297,1,144,91,1092,420,0,134,102,1100,213,1,118,94,1329,420,0,133,122,1401,39,1,165,93,1489,420,0,145,90,1586,420,0,121,134,1707,420,0,133,123,1713,420,0,164,134,1780,63,1,129,97,1918,420,0,120,153,2018,421,0,109,163,2029,420,0,118,94,2263,420,0,136,156,2435,42,1,112,79,2696,420,0,94,120,2726,240,1,140,139,2836,420,0,158,123,2848,420,0,118,94,2872,63,1,104,105,2970,420,0,118,94,2976,420,0,94,120,3186,141,1,136,156,3201,420,0,87,96,3398,420,0,87,78,3431,421,0,118,94,3621,420,0,99,85,3705,421,0,154,128,3872,291,1,157,152,3883,226,1,158,159,3928,168,1,136,156,4095,80,1,96,81,4257,420,0,93,96,4261,420,0,79,102,4266,420,0,130,98,4544,30,1,144,92,4551,420,0]
     },
     {
      "team": "b",
@@ -3140,19 +4057,19 @@
      "xpm": 831,
      "hero_damage": 56443,
      "hero_healing": 0,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,201,365,642,1106,1658,2123,2407,2967,3254,3744,4025,4582,4953,5308,6066,6486,6929,7585,8470,8979,10409,11419,12812,13687,15056,16113,17411,18632,20088,20274,21003,21778,22582,23193,24059,24589,25819,26480,27680,28192,29274,30685,31344,32206,33313,34921,36257,36879,38180,39783,40477,41167,43459,45207,47347,49901,51167,51282,51512,52363,53923,55634,57217,57478,57859,58370,59558,60042,61635,62498,64067,65190,66381,68875,70093,71236,72144,74287,78500,79977],
+     "lane_kills": 621,
+     "neutral_kills": 545,
+     "ancient_kills": 60,
+     "camps_stacked": 0,
+     "obs_placed": 0,
+     "sen_placed": 0,
+     "obs_killed": 1,
+     "sen_killed": 2,
+     "roshan_kills": 2,
+     "tormentor_kills": 1,
+     "obs_pos": [],
+     "sen_pos": []
     },
     {
      "team": "b",
@@ -3175,19 +4092,19 @@
      "xpm": 891,
      "hero_damage": 58825,
      "hero_healing": 0,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,215,426,717,1051,1275,1600,2011,2379,2691,3168,3666,4062,4499,4980,5410,5515,6429,6746,7187,7557,8314,9034,9206,9505,10361,11037,11684,12328,12860,13660,14634,15689,16685,17261,17477,17715,18727,19445,20234,20509,21084,21616,22335,22501,23618,24104,24824,25569,25968,26579,27105,27609,28708,29435,30165,31907,32826,33018,33880,35452,36473,36859,37928,38574,38680,38908,40449,40922,41754,42588,43432,44283,44988,45248,46076,46705,47107,49557,53547,53890],
+     "lane_kills": 418,
+     "neutral_kills": 180,
+     "ancient_kills": 22,
+     "camps_stacked": 0,
+     "obs_placed": 2,
+     "sen_placed": 0,
+     "obs_killed": 0,
+     "sen_killed": 0,
+     "roshan_kills": 0,
+     "tormentor_kills": 0,
+     "obs_pos": [126,117,145,360,0,121,140,521,360,0],
+     "sen_pos": []
     },
     {
      "team": "b",
@@ -3210,19 +4127,19 @@
      "xpm": 830,
      "hero_damage": 55170,
      "hero_healing": 125,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,202,534,815,1220,1605,1855,2127,2444,3321,3623,4001,4537,4777,5131,5453,5658,6148,6557,7227,7696,8276,9033,9304,9532,10108,10529,11044,11414,11862,12410,13535,14122,14783,15032,15386,15486,15980,16626,17382,17764,17864,18312,19407,19993,20557,21181,21578,21925,22512,23479,24149,24704,25658,26014,27984,28585,29630,29735,30094,30925,31803,32145,32576,33108,33285,33552,34742,34854,34967,35117,35832,36158,36847,37318,37702,38165,38567,40453,40566,40833],
+     "lane_kills": 212,
+     "neutral_kills": 184,
+     "ancient_kills": 49,
+     "camps_stacked": 2,
+     "obs_placed": 0,
+     "sen_placed": 0,
+     "obs_killed": 0,
+     "sen_killed": 1,
+     "roshan_kills": 1,
+     "tormentor_kills": 1,
+     "obs_pos": [],
+     "sen_pos": []
     },
     {
      "team": "b",
@@ -3245,19 +4162,19 @@
      "xpm": 627,
      "hero_damage": 26022,
      "hero_healing": 125,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,130,258,414,631,814,926,1016,1261,1569,1711,1801,1953,2483,2577,2732,2827,3219,3482,3577,3917,4212,4556,4661,4981,5197,5330,5605,5847,6456,6834,7203,7513,7861,8536,8796,8896,9106,9493,10102,10430,10780,10914,11014,11114,11945,12051,12737,13414,13654,14150,14301,14566,16054,16259,17292,18077,18637,19095,19562,19963,20743,21637,21743,22459,22565,22784,23409,23521,23810,24270,25060,25641,25955,26763,26876,27084,27486,28251,28364,28631],
+     "lane_kills": 120,
+     "neutral_kills": 129,
+     "ancient_kills": 4,
+     "camps_stacked": 1,
+     "obs_placed": 7,
+     "sen_placed": 14,
+     "obs_killed": 2,
+     "sen_killed": 6,
+     "roshan_kills": 0,
+     "tormentor_kills": 0,
+     "obs_pos": [152,96,817,360,0,125,157,934,12,1,118,172,964,360,0,192,84,1180,360,0,92,166,1515,361,0,114,151,1626,360,0,140,90,2748,361,0],
+     "sen_pos": [168,98,57,420,0,164,94,547,421,0,122,129,643,345,1,149,91,814,281,1,106,166,910,43,1,174,99,1148,421,0,183,121,1197,420,0,129,122,1324,80,1,146,135,1428,420,0,132,127,1436,278,1,92,166,1516,420,0,108,162,1619,412,1,179,73,1853,421,0,154,164,2620,420,0]
     },
     {
      "team": "b",
@@ -3280,19 +4197,19 @@
      "xpm": 652,
      "hero_damage": 35880,
      "hero_healing": 2700,
-     "gold_t": null,
-     "lane_kills": null,
-     "neutral_kills": null,
-     "ancient_kills": null,
-     "camps_stacked": null,
-     "obs_placed": null,
-     "sen_placed": null,
-     "obs_killed": null,
-     "sen_killed": null,
-     "roshan_kills": null,
-     "tormentor_kills": null,
-     "obs_pos": null,
-     "sen_pos": null
+     "gold_t": [0,130,220,310,786,1030,1323,1413,1568,1828,1970,2060,2485,2768,2862,3099,3194,3363,3825,4100,4263,4529,4863,5016,5398,5635,5972,6190,6391,6884,7201,7967,8154,8671,9297,9478,9578,10072,10602,10852,11127,11628,13040,13576,14284,14490,14596,14889,15214,15500,15716,15996,16301,17395,17501,18707,19352,20462,20710,21577,22167,22403,22509,22615,22876,23225,23789,25703,25887,26695,27671,27954,28415,28528,29186,29900,30612,32230,33071,33184,33488],
+     "lane_kills": 82,
+     "neutral_kills": 91,
+     "ancient_kills": 9,
+     "camps_stacked": 4,
+     "obs_placed": 25,
+     "sen_placed": 51,
+     "obs_killed": 9,
+     "sen_killed": 13,
+     "roshan_kills": 0,
+     "tormentor_kills": 0,
+     "obs_pos": [78,182,355,360,0,136,156,1021,352,1,164,112,1128,103,1,124,130,1751,111,1,86,134,1777,361,0,164,134,1827,150,1,162,121,1967,360,0,136,156,2071,360,0,109,111,2230,360,0,143,102,2249,360,0,146,72,2300,360,0,178,74,2712,360,0,120,122,2796,360,0,82,132,2971,360,0,105,119,3279,360,0,73,97,3339,360,0,97,87,3359,349,1,95,86,3361,348,1,152,92,3464,360,0,102,133,3768,360,0,164,134,4162,360,0,152,89,4252,360,0,137,124,4492,-1,0,139,102,4519,-1,0,94,120,4788,-1,0],
+     "sen_pos": [93,162,146,125,1,79,182,404,420,0,96,162,490,133,1,97,174,665,420,0,109,163,681,222,1,99,189,842,420,0,130,158,1015,361,1,163,117,1123,110,1,163,117,1244,420,0,152,124,1249,420,0,133,104,1309,156,1,120,152,1477,420,0,97,130,1773,420,0,192,133,1806,180,1,170,137,1826,420,0,191,133,2010,420,0,129,156,2062,393,1,141,175,2095,420,0,147,154,2157,421,0,110,106,2227,420,0,133,119,2238,420,0,136,104,2247,420,0,142,72,2299,420,0,130,161,2474,136,1,92,128,2498,421,0,144,157,2634,420,0,135,105,2754,420,0,123,126,2797,420,0,155,128,2838,16,1,160,133,2885,420,0,123,99,2932,51,1,97,127,2962,235,1,83,112,3119,10,1,152,138,3239,420,0,108,121,3277,421,0,99,119,3325,420,0,99,85,3366,345,1,146,90,3463,420,0,112,114,3500,420,0,106,135,3766,421,0,169,175,4075,420,0,156,173,4090,420,0,158,159,4094,420,0,170,149,4134,420,0,160,133,4160,420,0,134,119,4494,420,0,139,104,4517,420,0,125,95,4582,420,0,142,135,4646,420,0,94,120,4786,-1,0,78,89,4798,-1,0]
     }
    ]
   },
@@ -3488,6 +4405,141 @@
      "minute": 46,
      "time": 2779,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 817,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1029,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1183,
+     "by": "b",
+     "hero": "Ember Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1238,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1614,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1856,
+     "by": "a",
+     "hero": "Magnus"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2307,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2481,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2485,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2486,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2493,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2712,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2887,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2906,
+     "by": "a",
+     "hero": "Elder Titan"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2914,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2919,
+     "by": "a",
+     "hero": "Magnus"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2928,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2936,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3019,
+     "by": "a",
+     "hero": "Windranger"
     }
    ],
    "players": [
@@ -4037,6 +5089,120 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 747,
+     "by": "b",
+     "hero": "Mirana"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 866,
+     "by": "a",
+     "hero": "Witch Doctor"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1092,
+     "by": "b",
+     "hero": "Mirana"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1190,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1331,
+     "by": "a",
+     "hero": "Sand King"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1617,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1646,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1809,
+     "by": "b",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2218,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2515,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2516,
+     "by": "b",
+     "hero": "Storm Spirit"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2519,
+     "by": "a",
+     "hero": "Tusk"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2524,
+     "by": "a",
+     "hero": "Sand King"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2546,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2561,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2565,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -4582,6 +5748,162 @@
      "minute": 45,
      "time": 2753,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 718,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 720,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 968,
+     "by": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1221,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1358,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1856,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2229,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2262,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2333,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2377,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2549,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2807,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2819,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2827,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2843,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2850,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2852,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2933,
+     "by": "b",
+     "hero": "Jakiro"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 2961,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 2964,
+     "by": "b",
+     "hero": "Jakiro"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 2969,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2971,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -5131,6 +6453,134 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 528,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 788,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 973,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1090,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1553,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1574,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1786,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 1800,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 1856,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 1863,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 1883,
+     "by": "a",
+     "hero": "Grimstroke"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 1916,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2003,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2011,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2050,
+     "by": "a",
+     "hero": "Clockwerk"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2295,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2299,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2327,
+     "by": "a",
+     "hero": "Windranger"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -5664,6 +7114,120 @@
      "minute": 26,
      "time": 1562,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 846,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 882,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1095,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1120,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1437,
+     "by": "b",
+     "hero": "Tidehunter"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1656,
+     "by": "b",
+     "hero": "Muerta"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1668,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1701,
+     "by": "b",
+     "hero": "Muerta"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1728,
+     "by": "b",
+     "hero": "Tidehunter"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 1792,
+     "by": "b",
+     "hero": "Muerta"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 1799,
+     "by": "b",
+     "hero": "Muerta"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 1801,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 1817,
+     "by": "b",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 1821,
+     "by": "b",
+     "hero": "Muerta"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 1828,
+     "by": "b",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 1910,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -6237,6 +7801,211 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 683,
+     "by": "a",
+     "hero": "Rubick"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 969,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1058,
+     "by": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1445,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1792,
+     "by": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1827,
+     "by": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1919,
+     "by": "b",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2216,
+     "by": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2315,
+     "by": "a",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2411,
+     "by": "b",
+     "hero": "Viper"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2420,
+     "by": "b",
+     "hero": "Jakiro"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2428,
+     "by": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2522,
+     "by": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2806,
+     "by": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2813,
+     "by": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2816,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2842,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2861,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2975,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 3247,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 3250,
+     "by": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 3258,
+     "by": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 3267,
+     "by": "b",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 3640,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 3652,
+     "by": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 3654,
+     "by": "a",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 3919,
+     "by": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 3922,
+     "by": "b",
+     "hero": "Juggernaut"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3953,
+     "by": "b",
+     "hero": "Juggernaut"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -6790,6 +8559,113 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 507,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 607,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 670,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1080,
+     "by": "b",
+     "hero": "Marci"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1269,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1746,
+     "by": "a",
+     "hero": "Rubick"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2256,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2258,
+     "by": "b",
+     "hero": "Marci"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2303,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2344,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2351,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2365,
+     "by": "b",
+     "hero": "Naga Siren"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 2429,
+     "by": "a",
+     "hero": "Ursa"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2452,
+     "by": "a",
+     "hero": "Ursa"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2613,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -7341,6 +9217,148 @@
      "minute": 40,
      "time": 2442,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 661,
+     "by": "a",
+     "hero": "Enigma"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 705,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 933,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1001,
+     "by": "b",
+     "hero": "Kunkka"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1846,
+     "by": "a",
+     "hero": "Enigma"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2008,
+     "by": "b",
+     "hero": "Kunkka"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2032,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2160,
+     "by": "a",
+     "hero": "Earthshaker"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2267,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2319,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2322,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2334,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2476,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2500,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2508,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2516,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2617,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2654,
+     "by": "a",
+     "hero": "Enigma"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2669,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2683,
+     "by": "a",
+     "hero": "Vengeful Spirit"
     }
    ],
    "players": [
@@ -7908,6 +9926,99 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 664,
+     "by": "b",
+     "hero": "Dark Willow"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 848,
+     "by": "a",
+     "hero": "Tidehunter"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 968,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1402,
+     "by": "b",
+     "hero": "Ursa"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1583,
+     "by": "b",
+     "hero": "Ursa"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1691,
+     "by": "b",
+     "hero": "Ursa"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1805,
+     "by": "b",
+     "hero": "Ursa"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1837,
+     "by": "b",
+     "hero": "Ursa"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2643,
+     "by": "b",
+     "hero": "Ursa"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 3060,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 3142,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 3165,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3171,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -8467,6 +10578,155 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 952,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1015,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1082,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1291,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1603,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1670,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2030,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2049,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2249,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2377,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2530,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2550,
+     "by": "a",
+     "hero": "Lone Druid"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2696,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2851,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2859,
+     "by": "a",
+     "hero": "Lion"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2955,
+     "by": "b",
+     "hero": "Magnus"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2961,
+     "by": "b",
+     "hero": "Magnus"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2979,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2998,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3047,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3062,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -9018,6 +11278,148 @@
      "minute": 39,
      "time": 2364,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 584,
+     "by": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 653,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 656,
+     "by": "a",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1273,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1358,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1661,
+     "by": "a",
+     "hero": "Kunkka"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1822,
+     "by": "b",
+     "hero": "Terrorblade"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2035,
+     "by": "b",
+     "hero": "Terrorblade"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2063,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2080,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2276,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2556,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2578,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2579,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2584,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2589,
+     "by": "a",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2602,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2637,
+     "by": "a",
+     "hero": "Luna"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2644,
+     "by": "a",
+     "hero": "Kunkka"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2654,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -9573,6 +11975,197 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 556,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 665,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 751,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1121,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1521,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1654,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1750,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1822,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1909,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2020,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2026,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2203,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2599,
+     "by": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2638,
+     "by": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2681,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2739,
+     "by": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2744,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 3125,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 3151,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 3201,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 3204,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 3224,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 3228,
+     "by": "b",
+     "hero": "Spirit Breaker"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 3234,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3295,
+     "by": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3302,
+     "by": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3331,
+     "by": "b",
+     "hero": "Spectre"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -10118,6 +12711,141 @@
      "minute": 40,
      "time": 2403,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 724,
+     "by": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 840,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 896,
+     "by": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1872,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1898,
+     "by": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1941,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2018,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2073,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2247,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2255,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2261,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 2324,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2703,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2710,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2715,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2920,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 2926,
+     "by": "b",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2927,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2959,
+     "by": "b",
+     "hero": "Shadow Fiend"
     }
    ],
    "players": [
@@ -10691,6 +13419,169 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 794,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 871,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 904,
+     "by": "a",
+     "hero": "Void Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1090,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1116,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1401,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1491,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1560,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2149,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2286,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2476,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2663,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2671,
+     "by": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2680,
+     "by": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2682,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2687,
+     "by": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2705,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 3269,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 3276,
+     "by": "b",
+     "hero": "Ogre Magi"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 3280,
+     "by": "b",
+     "hero": "Winter Wyvern"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3292,
+     "by": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3293,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3320,
+     "by": "b",
+     "hero": "Tiny"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -11244,6 +14135,134 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 817,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 972,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1161,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1306,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1417,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1822,
+     "by": "a",
+     "hero": "Kez"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1832,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1920,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1960,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2163,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2879,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 3018,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 3040,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 3051,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 3194,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3220,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3248,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3257,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -11791,6 +14810,134 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 774,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 873,
+     "by": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1033,
+     "by": "b",
+     "hero": "Timbersaw"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1053,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1549,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1673,
+     "by": "a",
+     "hero": "Weaver"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1700,
+     "by": "a",
+     "hero": "Weaver"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1758,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2176,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2293,
+     "by": "b",
+     "hero": "Timbersaw"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2304,
+     "by": "b",
+     "hero": "Timbersaw"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2306,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2337,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2346,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2776,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3272,
+     "by": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3281,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3298,
+     "by": "b",
+     "hero": "Snapfire"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -12312,6 +15459,85 @@
      "minute": 20,
      "time": 1251,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 772,
+     "by": "b",
+     "hero": "Enchantress"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 893,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 905,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 958,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1026,
+     "by": "a",
+     "hero": "Rubick"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1443,
+     "by": "b",
+     "hero": "Enchantress"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1570,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 1624,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1723,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 1779,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 1781,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -12865,6 +16091,127 @@
      "minute": 44,
      "time": 2683,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 711,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 907,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 980,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1040,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1097,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1100,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1760,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1799,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1912,
+     "by": "a",
+     "hero": "Pudge"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 1919,
+     "by": "a",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 1927,
+     "by": "a",
+     "hero": "Pudge"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2158,
+     "by": "a",
+     "hero": "Pudge"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2220,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2797,
+     "by": "a",
+     "hero": "Pudge"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3047,
+     "by": "a",
+     "hero": "Lion"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3047,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3054,
+     "by": "a",
+     "hero": null
     }
    ],
    "players": [
@@ -13432,6 +16779,141 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 655,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 996,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1067,
+     "by": "a",
+     "hero": "Puck"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1159,
+     "by": "a",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1422,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1854,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1876,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1881,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2094,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2368,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2549,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2755,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 3005,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 3016,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 3022,
+     "by": "a",
+     "hero": "Puck"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 3149,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 3532,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3567,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3585,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -13965,6 +17447,78 @@
      "minute": 23,
      "time": 1384,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 556,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 796,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 819,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1246,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1320,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1328,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1424,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1562,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 1591,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 1598,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -14520,6 +18074,148 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 524,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 799,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 859,
+     "by": "a",
+     "hero": "Pugna"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1015,
+     "by": "a",
+     "hero": "Pugna"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1198,
+     "by": "a",
+     "hero": "Invoker"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1742,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2203,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 2232,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2412,
+     "by": "a",
+     "hero": "Chaos Knight"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 2463,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 2463,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2471,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2474,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2478,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2486,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2489,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2494,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2651,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2666,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2709,
+     "by": "b",
+     "hero": "Spectre"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -15055,6 +18751,106 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 587,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 676,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 691,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 942,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1289,
+     "by": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1476,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 1621,
+     "by": "a",
+     "hero": "Tusk"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 1627,
+     "by": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 1635,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1708,
+     "by": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1726,
+     "by": "b",
+     "hero": "Leshrac"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1906,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 1974,
+     "by": "a",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 1979,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -15582,6 +19378,71 @@
      "minute": 29,
      "time": 1751,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 648,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 850,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1053,
+     "by": "b",
+     "hero": "Dark Seer"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1565,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1782,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1819,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1852,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 1885,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 1891,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -16155,6 +20016,183 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 666,
+     "by": "a",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 745,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 994,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1306,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1362,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1425,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1884,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2152,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2266,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2287,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2292,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2296,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2312,
+     "by": "b",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2317,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2356,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2533,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2700,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2715,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2725,
+     "by": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2733,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2736,
+     "by": "a",
+     "hero": "Keeper of the Light"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2744,
+     "by": "a",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3164,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3562,
+     "by": "b",
+     "hero": "Undying"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3567,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -16694,6 +20732,120 @@
      "minute": 40,
      "time": 2402,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 826,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 982,
+     "by": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1009,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1183,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1354,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1633,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1848,
+     "by": "b",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2165,
+     "by": "b",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2199,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2205,
+     "by": "b",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2238,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2268,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2357,
+     "by": "b",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2565,
+     "by": "b",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2571,
+     "by": "b",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2586,
+     "by": "b",
+     "hero": null
     }
    ],
    "players": [
@@ -17241,6 +21393,141 @@
      "minute": 46,
      "time": 2761,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 454,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 701,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 944,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1263,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1362,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1563,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1570,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1583,
+     "by": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 1708,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 1772,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 1794,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 1805,
+     "by": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2191,
+     "by": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2888,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2893,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2894,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2909,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2914,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2926,
+     "by": "a",
+     "hero": "Tusk"
     }
    ],
    "players": [
@@ -17802,6 +22089,183 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 585,
+     "by": "a",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 637,
+     "by": "a",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 709,
+     "by": "a",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 737,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 782,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1029,
+     "by": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1115,
+     "by": "a",
+     "hero": "Beastmaster"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1331,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1574,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2092,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2265,
+     "by": "b",
+     "hero": "Invoker"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2503,
+     "by": "a",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2622,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2645,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2649,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2652,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2671,
+     "by": "b",
+     "hero": "Invoker"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2743,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2750,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2938,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2952,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 3181,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 3207,
+     "by": "b",
+     "hero": "Invoker"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 3226,
+     "by": "b",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3253,
+     "by": "b",
+     "hero": "Lifestealer"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -18361,6 +22825,141 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 661,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 962,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1027,
+     "by": "a",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1257,
+     "by": "b",
+     "hero": "Outworld Destroyer"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1382,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1735,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1785,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1927,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 2337,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2367,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2398,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2541,
+     "by": "a",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2707,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2716,
+     "by": "a",
+     "hero": "Axe"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2720,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2765,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2930,
+     "by": "a",
+     "hero": "Axe"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2936,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2957,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -18912,6 +23511,155 @@
      "minute": 40,
      "time": 2407,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 707,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 956,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1094,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1124,
+     "by": "b",
+     "hero": "Chen"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1307,
+     "by": "b",
+     "hero": "Terrorblade"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1408,
+     "by": "b",
+     "hero": "Terrorblade"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1802,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1917,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2171,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2194,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2507,
+     "by": "a",
+     "hero": "Enchantress"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2534,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2541,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2597,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2603,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2646,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2651,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2659,
+     "by": "a",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2666,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2670,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2674,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -19473,6 +24221,127 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 687,
+     "by": "a",
+     "hero": "Axe"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 819,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 913,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1382,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1605,
+     "by": "a",
+     "hero": "Axe"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1960,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2086,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2460,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2607,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2725,
+     "by": "a",
+     "hero": "Axe"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2729,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2734,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2747,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2752,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2755,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2846,
+     "by": "a",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3037,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -20012,6 +24881,113 @@
      "minute": 35,
      "time": 2111,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1075,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1075,
+     "by": "b",
+     "hero": "Tiny"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1098,
+     "by": "b",
+     "hero": "Razor"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1409,
+     "by": "a",
+     "hero": "Rubick"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1569,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1861,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1920,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2016,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2033,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2210,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2271,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2278,
+     "by": "a",
+     "hero": "Rubick"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2300,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2302,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2305,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -20561,6 +25537,141 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 612,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 671,
+     "by": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1043,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1181,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1362,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1474,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1788,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2123,
+     "by": "a",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2304,
+     "by": "a",
+     "hero": "Kez"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2455,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2489,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2740,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 2780,
+     "by": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2946,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2955,
+     "by": "b",
+     "hero": "Dark Seer"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2956,
+     "by": "b",
+     "hero": "Death Prophet"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2963,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2991,
+     "by": "b",
+     "hero": "Drow Ranger"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3015,
+     "by": "b",
+     "hero": "Dark Seer"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -21106,6 +26217,134 @@
      "minute": 43,
      "time": 2605,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 778,
+     "by": "b",
+     "hero": "Underlord"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 918,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 980,
+     "by": "b",
+     "hero": "Lina"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1248,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1613,
+     "by": "a",
+     "hero": "Ogre Magi"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1661,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1914,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1960,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2018,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2752,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2855,
+     "by": "a",
+     "hero": "Ember Spirit"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2859,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2871,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2874,
+     "by": "a",
+     "hero": "Vengeful Spirit"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 3025,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3068,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3080,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3088,
+     "by": "a",
+     "hero": "Vengeful Spirit"
     }
    ],
    "players": [
@@ -21655,6 +26894,155 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 944,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 975,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1234,
+     "by": "b",
+     "hero": "Rubick"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1357,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1629,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1734,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1794,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1865,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1873,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2176,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2178,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2185,
+     "by": "b",
+     "hero": "Rubick"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2382,
+     "by": "a",
+     "hero": "Void Spirit"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2401,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 2412,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 2438,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 2445,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 2448,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2488,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 2492,
+     "by": "b",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2492,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -22188,6 +27576,141 @@
      "minute": 26,
      "time": 1599,
      "side": "b"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 459,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 588,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 674,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 884,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1015,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1322,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1447,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 1684,
+     "by": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 1694,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 1696,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t3_top",
+     "time": 1854,
+     "by": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "side": "a",
+     "b": "range_top",
+     "time": 1858,
+     "by": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "side": "a",
+     "b": "melee_top",
+     "time": 1867,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 1872,
+     "by": "b",
+     "hero": "Dawnbreaker"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 1874,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 1881,
+     "by": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 1916,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 1927,
+     "by": "b",
+     "hero": "Phantom Lancer"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 1959,
+     "by": "b",
+     "hero": "Phantom Lancer"
     }
    ],
    "players": [
@@ -22749,6 +28272,148 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 581,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 973,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1019,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1249,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1763,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 2093,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2116,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2201,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2249,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2257,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2259,
+     "by": "a",
+     "hero": "Monkey King"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2419,
+     "by": "b",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2436,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2439,
+     "by": "b",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2447,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 3256,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3325,
+     "by": "a",
+     "hero": "Windranger"
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3342,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t4",
+     "time": 3343,
+     "by": "b",
+     "hero": "Luna"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 3363,
+     "by": "b",
+     "hero": "Luna"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -23294,6 +28959,169 @@
      "minute": 44,
      "time": 2669,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1030,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1102,
+     "by": "b",
+     "hero": "Ringmaster"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1400,
+     "by": "a",
+     "hero": "Muerta"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1401,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1490,
+     "by": "a",
+     "hero": "Muerta"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1857,
+     "by": "a",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1971,
+     "by": "a",
+     "hero": "Viper"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2054,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2055,
+     "by": "a",
+     "hero": "Muerta"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2144,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2234,
+     "by": "a",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2241,
+     "by": "a",
+     "hero": "Muerta"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2241,
+     "by": "a",
+     "hero": "Muerta"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2269,
+     "by": "a",
+     "hero": "Muerta"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 2357,
+     "by": "b",
+     "hero": "Kunkka"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2510,
+     "by": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2516,
+     "by": "b",
+     "hero": "Necrophos"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2521,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 2533,
+     "by": "b",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2784,
+     "by": "a",
+     "hero": "Viper"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2867,
+     "by": "a",
+     "hero": "Muerta"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2870,
+     "by": "a",
+     "hero": "Magnus"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2874,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -23855,6 +29683,141 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 799,
+     "by": "b",
+     "hero": "Wraith King"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 806,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 959,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 982,
+     "by": "b",
+     "hero": "Wraith King"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1220,
+     "by": "b",
+     "hero": "Mirana"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1679,
+     "by": "b",
+     "hero": "Wraith King"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1720,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2096,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 2371,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 2548,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2608,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2626,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2629,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2649,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2654,
+     "by": "a",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2665,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3234,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3240,
+     "by": "a",
+     "hero": "Bane"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3248,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -24406,6 +30369,169 @@
      "minute": 37,
      "time": 2245,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 660,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 701,
+     "by": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 946,
+     "by": "b",
+     "hero": "Lifestealer"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1210,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1224,
+     "by": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 1260,
+     "by": "b",
+     "hero": "Snapfire"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1629,
+     "by": "a",
+     "hero": "Queen of Pain"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1762,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1887,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1914,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1977,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 2304,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 2314,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 2325,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 2332,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 2337,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 2343,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2371,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2398,
+     "by": "a",
+     "hero": "Rubick"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2413,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2438,
+     "by": "a",
+     "hero": "Spectre"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2446,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2451,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -24973,6 +31099,190 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 556,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 672,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 729,
+     "by": "a",
+     "hero": "Kunkka"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1374,
+     "by": "a",
+     "hero": "Centaur Warrunner"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1549,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1641,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1794,
+     "by": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 2170,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 2457,
+     "by": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 2491,
+     "by": "b",
+     "hero": "Spectre"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 2521,
+     "by": "b",
+     "hero": "Brewmaster"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 2529,
+     "by": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 2537,
+     "by": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 2726,
+     "by": "b",
+     "hero": "Night Stalker"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 2734,
+     "by": "b",
+     "hero": "Brewmaster"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 3040,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 3215,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 3249,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 3296,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 3298,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 3309,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 3315,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 3319,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3373,
+     "by": "a",
+     "hero": "Kunkka"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 3383,
+     "by": "a",
+     "hero": "Nature's Prophet"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 3403,
+     "by": "a",
+     "hero": "Kunkka"
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -25506,6 +31816,120 @@
      "minute": 31,
      "time": 1894,
      "side": "a"
+    }
+   ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 494,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 677,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1021,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 1158,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1322,
+     "by": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1414,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 1469,
+     "by": "a",
+     "hero": "Slark"
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 1480,
+     "by": "a",
+     "hero": "Slark"
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1590,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1608,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t3_bot",
+     "time": 1616,
+     "by": "a",
+     "hero": "Underlord"
+    },
+    {
+     "side": "b",
+     "b": "range_bot",
+     "time": 1700,
+     "by": "a",
+     "hero": "Slark"
+    },
+    {
+     "side": "b",
+     "b": "melee_bot",
+     "time": 1712,
+     "by": "a",
+     "hero": "Slark"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1827,
+     "by": "a",
+     "hero": "Slark"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2248,
+     "by": "a",
+     "hero": "Dragon Knight"
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2303,
+     "by": null,
+     "hero": null
     }
    ],
    "players": [
@@ -26043,6 +32467,127 @@
      "side": "a"
     }
    ],
+   "buildings": [
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 610,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 673,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 833,
+     "by": "b",
+     "hero": null
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 900,
+     "by": "b",
+     "hero": "Invoker"
+    },
+    {
+     "side": "b",
+     "b": "t1_bot",
+     "time": 1094,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "t2_bot",
+     "time": 1233,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "b",
+     "b": "t2_mid",
+     "time": 1264,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t2_top",
+     "time": 1349,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 1452,
+     "by": "b",
+     "hero": "Lion"
+    },
+    {
+     "side": "b",
+     "b": "t3_mid",
+     "time": 1778,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "b",
+     "b": "range_mid",
+     "time": 1782,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "melee_mid",
+     "time": 1788,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t4",
+     "time": 2005,
+     "by": "a",
+     "hero": "Clinkz"
+    },
+    {
+     "side": "b",
+     "b": "t3_top",
+     "time": 2034,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "b",
+     "b": "range_top",
+     "time": 2045,
+     "by": "a",
+     "hero": "Earth Spirit"
+    },
+    {
+     "side": "b",
+     "b": "melee_top",
+     "time": 2078,
+     "by": "a",
+     "hero": null
+    },
+    {
+     "side": "b",
+     "b": "fort",
+     "time": 2086,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -26578,6 +33123,113 @@
      "side": "b"
     }
    ],
+   "buildings": [
+    {
+     "side": "a",
+     "b": "t1_bot",
+     "time": 759,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "t1_top",
+     "time": 796,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t1_mid",
+     "time": 943,
+     "by": "a",
+     "hero": "Warlock"
+    },
+    {
+     "side": "a",
+     "b": "t1_mid",
+     "time": 1136,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "b",
+     "b": "t1_top",
+     "time": 1262,
+     "by": "a",
+     "hero": "Queen of Pain"
+    },
+    {
+     "side": "a",
+     "b": "t2_top",
+     "time": 1666,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t2_bot",
+     "time": 1788,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t2_mid",
+     "time": 1849,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "t3_mid",
+     "time": 1867,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "range_mid",
+     "time": 1872,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "melee_mid",
+     "time": 1878,
+     "by": "b",
+     "hero": "Pangolier"
+    },
+    {
+     "side": "a",
+     "b": "t3_bot",
+     "time": 1974,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "range_bot",
+     "time": 1986,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "melee_bot",
+     "time": 1988,
+     "by": "b",
+     "hero": "Shadow Fiend"
+    },
+    {
+     "side": "a",
+     "b": "fort",
+     "time": 2063,
+     "by": null,
+     "hero": null
+    }
+   ],
    "players": [
     {
      "team": "a",
@@ -26935,6 +33587,62 @@
  "pubs_days": 30,
  "pubs": {
   "19192564": [
+   1790366191,
+   "Mirana",
+   1,
+   8,
+   10,
+   32,
+   1,
+   1790362158,
+   "Death Prophet",
+   1,
+   7,
+   6,
+   22,
+   1,
+   1790358422,
+   "Nature's Prophet",
+   0,
+   5,
+   12,
+   14,
+   1,
+   1790356141,
+   "Nyx Assassin",
+   0,
+   3,
+   13,
+   13,
+   1,
+   1790351937,
+   "Rubick",
+   1,
+   6,
+   9,
+   30,
+   1,
+   1790315905,
+   "Tiny",
+   0,
+   1,
+   12,
+   10,
+   1,
+   1790311920,
+   "Lion",
+   0,
+   2,
+   15,
+   4,
+   1,
+   1790307720,
+   "Weaver",
+   0,
+   2,
+   10,
+   3,
+   1,
    1790291745,
    "Jakiro",
    0,
@@ -28362,20 +35070,6 @@
    2,
    7,
    24,
-   1,
-   1787776914,
-   "Clockwerk",
-   0,
-   3,
-   15,
-   14,
-   1,
-   1787718287,
-   "Doom",
-   0,
-   8,
-   22,
-   18,
    1
   ],
   "24922145": [
@@ -28528,6 +35222,27 @@
    0
   ],
   "33429859": [
+   1790360972,
+   "Vengeful Spirit",
+   0,
+   0,
+   14,
+   26,
+   1,
+   1790353696,
+   "Vengeful Spirit",
+   0,
+   3,
+   11,
+   16,
+   1,
+   1790350737,
+   "Silencer",
+   0,
+   7,
+   8,
+   11,
+   1,
    1790215284,
    "Sniper",
    1,
@@ -28751,6 +35466,13 @@
    1
   ],
   "58405454": [
+   1790315276,
+   "Clinkz",
+   1,
+   3,
+   5,
+   15,
+   1,
    1790049647,
    "Lone Druid",
    0,
@@ -28942,6 +35664,27 @@
    0
   ],
   "59555211": [
+   1790353551,
+   "Bane",
+   1,
+   6,
+   10,
+   18,
+   1,
+   1790351487,
+   "Tidehunter",
+   0,
+   2,
+   10,
+   12,
+   1,
+   1790349316,
+   "Tusk",
+   1,
+   3,
+   2,
+   12,
+   1,
    1789926023,
    "Rubick",
    0,
@@ -29580,48 +36323,6 @@
    6,
    5,
    18,
-   1,
-   1787729538,
-   "Necrophos",
-   1,
-   22,
-   5,
-   20,
-   1,
-   1787726582,
-   "Undying",
-   0,
-   10,
-   13,
-   11,
-   1,
-   1787725012,
-   "Wraith King",
-   0,
-   0,
-   6,
-   1,
-   1,
-   1787721802,
-   "Underlord",
-   0,
-   5,
-   11,
-   27,
-   1,
-   1787720457,
-   "Vengeful Spirit",
-   1,
-   4,
-   0,
-   3,
-   1,
-   1787717252,
-   "Night Stalker",
-   1,
-   4,
-   4,
-   10,
    1
   ],
   "72015872": [
@@ -31033,34 +37734,6 @@
    1,
    12,
    1,
-   1,
-   1787778528,
-   "Primal Beast",
-   1,
-   11,
-   3,
-   19,
-   1,
-   1787774139,
-   "Invoker",
-   1,
-   8,
-   5,
-   18,
-   1,
-   1787771844,
-   "Puck",
-   1,
-   12,
-   5,
-   15,
-   1,
-   1787768575,
-   "Brewmaster",
-   1,
-   15,
-   1,
-   21,
    1
   ],
   "80518956": [
@@ -31427,30 +38100,23 @@
    4,
    7,
    3,
-   0,
-   1787778949,
-   "Necrophos",
-   1,
-   18,
-   6,
-   22,
-   0,
-   1787776164,
-   "Underlord",
-   0,
-   0,
-   7,
-   6,
-   1,
-   1787767155,
-   "Centaur Warrunner",
-   1,
-   4,
-   0,
-   10,
-   1
+   0
   ],
   "83941084": [
+   1790334725,
+   "Ringmaster",
+   0,
+   3,
+   8,
+   10,
+   0,
+   1790325551,
+   "Muerta",
+   0,
+   9,
+   5,
+   7,
+   0,
    1789896072,
    "Sven",
    1,
@@ -31882,6 +38548,13 @@
    1
   ],
   "86493830": [
+   1790328651,
+   "Hoodwink",
+   0,
+   5,
+   5,
+   14,
+   1,
    1790280240,
    "Oracle",
    1,
@@ -32245,21 +38918,7 @@
    2,
    8,
    15,
-   0,
-   1787778949,
-   "Treant Protector",
-   1,
-   5,
-   6,
-   26,
-   0,
-   1787754380,
-   "Pugna",
-   1,
-   5,
-   1,
-   15,
-   1
+   0
   ],
   "88239134": [
    1789931318,
@@ -32488,6 +39147,20 @@
    1
   ],
   "93641593": [
+   1790353673,
+   "Bane",
+   0,
+   5,
+   9,
+   16,
+   1,
+   1790350036,
+   "Lion",
+   0,
+   4,
+   18,
+   17,
+   1,
    1790265386,
    "Windranger",
    1,
@@ -32956,27 +39629,6 @@
    6,
    3,
    2,
-   1,
-   1787724577,
-   "Enigma",
-   0,
-   5,
-   7,
-   19,
-   1,
-   1787721732,
-   "Centaur Warrunner",
-   0,
-   4,
-   9,
-   15,
-   1,
-   1787719492,
-   "Shadow Demon",
-   0,
-   4,
-   12,
-   4,
    1
   ],
   "104120815": [
@@ -34325,6 +40977,27 @@
    1
   ],
   "121514552": [
+   1790366191,
+   "Necrophos",
+   1,
+   15,
+   8,
+   22,
+   1,
+   1790351647,
+   "Necrophos",
+   1,
+   12,
+   5,
+   14,
+   1,
+   1790307720,
+   "Necrophos",
+   0,
+   0,
+   12,
+   5,
+   1,
    1790046332,
    "Dawnbreaker",
    1,
@@ -35078,6 +41751,27 @@
    1
   ],
   "124583057": [
+   1790366837,
+   "Lina",
+   0,
+   16,
+   7,
+   14,
+   0,
+   1790360442,
+   "Monkey King",
+   0,
+   10,
+   5,
+   9,
+   0,
+   1790351647,
+   "Sand King",
+   1,
+   12,
+   7,
+   19,
+   1,
    1790293275,
    "Dragon Knight",
    1,
@@ -35476,44 +42170,16 @@
    30,
    6,
    31,
-   0,
-   1787778513,
-   "Ember Spirit",
-   1,
-   10,
-   1,
-   7,
-   1,
-   1787769945,
-   "Lina",
-   0,
-   15,
-   9,
-   8,
-   0,
-   1787766755,
-   "Dragon Knight",
-   1,
-   14,
-   5,
-   30,
-   0,
-   1787763193,
-   "Dragon Knight",
-   0,
-   17,
-   6,
-   9,
-   0,
-   1787759550,
-   "Lina",
-   0,
-   21,
-   7,
-   6,
    0
   ],
   "125467075": [
+   1790309226,
+   "Kunkka",
+   1,
+   12,
+   4,
+   9,
+   1,
    1790221754,
    "Spirit Breaker",
    1,
@@ -36703,6 +43369,20 @@
    1
   ],
   "148359584": [
+   1790334725,
+   "Rubick",
+   0,
+   5,
+   11,
+   12,
+   0,
+   1790325551,
+   "Pangolier",
+   0,
+   5,
+   6,
+   17,
+   0,
    1790285955,
    "Nyx Assassin",
    1,
@@ -37097,6 +43777,13 @@
    1
   ],
   "164620569": [
+   1790307115,
+   "Undying",
+   0,
+   7,
+   12,
+   35,
+   1,
    1790293511,
    "Treant Protector",
    1,
@@ -38484,13 +45171,6 @@
    11,
    13,
    11,
-   1,
-   1787773258,
-   "Pudge",
-   0,
-   5,
-   18,
-   19,
    1
   ],
   "170539030": [
@@ -38510,6 +45190,20 @@
    0
   ],
   "173365627": [
+   1790368421,
+   "Viper",
+   1,
+   24,
+   3,
+   11,
+   0,
+   1790365203,
+   "Void Spirit",
+   0,
+   9,
+   10,
+   8,
+   0,
    1790280240,
    "Drow Ranger",
    1,
@@ -38845,23 +45539,23 @@
    5,
    13,
    9,
-   0,
-   1787778949,
-   "Dragon Knight",
-   1,
-   10,
-   3,
-   28,
-   0,
-   1787776164,
-   "Phantom Lancer",
-   0,
-   3,
-   3,
-   0,
-   1
+   0
   ],
   "192871338": [
+   1790368181,
+   "Undying",
+   1,
+   9,
+   5,
+   21,
+   1,
+   1790366377,
+   "Phoenix",
+   0,
+   6,
+   10,
+   3,
+   1,
    1790220704,
    "Spectre",
    1,
@@ -39487,6 +46181,13 @@
    1
   ],
   "193031222": [
+   1790317835,
+   "Magnus",
+   1,
+   12,
+   5,
+   26,
+   1,
    1789847218,
    "Pangolier",
    0,
@@ -39738,16 +46439,16 @@
    7,
    3,
    10,
-   1,
-   1787773641,
-   "Kez",
-   1,
-   10,
-   9,
-   21,
    1
   ],
   "202345767": [
+   1790307720,
+   "Rubick",
+   0,
+   3,
+   9,
+   7,
+   1,
    1790294006,
    "Crystal Maiden",
    0,
@@ -41048,6 +47749,20 @@
    1
   ],
   "272264716": [
+   1790348191,
+   "Mirana",
+   0,
+   7,
+   4,
+   14,
+   1,
+   1790344958,
+   "Disruptor",
+   1,
+   5,
+   3,
+   24,
+   1,
    1790124203,
    "Disruptor",
    0,
@@ -41271,13 +47986,6 @@
    4,
    10,
    9,
-   0,
-   1787778949,
-   "Earth Spirit",
-   1,
-   5,
-   7,
-   34,
    0
   ],
   "283078614": [
@@ -42234,13 +48942,6 @@
    6,
    1,
    13,
-   1,
-   1787773345,
-   "Jakiro",
-   0,
-   9,
-   9,
-   13,
    1
   ],
   "362604635": [
@@ -42330,6 +49031,34 @@
    1
   ],
   "370036408": [
+   1790349316,
+   "Invoker",
+   1,
+   10,
+   3,
+   4,
+   1,
+   1790344958,
+   "Earth Spirit",
+   0,
+   3,
+   10,
+   5,
+   1,
+   1790342232,
+   "Lina",
+   1,
+   18,
+   1,
+   11,
+   1,
+   1790338551,
+   "Magnus",
+   1,
+   8,
+   8,
+   36,
+   1,
    1790273090,
    "Ringmaster",
    0,
@@ -43589,30 +50318,30 @@
    10,
    7,
    9,
-   1,
-   1787755588,
-   "Rubick",
-   0,
-   1,
-   9,
-   6,
-   1,
-   1787751941,
-   "Hoodwink",
-   1,
-   11,
-   6,
-   25,
-   1,
-   1787746328,
-   "Rubick",
-   1,
-   5,
-   8,
-   32,
    1
   ],
   "392710282": [
+   1790368322,
+   "Brewmaster",
+   1,
+   8,
+   5,
+   10,
+   1,
+   1790364673,
+   "Dawnbreaker",
+   1,
+   6,
+   5,
+   26,
+   1,
+   1790359886,
+   "Largo",
+   1,
+   8,
+   10,
+   22,
+   0,
    1790294821,
    "Ringmaster",
    0,
@@ -44697,55 +51426,6 @@
    4,
    13,
    24,
-   1,
-   1787778814,
-   "Axe",
-   0,
-   1,
-   4,
-   1,
-   1,
-   1787775248,
-   "Oracle",
-   0,
-   10,
-   14,
-   26,
-   1,
-   1787772893,
-   "Brewmaster",
-   0,
-   2,
-   6,
-   3,
-   1,
-   1787770805,
-   "Lifestealer",
-   0,
-   0,
-   5,
-   0,
-   1,
-   1787764489,
-   "Anti-Mage",
-   1,
-   6,
-   0,
-   9,
-   1,
-   1787760563,
-   "Spectre",
-   0,
-   10,
-   6,
-   14,
-   1,
-   1787716217,
-   "Doom",
-   1,
-   7,
-   10,
-   17,
    1
   ],
   "415715049": [
@@ -45259,16 +51939,16 @@
    3,
    7,
    4,
-   1,
-   1787776488,
-   "Kez",
-   1,
-   13,
-   1,
-   13,
    1
   ],
   "425170118": [
+   1790305711,
+   "Night Stalker",
+   0,
+   11,
+   10,
+   14,
+   1,
    1790215129,
    "Dawnbreaker",
    0,
@@ -46439,13 +53119,6 @@
    16,
    10,
    20,
-   1,
-   1787718287,
-   "Luna",
-   0,
-   16,
-   10,
-   18,
    1
   ],
   "885620086": [
@@ -46763,20 +53436,6 @@
    9,
    2,
    15,
-   1,
-   1787757130,
-   "Magnus",
-   0,
-   5,
-   6,
-   23,
-   1,
-   1787753973,
-   "Magnus",
-   1,
-   5,
-   3,
-   27,
    1
   ],
   "1041481091": [

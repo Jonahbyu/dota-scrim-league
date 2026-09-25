@@ -9,11 +9,12 @@
     // read from their post-game screenshots, so these rules are the only thing standing
     // between the league tables and junk. They check shape and plausible values; they do
     // not (cannot) prove a scoreboard is real.
-    // Two collections share the same rules: `matches` (scrims) and `ad2l_unticketed` (AD2L
-    // division games played without a league ticket, uploaded from screenshots the same way).
+    // Three collections share the same rules: `matches` (scrims), and `ad2l_unticketed`
+    // (Champion) and `heroic_unticketed` (Heroic/Aegis): AD2L division games played without
+    // a league ticket, uploaded from screenshots the same way.
     match /scrimLeague/data/{coll}/{matchId} {
 
-      function knownColl() { return coll in ['matches', 'ad2l_unticketed']; }
+      function knownColl() { return coll in ['matches', 'ad2l_unticketed', 'heroic_unticketed']; }
 
       // Anyone may read: the league tables are the point. The limit bound applies to
       // `list` because Firestore evaluates it against the query's potential result set.
@@ -47,7 +48,7 @@
       // one is read here or in the create rule, so the count proves the exact set).
       // Public scrims add the ten players (12 keys).
       // `series_id`: the PlayOn series an unticketed AD2L game fills, one more key. Required
-      // in ad2l_unticketed (only missing games may be uploaded), not allowed elsewhere.
+      // in the unticketed collections (only missing games may be uploaded), not allowed in matches.
       // Whether that series really is missing a game is the form's job, like the stat ranges.
       function validMatch(d) {
         return d.v == 2
@@ -55,8 +56,10 @@
           && validResult(d)
           // A bad or missing series_id makes the count 99 so it can't match.
           && d.size() == (d.private ? 11 : 12)
-               + ('series_id' in d ? (coll == 'ad2l_unticketed' && d.series_id is int ? 1 : 99)
-                                   : (coll == 'ad2l_unticketed' ? 99 : 0))
+               // (knownColl() has already limited coll to the three, so != 'matches' means
+               // an unticketed collection, at the cost of one comparison.)
+               + ('series_id' in d ? (coll != 'matches' && d.series_id is int ? 1 : 99)
+                                   : (coll != 'matches' ? 99 : 0))
           && (d.private || validPlayers(d));
       }
 
@@ -117,8 +120,9 @@
         && request.resource.data.keys().hasOnly(['v', 'league', 'series_id', 'pick', 'name', 'uid', 'updatedAt'])
         && request.resource.data.keys().size() == 7
         && request.resource.data.v == 1
-        // AD2L picks are on PlayOn series (int ids); scrim picks on a fixture's document ID.
-        && (request.resource.data.league == 'ad2l'
+        // AD2L picks (Champion "ad2l", "heroic") are on PlayOn series (int ids); scrim picks
+        // on a fixture's document ID.
+        && (request.resource.data.league in ['ad2l', 'heroic']
               ? request.resource.data.series_id is int
               : request.resource.data.league == 'scrim'
                 && request.resource.data.series_id is string

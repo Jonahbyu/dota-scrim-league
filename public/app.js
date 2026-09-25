@@ -7,6 +7,7 @@ import { listTeams, teamHistory, teamSlug, sideOf, standingsRows } from "./lib/t
 import { hasTimeline, swings, teamTimeline, teamObjectives, goldCurves, byPlayer, byHero, BIG_LEAD } from "./lib/timeline.js";
 import { leadChart, lineChart, wireCharts } from "./lib/charts.js";
 import { collectWards, wardsOf, wardMapHtml, wireWardMaps } from "./lib/wardmap.js";
+import { towerMapHtml, wireTowerMaps } from "./lib/towermap.js";
 import { buildPlayerIndex, matchPlayers, nameKey } from "./lib/players.js";
 import { draftAnalysis, teamDraftPhases } from "./lib/draft.js";
 import { aliasOf, asAd2l, guessTeams, openGames, rosterQuestions, sameTeams, teamByName } from "./lib/unticketed.js";
@@ -16,6 +17,7 @@ import { submitMatch, editMatch, listMatches, getMatch, deleteMatch, moveMatch, 
 import { settle, asSeries, scrimRatings, fixtureOdds, fixtureCall, fixtureBacktest, outcomes, outcomeLabel } from "./lib/fixtures.js";
 import { parseScreenshots } from "./lib/ocr/parse.js";
 import { createBrowserEngine } from "./lib/ocr/engine-browser.js";
+import { info, wireInfo } from "./lib/glossary.js";
 
 const app = document.getElementById("app");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -35,9 +37,9 @@ const pageHead = (kicker, title, sub = "") => `
 // (a match card), nested=true gives a span handled by the click listener at the bottom.
 function teamHref(src, name, id = null) {
   if (!name) return null;
-  if (src.key === "ad2l") {
-    id ??= ad2lCache?.teams.find((t) => t.name.trim().toLowerCase() === name.trim().toLowerCase())?.id;
-    return id != null ? `#/ad2l/teams/${id}` : null;
+  if (src.ad2l) {
+    id ??= src.cache()?.teams.find((t) => t.name.trim().toLowerCase() === name.trim().toLowerCase())?.id;
+    return id != null ? `${src.root}/teams/${id}` : null;
   }
   return `#/teams/${teamSlug(name)}`;
 }
@@ -49,7 +51,7 @@ function teamLink(src, name, id = null, nested = false) {
     : `<a class="team-link" href="${href}">${esc(name)}</a>`;
 }
 // A player name that opens their page (same nested rule as teamLink).
-const playerHref = (src, key) => `${src.key === "ad2l" ? "#/ad2l/player/" : "#/player/"}${encodeURIComponent(key)}`;
+const playerHref = (src, key) => `${src.ad2l ? `${src.root}/player/` : "#/player/"}${encodeURIComponent(key)}`;
 function playerLink(src, p, nested = false, label = null) {
   const href = playerHref(src, p.key ?? playerKey(p));
   const text = label ?? esc(p.name);
@@ -58,7 +60,7 @@ function playerLink(src, p, nested = false, label = null) {
     : `<a class="player-link" href="${href}">${text}</a>`;
 }
 // A hero name that opens the hero's page (same nested rule as teamLink).
-const heroHref = (src, hero) => `${src.key === "ad2l" ? "#/ad2l/hero/" : "#/hero/"}${heroSlug(hero)}`;
+const heroHref = (src, hero) => `${src.ad2l ? `${src.root}/hero/` : "#/hero/"}${heroSlug(hero)}`;
 function heroLink(src, hero, nested = false) {
   const href = heroHref(src, hero);
   return nested
@@ -74,7 +76,7 @@ const GOLD_NOTE = "Gold = total gold earned per minute from the replay (OpenDota
 function goldCurveSection(matches, match, what) {
   const c = goldCurves(matches, match);
   if (c.games < 1 || c.mine.length < 2) return "";
-  return `<h2>Gold over time</h2>
+  return `<h2>Gold over time${info("gold_curve")}</h2>
     ${lineChart([
       { label: what, values: c.mine, cls: "s-mine", strong: true },
       { label: "Average core", values: c.core, cls: "s-ref", dash: true },
@@ -86,7 +88,7 @@ function goldCurveSection(matches, match, what) {
 // Where one player / hero / team puts wards, over all their parsed games (own side bottom left).
 function wardSection(wards, what, games) {
   const html = wardMapHtml([{ label: what, cls: "s-mine", wards }], { mirrored: true });
-  return html ? `<h2>Ward map</h2><p class="table-note wm-intro">Every ward ${esc(what)} placed across ${games} parsed game${games === 1 ? "" : "s"}. Filter by ward type or game phase; switch to dots to hover single wards.</p>${html}` : "";
+  return html ? `<h2>Ward map${info("ward_map")}</h2><p class="table-note wm-intro">Every ward ${esc(what)} placed across ${games} parsed game${games === 1 ? "" : "s"}. Filter by ward type or game phase; switch to dots to hover single wards.</p>${html}` : "";
 }
 const gamesWith = (matches, match) => matches.filter((m) => m.players.some((p) => p.obs_pos && match(p, m))).length;
 
@@ -118,7 +120,8 @@ function errorBox(e) {
 // ---------- Upload + review ----------
 
 const engine = createBrowserEngine();
-// league: "scrim" (the ledger) or "ad2l" (an unticketed AD2L division game, same form).
+// league: "scrim" (the ledger), or "ad2l" / "heroic" (an unticketed game in that AD2L
+// division, same form).
 const upload = { images: [], draft: null, check: null, notes: [], names: [], standins: new Set(), busy: false, progress: "", message: null, isPrivate: false, league: "scrim", seriesId: null,
   // Private result form (scrims): no screenshots or players, just the result.
   quick: false, teams: [], newTeam: { a: false, b: false },
@@ -128,43 +131,51 @@ const upload = { images: [], draft: null, check: null, notes: [], names: [], sta
   // start, best_of, game }. Only fills in team names and says which scrim; the game is
   // matched to the scrim by teams and time, not by this.
   fixture: null, fixtureQuick: false };
+// Is this league one of the AD2L divisions (vs the scrim ledger)?
+const isDiv = (league) => league === "ad2l" || league === "heroic";
+// Rosters the upload form checks names against: the division being uploaded to, and for
+// scrims the Champion teams (scrim teams are the Champion teams).
+const upData = () => (upload.league === "heroic" ? heroicCache : ad2lCache);
 // Private uploads only need a valid result; public ones need every player too. AD2L
 // uploads must name two division teams, so the game lands on the right team pages.
 function checkDraft(d) {
-  const resultOnly = upload.isPrivate && upload.league !== "ad2l";
+  const resultOnly = upload.isPrivate && !isDiv(upload.league);
   const c = validateMatch(d, { resultOnly });
-  // Unknown names on a Champion team's side: same player under another name, or a stand-in?
-  upload.rosterQs = resultOnly || upload.quick ? [] : rosterQuestions(d, ad2lCache, upload.standins);
+  // Unknown names on a division team's side: same player under another name, or a stand-in?
+  upload.rosterQs = resultOnly || upload.quick ? [] : rosterQuestions(d, upData(), upload.standins);
   const asked = upload.rosterQs.map((q) => `Say who “${q.from}” is (${q.team}): one of their players under another name, or a stand-in.`);
-  if (upload.league !== "ad2l" || !ad2lCache) return asked.length ? { ...c, ok: false, errors: [...(c.errors ?? []), ...asked] } : c;
-  const errors = [...asked, ...[d.team_a, d.team_b].filter((n) => n && !ad2lTeamByName(n)).map((n) => `“${n}” isn't a Champion division team. Pick one from the list.`)];
+  const div = upData();
+  if (!isDiv(upload.league) || !div) return asked.length ? { ...c, ok: false, errors: [...(c.errors ?? []), ...asked] } : c;
+  const errors = [...asked, ...[d.team_a, d.team_b].filter((n) => n && !teamByName(div, n)).map((n) => `“${n}” isn't a team in ${SOURCES[upload.league].division}. Pick one from the list.`)];
   // Unticketed uploads must fill a game the league is missing (see seriesPickHtml).
   if (upload.editing) { /* an edit keeps the series it was saved in */ }
-  else if (!ad2lMissing().length) errors.push("No AD2L games are missing right now, so there's nothing to upload.");
+  else if (!missingGames(upload.league).length) errors.push("No AD2L games are missing right now, so there's nothing to upload.");
   else if (!upload.seriesId) errors.push("Pick which game this is under “Which game is this?” at the top of the review.");
-  const s = upload.seriesId && ad2lCache.series.find((x) => x.id === upload.seriesId);
-  if (s && d.team_a && d.team_b && !sameTeams(ad2lCache, s, d.team_a, d.team_b)) errors.push("The teams don't match the series picked under “Which game is this?”.");
+  const s = upload.seriesId && div.series.find((x) => x.id === upload.seriesId);
+  if (s && d.team_a && d.team_b && !sameTeams(div, s, d.team_a, d.team_b)) errors.push("The teams don't match the series picked under “Which game is this?”.");
   if (!errors.length) return c;
   return { ...c, ok: false, errors: [...(c.errors ?? []), ...errors] };
 }
 // Games an upload can fill: missing from earlier weeks, or this week's not ticketed yet.
 const thisWeekEnd = () => (weekStart(new Date()).getTime() + 7 * 864e5) / 1000;
-const ad2lMissing = (except = null) => (ad2lCache ? openGames(ad2lCache, ad2lUploads ?? [], thisWeekEnd(), except) : []);
-// "Week 3 · A vs B · game 2 (PlayOn 2–0)" for the series pickers.
-function openGameLabel({ series: s, game, scored }) {
-  const tname = Object.fromEntries((ad2lCache?.teams ?? []).map((t) => [t.id, t.name]));
-  const first = ad2lCache?.series.filter((x) => x.time).reduce((m, x) => Math.min(m, x.time), Infinity);
+function missingGames(league, except = null) {
+  const d = SOURCES[league].cache();
+  return d ? openGames(d, uploadsBy[league] ?? [], thisWeekEnd(), except) : [];
+}
+// "Week 3 · A vs B · game 2 (PlayOn 2–0)" for the series pickers; d = that division's data.
+function openGameLabel({ series: s, game, scored }, d) {
+  const tname = Object.fromEntries((d?.teams ?? []).map((t) => [t.id, t.name]));
+  const first = d?.series.filter((x) => x.time).reduce((m, x) => Math.min(m, x.time), Infinity);
   const week = Number.isFinite(first) && s.time ? `Week ${Math.round((weekStart(new Date(s.time * 1000)) - weekStart(new Date(first * 1000))) / (7 * 864e5)) + 1} · ` : "";
   return `${week}${tname[s.home] ?? "?"} vs ${tname[s.away] ?? "?"} · game ${game} ${scored ? `(PlayOn ${s.home_score}–${s.away_score})` : "(not scored yet)"}`;
 }
-const seriesOptions = (opts, selected) => opts.filter((g, i, all) => all.findIndex((x) => x.series.id === g.series.id) === i)
-  .map((g) => `<option value="${g.series.id}" ${selected === g.series.id ? "selected" : ""}>${esc(openGameLabel(g))}</option>`).join("");
+const seriesOptions = (opts, selected, d) => opts.filter((g, i, all) => all.findIndex((x) => x.series.id === g.series.id) === i)
+  .map((g) => `<option value="${g.series.id}" ${selected === g.series.id ? "selected" : ""}>${esc(openGameLabel(g, d))}</option>`).join("");
 // Pick the missing game for these two teams when there's exactly one.
 function guessSeries(d) {
-  const hits = [...new Set(ad2lMissing().filter((g) => sameTeams(ad2lCache, g.series, d.team_a, d.team_b)).map((g) => g.series.id))];
+  const hits = [...new Set(missingGames(upload.league).filter((g) => sameTeams(upData(), g.series, d.team_a, d.team_b)).map((g) => g.series.id))];
   upload.seriesId = hits.length === 1 ? hits[0] : null;
 }
-const ad2lTeamByName = (n) => teamByName(ad2lCache, n);
 
 // The league's shared password for deleting or moving someone else's upload. It only gates
 // the buttons (anyone reading this file can see it); remembered for this tab.
@@ -221,7 +232,7 @@ function addFiles(files) {
 
 // Snipping Tool: Win+Shift+S, then Ctrl+V anywhere on the upload page.
 document.addEventListener("paste", (e) => {
-  if (!/^#\/(ad2l\/)?upload/.test(location.hash) || e.target.closest?.("input")) return;
+  if (!/^#\/((ad2l|heroic)\/)?upload/.test(location.hash) || e.target.closest?.("input")) return;
   const files = [...(e.clipboardData?.items ?? [])].filter((i) => i.kind === "file").map((i) => i.getAsFile()).filter(Boolean);
   if (files.length) { e.preventDefault(); addFiles(files); }
 });
@@ -240,7 +251,7 @@ async function runParse() {
     upload.names = await fixNames(match);
     upload.standins = new Set();
     fillFixtureTeams(match);
-    if (upload.league === "ad2l") { await ad2lData(); await ad2lUploaded(); upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)]; guessSeries(match); }
+    if (isDiv(upload.league)) { await SOURCES[upload.league].data(); await divUploaded(upload.league); upload.notes = [...upload.notes, ...guessTeams(match, upData())]; guessSeries(match); }
     // Scrim teams are the Champion teams: name a side after the roster most of it is on
     // (unless the schedule already named both sides).
     else if (!upload.fixture && ad2lCache) upload.notes = [...upload.notes, ...guessTeams(match, ad2lCache)];
@@ -254,9 +265,10 @@ async function runParse() {
   renderUpload();
 }
 
-// Known players: the AD2L Champion rosters (plus stand-ins) and names from saved scrims.
-async function playerIndex() {
-  const [ad2l, scrims] = await Promise.all([ad2lData().catch(() => null), allMatches().catch(() => [])]);
+// Known players: the division's rosters (plus stand-ins; Champion for scrims) and names
+// from saved scrims.
+async function playerIndex(league = upload.league) {
+  const [ad2l, scrims] = await Promise.all([(league === "heroic" ? heroicData() : ad2lData()).catch(() => null), allMatches().catch(() => [])]);
   return buildPlayerIndex(ad2l, scrims);
 }
 
@@ -266,7 +278,7 @@ async function fixNames(match) {
   const index = await playerIndex();
   const aliased = [];
   for (const [i, p] of match.players.entries()) {
-    const to = aliasOf(ad2lCache, p.name);
+    const to = aliasOf(upData(), p.name);
     if (to && to !== p.name) { aliased.push({ i, from: p.name, to, sure: true, teams: [] }); p.name = to; }
   }
   const found = [...aliased, ...matchPlayers(match.players, index)];
@@ -337,12 +349,12 @@ function draftHtml(d) {
 
   return `
     <h2>Review</h2>
-    ${upload.league === "ad2l" && !upload.editing ? seriesPickHtml() : ""}
+    ${isDiv(upload.league) && !upload.editing ? seriesPickHtml() : ""}
     <div class="panel edit">
       <div class="fields">
-        <label>Team A (first / left)${textInput("team_a", d.team_a, upload.league === "ad2l" ? 'list="ad2l-teams"' : "")}</label>
+        <label>Team A (first / left)${textInput("team_a", d.team_a, isDiv(upload.league) ? 'list="ad2l-teams"' : "")}</label>
         <label>Team A score${numInput("score_a", d.score_a)}</label>
-        <label>Team B (second / right)${textInput("team_b", d.team_b, upload.league === "ad2l" ? 'list="ad2l-teams"' : "")}</label>
+        <label>Team B (second / right)${textInput("team_b", d.team_b, isDiv(upload.league) ? 'list="ad2l-teams"' : "")}</label>
         <label>Team B score${numInput("score_b", d.score_b)}</label>
         <label>Winner
           <select data-path="winner" class="${d.winner ? "" : "bad"}">
@@ -366,14 +378,14 @@ function draftHtml(d) {
       </table>
     </div>
     <div id="checks">${checksHtml(upload.check)}</div>
-    ${upload.league === "ad2l" ? `<datalist id="ad2l-teams">${(ad2lCache?.teams ?? []).map((t) => `<option value="${esc(t.name)}">`).join("")}</datalist>` : upload.editing ? "" : `
+    ${isDiv(upload.league) ? `<datalist id="ad2l-teams">${(upData()?.teams ?? []).map((t) => `<option value="${esc(t.name)}">`).join("")}</datalist>` : upload.editing ? "" : `
     <label class="private-toggle">
       <input type="checkbox" id="private" ${upload.isPrivate ? "checked" : ""}>
       <span><b>Private — post the result only.</b> Teams, winner, kill score and duration are saved.
         Heroes, players and stats never leave this browser, so nothing about your drafts or lineups is shared.</span>
     </label>`}
     <div class="row" style="margin-top:12px">
-      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.editing ? "Save changes" : upload.isPrivate ? "Post private result" : upload.league === "ad2l" ? "Save to AD2L" : "Save to league"}</button>
+      <button class="primary" id="save" ${upload.check?.ok ? "" : "disabled"}>${upload.editing ? "Save changes" : upload.isPrivate ? "Post private result" : isDiv(upload.league) ? "Save to AD2L" : "Save to league"}</button>
       <button id="discard">${upload.editing ? "Cancel" : "Discard"}</button>
     </div>`;
 }
@@ -381,12 +393,12 @@ function draftHtml(d) {
 // Which PlayOn game this upload fills, from the games PlayOn scored that nobody has on
 // record. Saved as series_id, so the game lands in that series and its week.
 function seriesPickHtml() {
-  const opts = ad2lMissing();
+  const opts = missingGames(upload.league);
   if (!opts.length) return `<div class="notice err">No AD2L games are missing right now: every game PlayOn has scored is on record, and this week's are all ticketed. Only missing games can be uploaded.</div>`;
   return `<label class="series-pick">Which game is this?
       <select id="series-pick" class="${upload.seriesId ? "" : "bad"}">
         <option value="" disabled ${upload.seriesId ? "" : "selected"}>Pick the missing game…</option>
-        ${seriesOptions(opts, upload.seriesId)}
+        ${seriesOptions(opts, upload.seriesId, upData())}
       </select>
       <span class="muted">Only games the league is missing can be uploaded: ones missing from earlier weeks, and this week's that haven't been ticketed yet. The game goes in that series and week, and the teams have to match.</span></label>`;
 }
@@ -496,18 +508,18 @@ async function saveDraft() {
   save.disabled = true;
   save.textContent = "Saving…";
   try {
-    const ad2l = upload.league === "ad2l";
+    const ad2l = isDiv(upload.league);
     if (upload.editing) {
       const { id, back } = upload.editing;
       await editMatch(id, upload.check.match, upload.league);
       endEdit();
-      if (ad2l) await ad2lUploaded(true); else await allMatches(true);
+      if (ad2l) await divUploaded(upload.league, true); else await allMatches(true);
       location.hash = back;
       return;
     }
     const res = await submitMatch(upload.check.match, { isPrivate: ad2l ? false : upload.isPrivate, league: upload.league, seriesId: upload.seriesId });
     if (res.duplicateOf) {
-      upload.message = { kind: "warn", text: "This game is already in the league.", link: ad2l ? `#/ad2l/game/${res.duplicateOf}` : `#/match/${res.duplicateOf}` };
+      upload.message = { kind: "warn", text: "This game is already in the league.", link: ad2l ? `${SOURCES[upload.league].root}/game/${res.duplicateOf}` : `#/match/${res.duplicateOf}` };
       renderUpload();
       return;
     }
@@ -516,7 +528,7 @@ async function saveDraft() {
     upload.fixture = null;
     if (upload.quick) upload.isPrivate = false;
     Object.assign(upload, { images: [], draft: null, check: null, notes: [], names: [], standins: new Set(), message: null, seriesId: null, quick: false });
-    if (ad2l) { await ad2lUploaded(true); location.hash = `#/ad2l/game/${res.id}`; }
+    if (ad2l) { const root = SOURCES[upload.league].root; await divUploaded(upload.league, true); location.hash = `${root}/game/${res.id}`; }
     else { await allMatches(true); location.hash = fromFixture ? "#/predict" : `#/match/${res.id}`; }
   } catch (e) {
     upload.message = { kind: "err", text: `Couldn't save: ${e.message}` };
@@ -537,13 +549,13 @@ function endEdit() {
   if (upload.editing) Object.assign(upload, { editing: null, draft: null, check: null, isPrivate: false, quick: false, seriesId: null, message: null });
 }
 async function renderEdit(id, league) {
-  const back = league === "ad2l" ? `#/ad2l/game/${id}` : `#/match/${id}`;
+  const back = isDiv(league) ? `${SOURCES[league].root}/game/${id}` : `#/match/${id}`;
   app.innerHTML = `<div class="panel empty">Loading…</div>`;
   let m;
   try { m = await getMatch(id, league); } catch (e) { app.innerHTML = errorBox(e); return; }
   if (!m) { app.innerHTML = `<div class="notice err">No such game.</div>`; return; }
   if (m.uid !== (await currentUid()) && !editUnlocked()) { location.hash = back; return; }
-  await ad2lData().catch(() => null); // rosters: AD2L teams, and the name questions
+  await (league === "heroic" ? heroicData() : ad2lData()).catch(() => null); // rosters: AD2L teams, and the name questions
   if (upload.editing?.id !== id) {
     let teams = [];
     if (m.private) teams = await privateTeams();
@@ -560,7 +572,7 @@ function renderUpload() {
     const e = upload.editing;
     app.innerHTML = `
       <div class="kicker" style="margin-bottom:16px"><a href="${e.back}">← Back to the game</a></div>
-      ${pageHead(e.league === "ad2l" ? SOURCES.ad2l.kicker : "The ledger", `Edit ${esc(e.title)}`,
+      ${pageHead(isDiv(e.league) ? SOURCES[e.league].kicker : "The ledger", `Edit ${esc(e.title)}`,
         "Fix anything that's wrong and press <b>Save changes</b>. The game keeps its upload date, so it stays in the same week.")}
       ${msg ? `<div class="notice ${msg.kind}">${esc(msg.text)}</div>` : ""}
       ${upload.quick ? privateHtml(upload.draft) : draftHtml(upload.draft)}`;
@@ -584,8 +596,8 @@ function renderUpload() {
         `<figure class="example"><img src="img/${f}.webp" alt="${cap}" loading="lazy"><figcaption>${cap}</figcaption></figure>`).join("")}
     </div>`;
   app.innerHTML = `
-    ${upload.league === "ad2l"
-      ? pageHead(SOURCES.ad2l.kicker, "Upload an unticketed game", `For Champion division games played <b>without a league ticket</b>, which never reach OpenDota's league list, so the site can't find them. ${how}
+    ${isDiv(upload.league)
+      ? pageHead(SOURCES[upload.league].kicker, "Upload an unticketed game", `For ${SOURCES[upload.league].division} games played <b>without a league ticket</b>, which never reach OpenDota's league list, so the site can't find them. ${how}
          They count on team, player, hero and tier pages, marked “Unticketed”; standings stay PlayOn's. No draft, gold graph or ward data (that only comes from replays).`)
       : pageHead("Post-game intake", "Upload a scrim", how)}
     <div class="reveal">
@@ -595,14 +607,14 @@ function renderUpload() {
       <div class="row upload-actions" style="--i:4">
         <button class="primary" id="parse" ${!upload.images.length || upload.busy ? "disabled" : ""}>Read screenshots</button>
         <button id="manual" ${upload.busy ? "disabled" : ""}>Enter manually</button>
-        ${upload.league === "ad2l" ? "" : `<button id="private-result" ${upload.busy ? "disabled" : ""}>Private result (score only)</button>`}
+        ${isDiv(upload.league) ? "" : `<button id="private-result" ${upload.busy ? "disabled" : ""}>Private result (score only)</button>`}
         ${upload.images.length && !upload.busy ? `<button id="clear">Clear</button>` : ""}
       </div>
       ${upload.busy ? `<p class="progress" id="progress">${esc(upload.progress)}</p>` : ""}
     </div>
     ${msg ? `<div class="notice ${msg.kind}">${esc(msg.text)}${msg.link ? ` <a href="${msg.link}">Open it</a>` : ""}</div>` : ""}
     ${fixtureBanner()}
-    ${upload.league === "ad2l" || upload.draft ? "" : `<p class="table-note private-hint">Played a scrim you don't want to share the draft or lineups of? Use <b>Private result</b>: pick the two teams, then type the kill score, winner and duration. No screenshots needed.</p>`}
+    ${isDiv(upload.league) || upload.draft ? "" : `<p class="table-note private-hint">Played a scrim you don't want to share the draft or lineups of? Use <b>Private result</b>: pick the two teams, then type the kill score, winner and duration. No screenshots needed.</p>`}
     ${upload.draft ? (upload.quick ? privateHtml(upload.draft) : draftHtml(upload.draft)) : ""}
     <dialog id="zoom"><img alt=""></dialog>`;
 
@@ -625,7 +637,7 @@ function renderUpload() {
   document.getElementById("parse").onclick = runParse;
   const priv = document.getElementById("private-result");
   if (priv) priv.onclick = startPrivate;
-  document.getElementById("manual").onclick = async () => { await ad2lData().catch(() => null); upload.quick = false; upload.draft = blankDraft(); fillFixtureTeams(upload.draft); upload.seriesId = null; upload.notes = []; upload.names = []; upload.standins = new Set(); upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
+  document.getElementById("manual").onclick = async () => { await (upload.league === "heroic" ? heroicData() : ad2lData()).catch(() => null); upload.quick = false; upload.draft = blankDraft(); fillFixtureTeams(upload.draft); upload.seriesId = null; upload.notes = []; upload.names = []; upload.standins = new Set(); upload.message = null; upload.check = checkDraft(upload.draft); renderUpload(); };
   const clear = document.getElementById("clear");
   if (clear) clear.onclick = () => { for (const i of upload.images) URL.revokeObjectURL(i.url); upload.images = []; renderUpload(); };
 
@@ -659,8 +671,8 @@ function wireDraft() {
   const pick = document.getElementById("series-pick");
   if (pick) pick.onchange = () => {
     upload.seriesId = Number(pick.value) || null;
-    const s = ad2lCache?.series.find((x) => x.id === upload.seriesId);
-    const tname = (id) => ad2lCache.teams.find((t) => t.id === id)?.name ?? "";
+    const s = upData()?.series.find((x) => x.id === upload.seriesId);
+    const tname = (id) => upData().teams.find((t) => t.id === id)?.name ?? "";
     if (s && !upload.draft.team_a && !upload.draft.team_b) { upload.draft.team_a = tname(s.home); upload.draft.team_b = tname(s.away); }
     upload.check = checkDraft(upload.draft);
     renderUpload();
@@ -698,33 +710,42 @@ function wireDraft() {
 }
 
 // ---------- Leagues ----------
-// Two data sources share the same pages: community scrims (screenshots uploaded to
-// Firestore) and one AD2L division's ticketed games (data/ad2l.json, built offline by
-// `npm run ad2l:sync` from PlayOn rosters + OpenDota match details).
+// Three data sources share the same pages: community scrims (screenshots uploaded to
+// Firestore) and two AD2L divisions' ticketed games: Champion (data/ad2l.json, from
+// `npm run ad2l:sync`) and Heroic (data/heroic.json, `npm run heroic:sync`), both built
+// offline from PlayOn rosters + OpenDota match details. Each division has its own unticketed
+// uploads and predictions; the scrim
+// team lists use Champion's, so `ad2lCache` is always Champion.
 
+async function loadDivision(file) {
+  const res = await fetch(file, { cache: "no-cache" });
+  if (!res.ok) throw new Error("The AD2L data hasn't been published yet.");
+  const d = await res.json();
+  d.games = d.games.map((g) => withDerived({ ...g, createdAt: new Date(g.start_time * 1000) }));
+  return d;
+}
 let ad2lCache = null;
 async function ad2lData() {
-  if (!ad2lCache) {
-    const res = await fetch("data/ad2l.json", { cache: "no-cache" });
-    if (!res.ok) throw new Error("The AD2L data hasn't been published yet.");
-    const d = await res.json();
-    d.games = d.games.map((g) => withDerived({ ...g, createdAt: new Date(g.start_time * 1000) }));
-    ad2lCache = d;
-  }
+  ad2lCache ??= await loadDivision("data/ad2l.json");
   return ad2lCache;
 }
-
-// Unticketed AD2L games uploaded from screenshots (Firestore). If the database can't be
-// reached the AD2L view still works from the static file.
-let ad2lUploads = null;
-async function ad2lUploaded(force = false) {
-  if (!ad2lUploads || force) ad2lUploads = await listMatches("ad2l").catch((e) => { console.warn("unticketed games unavailable", e); return []; });
-  return ad2lUploads;
+let heroicCache = null;
+async function heroicData() {
+  heroicCache ??= await loadDivision("data/heroic.json");
+  return heroicCache;
 }
 
-async function ad2lGames() {
-  const d = await ad2lData();
-  const up = (await ad2lUploaded()).filter((u) => !u.private).map((u) => withDerived(asAd2l(u, d)));
+// Unticketed games uploaded from screenshots (Firestore), per division. If the database
+// can't be reached the division's view still works from the static file.
+const uploadsBy = {};
+async function divUploaded(league, force = false) {
+  if (!uploadsBy[league] || force) uploadsBy[league] = await listMatches(league).catch((e) => { console.warn("unticketed games unavailable", e); return []; });
+  return uploadsBy[league];
+}
+
+async function divGames(src) {
+  const d = await src.data();
+  const up = (await divUploaded(src.key)).filter((u) => !u.private).map((u) => withDerived(asAd2l(u, d)));
   return up.length ? [...d.games, ...up].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)) : d.games;
 }
 
@@ -735,11 +756,21 @@ const SOURCES = {
     empty: `The ledger is empty. <a href="#/upload">Upload the first scrim</a>.`,
     nav: [["#/", "matches", "Standings"], ["#/week", "week", "Weekly"], ["#/teams", "teams", "Teams"], ["#/players", "players", "Players"], ["#/heroes", "heroes", "Heroes"], ["#/predict", "predict", "Predict"], ["#/upload", "upload", "Upload", "nav-cta"]],
   },
+  // AD2L divisions: `ad2l` marks the PlayOn/OpenDota pages, `root` prefixes their routes,
+  // `data`/`cache` give that division's file.
   ad2l: {
-    key: "ad2l", kicker: "AD2L · S48 Champion", load: ad2lGames,
+    key: "ad2l", ad2l: true, root: "#/ad2l", data: ad2lData, cache: () => ad2lCache,
+    division: "S48 Champion", kicker: "AD2L · S48 Champion", load: () => divGames(SOURCES.ad2l),
     link: (m) => `#/ad2l/game/${m.id}`, base: "#/ad2l/week",
     empty: "No ticketed Champion games found yet.",
     nav: [["#/ad2l/", "standings", "Standings"], ["#/ad2l/week", "week", "Weekly"], ["#/ad2l/players", "players", "Players"], ["#/ad2l/heroes", "heroes", "Heroes"], ["#/ad2l/predict", "predict", "Predict"], ["#/ad2l/upload", "upload", "Upload", "nav-cta"]],
+  },
+  heroic: {
+    key: "heroic", ad2l: true, root: "#/heroic", data: heroicData, cache: () => heroicCache,
+    division: "S48 Heroic/Aegis", kicker: "AD2L · S48 Heroic/Aegis", load: () => divGames(SOURCES.heroic),
+    link: (m) => `#/heroic/game/${m.id}`, base: "#/heroic/week",
+    empty: "No ticketed Heroic/Aegis games found yet.",
+    nav: [["#/heroic/", "standings", "Standings"], ["#/heroic/week", "week", "Weekly"], ["#/heroic/players", "players", "Players"], ["#/heroic/heroes", "heroes", "Heroes"], ["#/heroic/predict", "predict", "Predict"], ["#/heroic/upload", "upload", "Upload", "nav-cta"]],
   },
 };
 
@@ -747,12 +778,12 @@ const SOURCES = {
 
 async function renderMatches(src) {
   // Scrims have no official table, so the matches page leads with standings built from the games.
-  const title = src.key === "ad2l" ? "Games" : "Standings";
+  const title = src.ad2l ? "Games" : "Standings";
   app.innerHTML = loading(src.kicker, title);
   let data;
   try { data = await src.load(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, title)}${errorBox(e)}`; return; }
   const unt = data.filter((m) => m.unticketed).length;
-  const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record${src.key === "ad2l" ? ` · ${data.length - unt} ticketed (from replays)${unt ? `, ${unt} unticketed (uploaded)` : ""} · <a href="#/ad2l/upload">Upload an unticketed game</a>` : ""}`;
+  const count = `${data.length} ${data.length === 1 ? "game" : "games"} on record${src.ad2l ? ` · ${data.length - unt} ticketed (from replays)${unt ? `, ${unt} unticketed (uploaded)` : ""} · <a href="${src.root}/upload">Upload an unticketed game</a>` : ""}`;
   app.innerHTML = `
     ${pageHead(src.kicker, title, data.length ? count : "")}
     ${src.key === "scrim" && data.length ? `<div id="standings" class="reveal"></div>
@@ -774,7 +805,7 @@ async function renderMatches(src) {
   const signed = (x) => (x == null ? "—" : `${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(x).toFixed(1)}`);
   const form = (f) => `<span class="sos-faced">${f.map((r) => `<span class="sos-sq ${r.toLowerCase()}" title="${r === "W" ? "Won" : "Lost"}">${r}</span>`).join("")}</span>`;
   sortableTable(el, [
-    ["team", "Team", (v) => teamLink(src, v), "l"], ["games", "GP"], ["wins", "W", null, "", "jade"], ["losses", "L"],
+    ["team", "Team", (v) => teamLink(src, v), "l"], ["games", "GP", null, "", null, "gp"], ["wins", "W", null, "", "jade"], ["losses", "L"],
     ["win_rate", "Win %", pct, "", "jade"], ["kill_diff", "Kill ±", signed], ["form", "Form", form, "l"], ["streak", "Streak"],
   ], standingsRows(data), "wins");
 }
@@ -784,7 +815,7 @@ async function renderMatch(id, src) {
   let raw;
   try {
     raw = (await src.load().catch(() => [])).find((m) => m.id === id)
-      ?? (src.key === "scrim" ? await getMatch(id) : /^[0-9a-f]{32}$/.test(id) ? await getMatch(id, "ad2l").then((u) => u && withDerived(asAd2l(u, ad2lCache))) : null);
+      ?? (src.key === "scrim" ? await getMatch(id) : src.ad2l && /^[0-9a-f]{32}$/.test(id) ? await getMatch(id, src.key).then((u) => u && withDerived(asAd2l(u, src.cache()))) : null);
   } catch (e) { app.innerHTML = errorBox(e); return; }
   if (!raw) { app.innerHTML = `<div class="notice err">No such match.</div>`; return; }
   const m = raw.teamTotals || raw.private ? raw : withDerived(raw);
@@ -798,11 +829,11 @@ async function renderMatch(id, src) {
   const canDelete = mine || unlocked;
   const noun = m.unticketed ? "game" : "scrim";
   // Unticketed uploads can be put in (or moved to) the PlayOn series they stand for.
-  const moveOpts = m.unticketed && canDelete ? ad2lMissing(m.id).filter((g) => sameTeams(ad2lCache, g.series, m.team_a, m.team_b)) : [];
+  const moveOpts = m.unticketed && canDelete ? missingGames(src.key, m.id).filter((g) => sameTeams(src.cache(), g.series, m.team_a, m.team_b)) : [];
   const moveHtml = m.unticketed && canDelete ? `<label class="series-pick">Which game is this?
       <select id="series-move">
         <option value="" disabled ${m.series_id ? "" : "selected"}>Pick the missing game…</option>
-        ${seriesOptions(moveOpts, m.series_id ?? null)}
+        ${seriesOptions(moveOpts, m.series_id ?? null, src.cache())}
       </select>
       <span class="muted">${moveOpts.length ? "Games between these two teams not on record here, from earlier weeks or this week's not ticketed yet. Picking one moves this game into that series and week." : "No open game between these two teams: PlayOn has every game of their series on record."}</span>
       <span class="row"><button type="button" id="move" disabled>Move</button><span class="muted" id="move-msg"></span></span></label>` : "";
@@ -828,14 +859,14 @@ async function renderMatch(id, src) {
         const msg = document.getElementById("move-msg");
         msg.textContent = "Moving…";
         try {
-          await moveMatch(m.id, Number(sel.value) || null);
-          await ad2lUploaded(true);
+          await moveMatch(m.id, Number(sel.value) || null, src.key);
+          await divUploaded(src.key, true);
           route();
         } catch (err) { msg.textContent = `Couldn't move it: ${err.message}`; mv.disabled = false; }
       };
     }
     const ed = document.getElementById("edit");
-    if (ed) ed.onclick = () => { location.hash = m.unticketed ? `#/ad2l/edit/${m.id}` : `#/edit/${m.id}`; };
+    if (ed) ed.onclick = () => { location.hash = m.unticketed ? `${src.root}/edit/${m.id}` : `#/edit/${m.id}`; };
     const lock = document.getElementById("edit-lock");
     if (lock) lock.onclick = (e) => { e.preventDefault(); lockEdit(); route(); };
     const b = document.getElementById("del");
@@ -845,8 +876,8 @@ async function renderMatch(id, src) {
       b.disabled = true;
       b.textContent = "Deleting…";
       try {
-        await deleteMatch(m.id, m.unticketed ? "ad2l" : "scrim");
-        if (m.unticketed) { await ad2lUploaded(true); location.hash = "#/ad2l/week"; }
+        await deleteMatch(m.id, m.unticketed ? src.key : "scrim");
+        if (m.unticketed) { await divUploaded(src.key, true); location.hash = src.base; }
         else { await allMatches(true); location.hash = "#/"; }
       } catch (e) {
         b.disabled = false;
@@ -892,13 +923,13 @@ async function renderMatch(id, src) {
 
   const top = (k, f) => { const p = [...m.players].sort((x, y) => (y[k] ?? 0) - (x[k] ?? 0))[0]; return { p, v: f(p[k]) }; };
   const cards = [
-    ["Most hero damage", top("hero_damage", fmt)],
-    ["Best damage per 1k net worth", top("dmg_per_1k_nw", fmt)],
-    ["Highest kill participation", top("kill_participation", pct)],
-    ["Richest", top("net_worth", fmt)],
+    ["Most hero damage", top("hero_damage", fmt), "hero_damage"],
+    ["Best damage per 1k net worth", top("dmg_per_1k_nw", fmt), "dmg_per_1k_nw"],
+    ["Highest kill participation", top("kill_participation", pct), "kill_participation"],
+    ["Richest", top("net_worth", fmt), "net_worth"],
   ];
   const ta = m.teamTotals.a.hero_damage, tb = m.teamTotals.b.hero_damage;
-  const ad2l = src.key === "ad2l";
+  const ad2l = src.ad2l;
 
   const plate = (t) => {
     const won = m.winner === t;
@@ -925,26 +956,28 @@ async function renderMatch(id, src) {
     </section>
     ${timelineHtml(m, src)}
     <h2>Standouts</h2>
-    <div class="cards reveal">${cards.map(([k, { p, v }], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s"><b>${playerLink(src, p)}</b> · ${heroLink(src, p.hero)}</div></div>`).join("")}
-      <div class="card" style="--i:4"><div class="k">Team hero damage</div><div class="v pair">${fmt(ta)} <span class="muted">/</span> ${fmt(tb)}</div>
+    <div class="cards reveal">${cards.map(([k, { p, v }, tip], i) => `<div class="card" style="--i:${i}"><div class="k">${k}${info(tip)}</div><div class="v">${v}</div><div class="s"><b>${playerLink(src, p)}</b> · ${heroLink(src, p.hero)}</div></div>`).join("")}
+      <div class="card" style="--i:4"><div class="k">Team hero damage${info("team_damage")}</div><div class="v pair">${fmt(ta)} <span class="muted">/</span> ${fmt(tb)}</div>
         <div class="s">${(ta > tb) === (m.winner === "a") ? "Winner out-damaged the loser" : "Loser out-damaged the winner"}</div></div>
     </div>
     <h2>Scoreboard</h2>
     <div class="table-wrap"><table>
-      <thead><tr><th class="l">Player</th><th class="l">Hero</th>${cols.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
+      <thead><tr><th class="l">Player</th><th class="l">Hero</th>${cols.map(([k, l]) => `<th>${l}${info(k)}</th>`).join("")}</tr></thead>
       <tbody>
         <tr class="sep a"><td colspan="${cols.length + 2}">${teamLink(src, m.team_a, m.team_a_id)}</td></tr>${rows("a")}
         <tr class="sep b"><td colspan="${cols.length + 2}">${teamLink(src, m.team_b, m.team_b_id)}</td></tr>${rows("b")}
       </tbody></table></div>
     ${mapTableHtml(m, src)}
-    ${m.players.some((p) => p.obs_pos) ? `<h2>Ward map</h2>${wardMapHtml([
+    ${m.players.some((p) => p.obs_pos) ? `<h2>Ward map${info("match_wards")}</h2>${wardMapHtml([
       { label: m.team_a, cls: "s-a", wards: m.players.filter((p) => p.team === "a").flatMap((p) => wardsOf(p)) },
       { label: m.team_b, cls: "s-b", wards: m.players.filter((p) => p.team === "b").flatMap((p) => wardsOf(p)) },
     ], { id: "match-wards" })}` : ""}
+    ${m.buildings?.length ? `<h2>Tower map${info("tower_map")}</h2>${towerMapHtml(m, { id: "match-towers" })}` : ""}
     <p class="table-note">▲ best in match. Dmg/min = hero damage ÷ minutes. Dmg per 1k NW = hero damage per 1,000 net worth (efficiency). KP = (kills + assists) ÷ team score.<br>${footer}</p>${deleteBtn}`;
   wireDelete();
   wireCharts(app);
   wireWardMaps(app);
+  wireTowerMaps(app);
 }
 
 // Map play per player (parsed replays only): creeps, stacks, wards, dewards, objectives.
@@ -959,10 +992,10 @@ function mapTableHtml(m, src) {
   const total = (t) => `<tr class="total team-${t}"><td class="l" colspan="2">Team total</td>${cols.map(([k]) => `<td>${m.players.filter((p) => p.team === t).reduce((s, p) => s + val(p, k), 0)}</td>`).join("")}</tr>`;
   const objs = (m.objectives ?? []).filter((o) => o.type === "roshan" || o.type === "tormentor").sort((a, b) => a.time - b.time);
   const clock = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
-  return `<h2>Map &amp; objectives</h2>
+  return `<h2>Map &amp; objectives${info("map_objectives")}</h2>
     ${objs.length ? `<div class="obj-strip">${objs.map((o) => `<span class="obj-chip s-${o.side}"><b>${o.type === "roshan" ? "Roshan" : "Tormentor"}</b> ${clock(o.time)} · ${esc(o.side === "a" ? m.team_a : m.team_b)}</span>`).join("")}</div>` : ""}
     <div class="table-wrap"><table>
-      <thead><tr><th class="l">Player</th><th class="l">Hero</th>${cols.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
+      <thead><tr><th class="l">Player</th><th class="l">Hero</th>${cols.map(([k, l]) => `<th>${l}${info(k)}</th>`).join("")}</tr></thead>
       <tbody>
         <tr class="sep a"><td colspan="${cols.length + 2}">${teamLink(src, m.team_a, m.team_a_id)}</td></tr>${m.players.filter((p) => p.team === "a").map(row).join("")}${total("a")}
         <tr class="sep b"><td colspan="${cols.length + 2}">${teamLink(src, m.team_b, m.team_b_id)}</td></tr>${m.players.filter((p) => p.team === "b").map(row).join("")}${total("b")}
@@ -978,21 +1011,29 @@ function timelineHtml(m, src) {
   const story = s.thrown >= BIG_LEAD
     ? `<b>${esc(loser)}</b> led by ${kg(s.thrown)} at ${s.thrown_minute}' and lost — a comeback for ${esc(winner)}.`
     : s.thrown >= 1000 ? `${esc(loser)}'s best was a ${kg(s.thrown)} lead at ${s.thrown_minute}'.` : `${esc(winner)} led wire to wire.`;
-  const lines = m.players.filter((p) => Array.isArray(p.gold_t)).map((p) => ({ label: `${p.name} (${p.hero})`, values: p.gold_t, cls: `s-${p.team}` }));
-  return `<h2>Gold lead</h2>
+  // Every player on one chart: each team's players in five colours (richest first), Radiant solid
+  // and Dire dashed, each line ending in its hero portrait framed in that colour. Hovering shows
+  // the portraits and values up the crosshair.
+  const rank = (t) => m.players.filter((p) => p.team === t && Array.isArray(p.gold_t))
+    .sort((a, b) => b.gold_t[b.gold_t.length - 1] - a.gold_t[a.gold_t.length - 1]);
+  const lines = ["a", "b"].flatMap((t) => rank(t).map((p, i) => ({
+    label: `${p.name} (${p.hero})`, end: p.name, img: heroImg(p.hero), values: p.gold_t, cls: `s-c${i + 1}`, dash: t === "b",
+  })));
+  return `<h2>Gold lead${info("gold_lead")}</h2>
     ${leadChart(m.gold_adv, { xp: m.xp_adv, nameA: m.team_a, nameB: m.team_b, id: `lead-${m.id}`, objectives: m.objectives })}
     <p class="swing-story">${story} Lead changed hands ${s.lead_changes} time${s.lead_changes === 1 ? "" : "s"}${s.at10 != null ? ` · at 10': ${s.at10 >= 0 ? esc(m.team_a) : esc(m.team_b)} +${kg(Math.abs(s.at10))}` : ""}${s.at20 != null ? ` · at 20': ${s.at20 >= 0 ? esc(m.team_a) : esc(m.team_b)} +${kg(Math.abs(s.at20))}` : ""}.</p>
-    ${lines.length ? `<h2>Gold by player</h2>${lineChart(lines, { caption: "Each player's gold at every minute. Hover a name to pick out their line; hover the chart for values." })}` : ""}
+    ${lines.length ? `<h2>Gold by player${info("gold_players")}</h2>${lineChart(lines, { endLabels: true, height: 330,
+      caption: `Solid: ${esc(m.team_a)} · dashed: ${esc(m.team_b)}; colours go richest first within each team. Hover the chart for everyone's gold at that minute; hover a name to pick out their line.` })}` : ""}
     <p class="table-note">${GOLD_NOTE}</p>`;
 }
 
 // ---------- AD2L standings ----------
 
-async function renderStandings() {
-  const kicker = SOURCES.ad2l.kicker;
+async function renderStandings(src) {
+  const kicker = src.kicker;
   app.innerHTML = loading(kicker, "Standings");
   let d;
-  try { d = await ad2lData(); } catch (e) { app.innerHTML = `${pageHead(kicker, "Standings")}${errorBox(e)}`; return; }
+  try { d = await src.data(); } catch (e) { app.innerHTML = `${pageHead(kicker, "Standings")}${errorBox(e)}`; return; }
 
   const played = d.series.filter((s) => s.home_score != null && s.away_score != null && s.home_score + s.away_score > 0);
   const upcoming = d.series.filter((s) => !played.includes(s) && s.time && s.time * 1000 > Date.now() - 6 * 3600e3);
@@ -1017,7 +1058,7 @@ async function renderStandings() {
     <p class="table-note">Sorted by game wins; official standings and tiebreakers live on
       <a href="https://dota.playon.gg/seasons/${d.playon_season_id}" target="_blank" rel="noopener">PlayOn</a>.
       "Stats" = games whose full stats were found (players whose match history is private can hide a game).</p>
-    <h2>Strength of schedule</h2>
+    <h2>Strength of schedule${info("strength_of_schedule")}</h2>
     <div id="sos" class="reveal"></div>
     <p class="table-note"><b>SOS</b> = (2 × opponents' game win % + their opponents' game win %) ÷ 3, the same idea as RPI.
       Opponents' records leave out their games against the team in question, so beating a team doesn't make your own
@@ -1025,22 +1066,22 @@ async function renderStandings() {
       Squares: every series played, oldest first (green won, red lost, grey tied); hover for details, click for the team.</p>
     ${upcoming.length ? `<h2>Up next</h2><div class="fixtures reveal">${upcoming.slice(0, 10).map((s, i) => `
       <div class="fixture" style="--i:${i}">
-        <div class="fx-team a">${name[s.home] ? teamLink(SOURCES.ad2l, name[s.home], s.home) : "TBD"}</div>
+        <div class="fx-team a">${name[s.home] ? teamLink(src, name[s.home], s.home) : "TBD"}</div>
         <div class="fx-score"><div class="n" style="font-size:22px">VS</div><div class="meta">${date(s.time)}</div></div>
-        <div class="fx-team b">${name[s.away] ? teamLink(SOURCES.ad2l, name[s.away], s.away) : "TBD"}</div>
+        <div class="fx-team b">${name[s.away] ? teamLink(src, name[s.away], s.away) : "TBD"}</div>
       </div>`).join("")}</div>` : ""}`;
   sortableTable(document.getElementById("t"), [
-    ["team", "Team", (v, r) => teamLink(SOURCES.ad2l, v, r.id), "l"], ["series", "Series"], ["w", "W"], ["tie", "T"], ["l", "L"],
+    ["team", "Team", (v, r) => teamLink(src, v, r.id), "l"], ["series", "Series"], ["w", "W"], ["tie", "T"], ["l", "L"],
     ["gw", "Games won", null, "", "jade"], ["gl", "Games lost"], ["game_rate", "Game win %", pct, "", "jade"], ["tracked", "Stats"],
   ], rows, "gw");
 
   const sos = strengthOfSchedule(d.teams.map((t) => t.id), d.series);
   const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
   const initials = (n) => { const w = n.split(/[\s-]+/).filter(Boolean); return (w.length > 1 ? w.map((x) => x[0]).join("") : n).slice(0, 3).toUpperCase(); };
-  const faced = (fs) => `<span class="sos-faced">${fs.map((f) => `<a class="sos-sq ${f.result}" href="#/ad2l/teams/${f.opp}"
+  const faced = (fs) => `<span class="sos-faced">${fs.map((f) => `<a class="sos-sq ${f.result}" href="${src.root}/teams/${f.opp}"
       title="${f.result === "w" ? "Won" : f.result === "l" ? "Lost" : "Tied"} ${f.us}–${f.them} vs ${esc(name[f.opp])} (their other games: ${pct(f.opp_rate)})">${esc(initials(name[f.opp] ?? "?"))}</a>`).join("")}</span>`;
   sortableTable(document.getElementById("sos"), [
-    ["team", "Team", (v, r) => teamLink(SOURCES.ad2l, v, r.id), "l"],
+    ["team", "Team", (v, r) => teamLink(src, v, r.id), "l"],
     ["record", "Series W–T–L", null],
     ["sos", "SOS", pct, "", "gold"],
     ["owp", "Opp. win %", pct],
@@ -1052,8 +1093,9 @@ async function renderStandings() {
 
 // ---------- Leaderboards ----------
 
-// columns: [key, label, format?, class?, bar colour?]. A bar colour draws a thin bar under
-// the value, scaled to the column's highest value.
+// columns: [key, label, format?, class?, bar colour?, info?]. A bar colour draws a thin bar under
+// the value, scaled to the column's highest value. Info is a glossary id for the header's
+// info bubble; by default the column key is looked up, and false turns it off.
 // With { toolbar: true } a "Sort by" menu and direction toggle sit above the table, for
 // people who don't think to click headers (and for phones, where the table scrolls).
 // Fitting to the screen: when the table is wider than its box it first tightens (two
@@ -1090,8 +1132,8 @@ function sortableTable(el, columns, rows, sortKey, { toolbar = false } = {}) {
         <button type="button" class="cp-step" data-step="1" ${page === pages.length - 1 ? "disabled" : ""} aria-label="More columns">›</button>
       </div>` : "";
     el.innerHTML = `${bar}${pager}<div class="table-wrap sticky-name${density ? ` d${density}` : ""}"><table>
-      <thead><tr><th class="rank">#</th>${cols.map(([k, label, , cls]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
-        aria-sort="${k === key ? (dir < 0 ? "descending" : "ascending") : "none"}">${label}<span class="sort-ico">${k === key ? (dir < 0 ? "▾" : "▴") : "↕"}</span></th>` : "<th></th>").join("")}</tr></thead>
+      <thead><tr><th class="rank">#</th>${cols.map(([k, label, , cls, , tip]) => label ? `<th class="sortable ${cls ?? ""}${k === key ? " sorted" : ""}" data-k="${k}" title="Sort by ${label}"
+        aria-sort="${k === key ? (dir < 0 ? "descending" : "ascending") : "none"}">${label}${tip === false ? "" : info(tip ?? k)}<span class="sort-ico">${k === key ? (dir < 0 ? "▾" : "▴") : "↕"}</span></th>` : "<th></th>").join("")}</tr></thead>
       <tbody>${sorted.map((r, i) => `<tr><td class="rank${i < 3 ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>${cols.map((c) => cell(c, r)).join("")}</tr>`).join("")}</tbody>
     </table></div>`;
     el.querySelectorAll("th.sortable").forEach((th) => (th.onclick = () => {
@@ -1172,11 +1214,11 @@ async function renderPlayers(src) {
     <h2 id="player-stats">All stats</h2>
     <p class="table-note wm-intro">Sort by any stat with the menu or by clicking a column header.</p>
     <div id="t" class="reveal"></div>
-    <p class="table-note">GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. ${src.key === "ad2l" ? "Players are matched by their PlayOn name (smurfs included). Per-game map stats (/g) come from parsed replays; Roshans and Tormentors are last-hit totals." : "Players are matched by name."} Bars compare against the column's best.</p>`
+    <p class="table-note">GPM, XPM, Dmg/min and Dmg per 1k NW are totals across all games, not averages of averages. ${src.ad2l ? "Players are matched by their PlayOn name (smurfs included). Per-game map stats (/g) come from parsed replays; Roshans and Tormentors are last-hit totals." : "Players are matched by name."} Bars compare against the column's best.</p>`
     : `<div class="panel empty"><strong>No players yet</strong>${src.empty}</div>`}`;
   if (!data.length) return;
   tiers.draw();
-  const teamCol = src.key === "ad2l"
+  const teamCol = src.ad2l
     ? [["team", "Team", (v, r) => `${v ? teamLink(src, v) : ""}${r.standin ? ' <span class="tag">stand-in</span>' : r.standin_games ? ` <span class="tag">+${r.standin_games} as stand-in</span>` : ""}`, "l name"]] : [];
   sortableTable(document.getElementById("t"), [
     ["name", "Player", (v, r) => playerLink(src, r), "l name"], ...teamCol, ["games", "Games"], ["win_rate", "Win %", pct, "", "jade"],
@@ -1187,33 +1229,35 @@ async function renderPlayers(src) {
       ["stacks_pg", "Stacks/g", dec], ["obs_pg", "Obs/g", dec, "", "jade"], ["sen_pg", "Sentries/g", dec], ["dewards_pg", "Dewards/g", dec, "", "ember"],
       ["lane_pg", "Lane creeps/g", dec], ["neutral_pg", "Neutrals/g", dec], ["neutral_share", "Neutral %", pct], ["roshans", "Roshans"], ["tormentors", "Tormentors"],
     ] : []),
-    ...(src.key === "ad2l" && ad2lCache?.pubs ? [
-      ["pub_games", `Pubs since ${new Date(lastNight() * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`, null, "", "gold"], ["pub_win_rate", "Pub win %", pct, "", "jade"], ["pub_kda", "Pub KDA", dec],
+    ...(src.ad2l && src.cache()?.pubs ? [
+      ["pub_games", `Pubs since ${new Date(lastNight(src.cache()) * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`, null, "", "gold"], ["pub_win_rate", "Pub win %", pct, "", "jade"], ["pub_kda", "Pub KDA", dec],
       ["pub_heroes", "Pub heroes", (v, r) => heroStrip(src, r.pub_list), "l strip"],
     ] : []),
     ["heroes", "Heroes", (v, r) => heroStrip(src, r.hero_list), "l strip"],
-  ], src.key === "ad2l" && ad2lCache?.pubs ? data.map((r) => {
-    const ps = r.account_id ? pubSummary(pubsSince(ad2lCache, r.account_id, lastNight())) : null;
+  ], src.ad2l && src.cache()?.pubs ? data.map((r) => {
+    const ps = r.account_id ? pubSummary(pubsSince(src.cache(), r.account_id, lastNight(src.cache()))) : null;
     return { ...r, pub_games: ps?.games ?? 0, pub_win_rate: ps?.win_rate ?? null, pub_kda: ps?.kda ?? null, pub_heroes: ps ? ps.heroes.map((h) => h.hero).join(", ") : "", pub_list: ps ? ps.heroes.slice(0, 10).map((h) => ({ hero: h.hero, n: h.games })) : [] };
   }) : data, "games", { toolbar: true });
 }
 
 // Recent pubs = games since the last league night (Thursday), per the league's rhythm.
-const lastNight = () => Math.max(0, ...(ad2lCache?.series ?? []).filter(isPlayed).map((s) => s.time ?? 0));
-const sinceLabel = () => new Date(lastNight() * 1000).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+// Each division has its own league night: `d` is that division's data.
+const lastNight = (d) => Math.max(0, ...(d?.series ?? []).filter(isPlayed).map((s) => s.time ?? 0));
+const sinceLabel = (d) => new Date(lastNight(d) * 1000).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 
-function pubSection(accountId) {
-  if (!ad2lCache?.pubs || !accountId) return "";
-  const games = pubsSince(ad2lCache, accountId, lastNight());
+function pubSection(src, accountId) {
+  const d = src.cache();
+  if (!d?.pubs || !accountId) return "";
+  const games = pubsSince(d, accountId, lastNight(d));
   const ps = pubSummary(games);
-  if (!ps) return `<h2>Recent pubs</h2><p class="table-note wm-intro">No public or ranked games since the last league night (${sinceLabel()}), or their match history is private.</p>`;
-  return `<h2>Recent pubs</h2>
-    <p class="table-note wm-intro">Public and ranked games since the last league night (${sinceLabel()}), from OpenDota; smurf accounts on their PlayOn roster included. Updated with each sync.</p>
+  if (!ps) return `<h2>Recent pubs</h2><p class="table-note wm-intro">No public or ranked games since the last league night (${sinceLabel(d)}), or their match history is private.</p>`;
+  return `<h2>Recent pubs${info("recent_pubs")}</h2>
+    <p class="table-note wm-intro">Public and ranked games since the last league night (${sinceLabel(d)}), from OpenDota; smurf accounts on their PlayOn roster included. Updated with each sync.</p>
     <div class="cards reveal">
-      <div class="card" style="--i:0"><div class="k">Pub record</div><div class="v">${ps.wins}–${ps.games - ps.wins}</div><div class="s">${pct(ps.win_rate)} · ${games.filter((g) => g.ranked).length} ranked</div></div>
-      <div class="card" style="--i:1"><div class="k">Pub KDA</div><div class="v">${ps.kda.toFixed(2)}</div><div class="s">${games.length} game${games.length === 1 ? "" : "s"}</div></div>
+      <div class="card" style="--i:0"><div class="k">Pub record${info("pub_record")}</div><div class="v">${ps.wins}–${ps.games - ps.wins}</div><div class="s">${pct(ps.win_rate)} · ${games.filter((g) => g.ranked).length} ranked</div></div>
+      <div class="card" style="--i:1"><div class="k">Pub KDA${info("pub_kda")}</div><div class="v">${ps.kda.toFixed(2)}</div><div class="s">${games.length} game${games.length === 1 ? "" : "s"}</div></div>
     </div>
-    <div class="hero-chips">${ps.heroes.slice(0, 12).map((x) => `<div class="hero-chip">${portrait(x.hero)}<span>${heroLink(SOURCES.ad2l, x.hero)}</span><b>${x.wins}–${x.games - x.wins}</b></div>`).join("")}</div>`;
+    <div class="hero-chips">${ps.heroes.slice(0, 12).map((x) => `<div class="hero-chip">${portrait(x.hero)}<span>${heroLink(src, x.hero)}</span><b>${x.wins}–${x.games - x.wins}</b></div>`).join("")}</div>`;
 }
 
 // ---------- Predictions (AD2L) ----------
@@ -1249,19 +1293,20 @@ function wireNameBar(rerender) {
   return input;
 }
 
-async function renderPredict() {
-  const kicker = SOURCES.ad2l.kicker;
+async function renderPredict(src) {
+  const kicker = src.kicker;
   app.innerHTML = loading(kicker, "Predictions");
   let d, preds;
-  try { d = await ad2lData(); } catch (e) { app.innerHTML = `${pageHead(kicker, "Predictions")}${errorBox(e)}`; return; }
-  try { preds = (await listPredictions()).filter((p) => p.league !== "scrim"); } catch (e) { console.warn(e); preds = null; }
+  try { d = await src.data(); } catch (e) { app.innerHTML = `${pageHead(kicker, "Predictions")}${errorBox(e)}`; return; }
+  // Each division's picks carry its league key ("ad2l" = Champion).
+  try { preds = (await listPredictions()).filter((p) => p.league === src.key); } catch (e) { console.warn(e); preds = null; }
   const uid = await currentUid();
   const name = storedName();
   const teamName = Object.fromEntries(d.teams.map((t) => [t.id, t.name]));
   const params = tune(d.teams, d.series);
   const bt = backtest(d.teams, d.series, params);
   const ratings = fitRatings(d.teams, d.series, params);
-  const since = lastNight();
+  const since = lastNight(d);
   const now = Date.now();
 
   const upcoming = d.series.filter((s) => !isPlayed(s) && s.time);
@@ -1291,9 +1336,9 @@ async function renderPredict() {
     if (!home || !away) return "";
     const pools = (us, them) => {
       const r = draftRead(d, us, them, since);
-      return `<div class="dr-col"><h4>${teamLink(SOURCES.ad2l, us.name, us.id)}</h4>
-        ${r.picks.map((p) => `<div class="dr-player"><div class="dr-name">${playerLink(SOURCES.ad2l, { name: p.player.name, account_id: p.player.account_id, key: String(p.player.account_id) })}
-            <span class="muted">${p.pub ? `${p.pub.games} pubs since ${sinceLabel()} · ${p.pub.wins}–${p.pub.games - p.pub.wins}` : "no recent pubs"}</span></div>
+      return `<div class="dr-col"><h4>${teamLink(src, us.name, us.id)}</h4>
+        ${r.picks.map((p) => `<div class="dr-player"><div class="dr-name">${playerLink(src, { name: p.player.name, account_id: p.player.account_id, key: String(p.player.account_id) })}
+            <span class="muted">${p.pub ? `${p.pub.games} pubs since ${sinceLabel(d)} · ${p.pub.wins}–${p.pub.games - p.pub.wins}` : "no recent pubs"}</span></div>
           <div class="dr-heroes">${p.heroes.map((h) => `<span class="dr-chip" title="${h.league} league games, ${h.pub} recent pubs${h.ban_risk >= 0.2 ? ` · ${Math.round(h.ban_risk * 100)}% ban risk` : ""}">${portrait(h.hero)}${esc(h.hero)} <b>${Math.round(h.chance * 100)}%</b></span>`).join("") || '<span class="muted">—</span>'}</div></div>`).join("")}
       </div>`;
     };
@@ -1305,7 +1350,7 @@ async function renderPredict() {
       const g1 = predictDraft(d, x, y, since);
       drafts.push([`${fp}-1`, g1], [`${fp}-2`, predictDraft(d, x, y, since, undefined, { steps: g1, winner: fav.id })]);
     }
-    return `<details class="dr"><summary>Model's draft</summary>
+    return `<details class="dr"><summary>Model's draft${info("model_draft")}</summary>
       <div class="pd-toggles">
         <div class="pd-toggle" role="group" aria-label="Game">
           <span class="pd-lbl">Game</span>
@@ -1320,8 +1365,8 @@ async function renderPredict() {
       </div>
       <p class="table-note pd-g2note" hidden>Game 2 assumes ${esc(fav.name)} (the model's favourite) won game 1 with the model's game 1 draft.</p>
       ${drafts.map(([k, st], i) => `<div class="pd" data-for="${k}"${i ? " hidden" : ""}>${draftHtml(st, home, away)}</div>`).join("")}
-      <p class="table-note">All 24 steps in S48's Captains Mode order: the first-pick team bans 3, 2 and 2 across the phases and the other team 4, 1 and 2. Each ban weighs how often (and how recently) that team bans the hero in that phase, what the other team's players still to pick have been playing (league games from the last few weeks count most, plus pubs since ${sinceLabel()}), and the division's usual bans. Each pick gives an unpicked player the best hero left in their pool; early picks lean toward heroes that get contested. Hover any step for why.</p>
-      <div class="dr-sub">Player pools</div>
+      <p class="table-note">All 24 steps in S48's Captains Mode order: the first-pick team bans 3, 2 and 2 across the phases and the other team 4, 1 and 2. Each ban weighs how often (and how recently) that team bans the hero in that phase, what the other team's players still to pick have been playing (league games from the last few weeks count most, plus pubs since ${sinceLabel(d)}), and the division's usual bans. Each pick gives an unpicked player the best hero left in their pool; early picks lean toward heroes that get contested. Hover any step for why.</p>
+      <div class="dr-sub">Player pools${info("player_pools")}</div>
       <div class="dr-cols">${pools(home, away)}${pools(away, home)}</div></details>`;
   };
 
@@ -1335,7 +1380,7 @@ async function renderPredict() {
     const c = preds ? crowd(preds, s) : null;
     return `<article class="pred-card" data-sid="${s.id}">
       <div class="pred-head">
-        <div class="pred-teams"><span class="a">${teamLink(SOURCES.ad2l, teamName[s.home], s.home)}</span><i>vs</i><span class="b">${teamLink(SOURCES.ad2l, teamName[s.away], s.away)}</span></div>
+        <div class="pred-teams"><span class="a">${teamLink(src, teamName[s.home], s.home)}</span><i>vs</i><span class="b">${teamLink(src, teamName[s.away], s.away)}</span></div>
         ${locked ? '<span class="pred-lock">Locked</span>' : ""}
       </div>
       <div class="pred-picks" role="group" aria-label="Your pick">${OUTCOMES.map((k) => {
@@ -1370,7 +1415,7 @@ async function renderPredict() {
   const boardRows = [...board.entries()].sort(([, a], [, b]) => b.points - a.points || (b.accuracy ?? -1) - (a.accuracy ?? -1) || a.name.localeCompare(b.name));
   const pickChip = (s, k) => (k ? `<span class="pk-chip ${k}" title="${k === "tie" ? "1–1" : `${esc(teamName[k === "home" ? s.home : s.away])} 2–0`}">${k === "tie" ? "1–1" : `${esc(teamName[k === "home" ? s.home : s.away])} 2–0`}</span>` : '<span class="muted">—</span>');
   const boardHtml = boardRows.length ? `<div class="table-wrap sticky-name"><table class="pred-board">
-    <thead><tr><th class="rank">#</th><th class="l">Name</th><th>Points</th><th>Correct</th>
+    <thead><tr><th class="rank">#</th><th class="l">Name</th><th>Points${info("points")}</th><th>Correct${info("correct")}</th>
       ${week.map((s) => `<th class="l pb-series"><span class="a">${esc(teamName[s.home])}</span><span class="b">${esc(teamName[s.away])}</span></th>`).join("")}</tr></thead>
     <tbody>${boardRows.map(([k, r], i) => `<tr class="${k === myKey ? "me" : ""}">
       <td class="rank${i < 3 && r.picks ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>
@@ -1387,12 +1432,12 @@ async function renderPredict() {
       const me = myKey ? valid.find((p) => p.series_id === s.id && nameKey(p.name) === myKey) : null;
       const actual = outcomeOf(s);
       const tick = (pick) => (pick ? `${label(s, pick)} ${pick === actual ? '<b class="s-a">✓</b>' : '<b class="s-b">✗</b>'}` : '<span class="muted">—</span>');
-      return `<tr><td class="l">${teamLink(SOURCES.ad2l, teamName[s.home], s.home)} vs ${teamLink(SOURCES.ad2l, teamName[s.away], s.away)}</td>
+      return `<tr><td class="l">${teamLink(src, teamName[s.home], s.home)} vs ${teamLink(src, teamName[s.away], s.away)}</td>
         <td>${s.home_score}–${s.away_score}</td><td class="l">${m ? `${tick(m.pick)} <span class="muted">(${Math.round(m.p_actual * 100)}% on the result)</span>` : "—"}</td>
         <td class="l">${c?.n ? `${tick(crowdPick)} <span class="muted">${c.n}</span>` : '<span class="muted">—</span>'}</td>${myKey ? `<td class="l">${me ? tick(me.pick) : '<span class="muted">—</span>'}</td>` : ""}</tr>`;
     }).join("");
     return `<h3 class="pred-night">${new Date(t * 1000).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}</h3>
-      <div class="table-wrap"><table><thead><tr><th class="l">Series</th><th>Result</th><th class="l">Model</th><th class="l">Crowd</th>${myKey ? `<th class="l">You</th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>`;
+      <div class="table-wrap"><table><thead><tr><th class="l">Series</th><th>Result</th><th class="l">Model${info("model_col")}</th><th class="l">Crowd${info("crowd_col")}</th>${myKey ? `<th class="l">You${info("you_col")}</th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>`;
   }).join("");
 
   const called = bt.filter((x) => x.correct).length;
@@ -1415,7 +1460,7 @@ async function renderPredict() {
       <p>Game odds are treated as independent, so a 2–0 is the single-game chance squared. Settings in use: pull ${params.lambda}, medal weight ${params.beta}.</p>
     </details>`;
 
-  const input = wireNameBar(renderPredict);
+  const input = wireNameBar(() => renderPredict(src));
 
   app.querySelectorAll("details.dr").forEach((dr) => {
     const sel = { fp: "home", g: "1" };
@@ -1434,8 +1479,8 @@ async function renderPredict() {
     storeName(n);
     c.querySelectorAll("[data-pick]").forEach((x) => (x.disabled = true));
     try {
-      await savePrediction(Number(c.dataset.sid), b.dataset.pick, n);
-      renderPredict();
+      await savePrediction(Number(c.dataset.sid), b.dataset.pick, n, src.key);
+      renderPredict(src);
     } catch (e) {
       msg.innerHTML = `<div class="notice err">Couldn't save your pick: ${esc(e.message)}</div>`;
       c.querySelectorAll("[data-pick]").forEach((x) => (x.disabled = false));
@@ -1532,7 +1577,7 @@ async function renderScrimPredict() {
   // Leaderboard: everyone with a pick that counted, plus the model replayed.
   const st = preds ? standings(preds, series, bt) : [];
   const boardHtml = st.length ? `<div class="table-wrap"><table class="pred-board">
-    <thead><tr><th class="rank">#</th><th class="l">Name</th><th>Points</th><th>Correct</th></tr></thead>
+    <thead><tr><th class="rank">#</th><th class="l">Name</th><th>Points${info("points")}</th><th>Correct${info("correct")}</th></tr></thead>
     <tbody>${st.map((r, i) => `<tr class="${!r.model && nameKey(r.name) === myKey ? "me" : ""}">
       <td class="rank${i < 3 && r.picks ? " lead" : ""}">${String(i + 1).padStart(2, "0")}</td>
       <td class="l">${r.model ? `<b>${esc(r.name)}</b> <span class="tag">replayed</span>` : esc(r.name)}</td>
@@ -1577,7 +1622,7 @@ async function renderScrimPredict() {
       : `<div class="panel empty">Nothing scheduled. Add the next scrim above.</div>`}
     <h2>Leaderboard</h2>
     ${boardHtml ? `${boardHtml}<p class="table-note">Points = correct calls / scrims called. The model replays each scrim from the games uploaded before it.</p>` : `<div class="panel empty">No scrims decided yet.</div>`}
-    ${results ? `<h2>Results</h2><div class="table-wrap"><table><thead><tr><th class="l">Date</th><th class="l">Scrim</th><th>Result</th><th class="l">Model</th><th class="l">Crowd</th>${myKey ? `<th class="l">You</th>` : ""}</tr></thead><tbody>${results}</tbody></table></div>` : ""}
+    ${results ? `<h2>Results</h2><div class="table-wrap"><table><thead><tr><th class="l">Date</th><th class="l">Scrim</th><th>Result</th><th class="l">Model${info("model_col")}</th><th class="l">Crowd${info("crowd_col")}</th>${myKey ? `<th class="l">You${info("you_col")}</th>` : ""}</tr></thead><tbody>${results}</tbody></table></div>` : ""}
     <details class="how"><summary>How it works</summary>
       <p>Odds come from a strength rating per team fitted to every scrim result on the site (private results included), each pulled toward even so one lucky win doesn't make a team a lock. A Bo2 is two independent games (2–0 = p²); a Bo3 is first to two. With no games between the teams the model calls a coin flip: 1–1 in a Bo2, Team A otherwise.</p>
       <p>A scrim is decided once all its games are in (Bo1, Bo2) or a team has two wins (Bo3). Until then it stays under Upcoming with the score so far. If the teams played under different names in game, the upload page offers the scheduled names in one click.</p>
@@ -1641,15 +1686,15 @@ function teamObjectivesHtml(h, team) {
   const o = teamObjectives(h.games.map(({ m }) => m), (m) => sideOf(m, team));
   if (!o) return "";
   const cards = [
-    ["Roshans", `${o.roshans}–${o.roshans_against}`, `taken vs given up in ${o.games} game${o.games === 1 ? "" : "s"}`],
-    ["First Roshan", o.first_rosh.games ? `${o.first_rosh.taken} of ${o.first_rosh.games}` : "—", o.first_rosh.taken ? `won ${o.first_rosh.wins} of the games they took it` : "games where Roshan died"],
-    ["Tormentors", `${o.tormentors}–${o.tormentors_against}`, "taken vs given up"],
-    ["Wards / game", `${dec(o.obs_pg)} / ${dec(o.sen_pg)}`, "observers / sentries, whole team"],
-    ["Dewards / game", dec(o.dewards_pg), "enemy wards killed, whole team"],
-    ["Stacks / game", dec(o.stacks_pg), "camps stacked, whole team"],
+    ["Roshans", `${o.roshans}–${o.roshans_against}`, `taken vs given up in ${o.games} game${o.games === 1 ? "" : "s"}`, "team_roshans"],
+    ["First Roshan", o.first_rosh.games ? `${o.first_rosh.taken} of ${o.first_rosh.games}` : "—", o.first_rosh.taken ? `won ${o.first_rosh.wins} of the games they took it` : "games where Roshan died", "first_roshan"],
+    ["Tormentors", `${o.tormentors}–${o.tormentors_against}`, "taken vs given up", "team_tormentors"],
+    ["Wards / game", `${dec(o.obs_pg)} / ${dec(o.sen_pg)}`, "observers / sentries, whole team", "team_wards"],
+    ["Dewards / game", dec(o.dewards_pg), "enemy wards killed, whole team", "team_dewards"],
+    ["Stacks / game", dec(o.stacks_pg), "camps stacked, whole team", "team_stacks"],
   ];
   return `<h2>Objectives &amp; map</h2>
-    <div class="cards reveal">${cards.map(([k, v, s], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>`;
+    <div class="cards reveal">${cards.map(([k, v, s, tip], i) => `<div class="card" style="--i:${i}"><div class="k">${k}${info(tip)}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>`;
 }
 
 // A team's gold story across its games: average lead by minute, comebacks and throws.
@@ -1659,13 +1704,13 @@ function teamGoldHtml(h, team, src) {
   const rec = ({ games, wins }) => (games ? `${wins}–${games - wins}` : "—");
   const gameRef = (r, text) => (r ? `<a href="${src.link(r.m)}">${text}</a> vs ${esc(r.side === "a" ? r.m.team_b : r.m.team_a)}` : "none yet");
   const cards = [
-    ["Ahead at 20'", rec(t.ahead20), `record when leading at 20 minutes`],
-    ["Behind at 20'", rec(t.behind20), `record when trailing at 20 minutes`],
-    ["Comebacks", String(t.comebacks), `wins after trailing by ${kg(BIG_LEAD)}+ · biggest: ${gameRef(t.best_comeback, t.best_comeback ? kg(t.best_comeback.trail) : "")}`],
-    ["Throws", String(t.throws), `losses after leading by ${kg(BIG_LEAD)}+ · biggest: ${gameRef(t.worst_throw, t.worst_throw ? kg(t.worst_throw.led) : "")}`],
+    ["Ahead at 20'", rec(t.ahead20), `record when leading at 20 minutes`, "ahead20"],
+    ["Behind at 20'", rec(t.behind20), `record when trailing at 20 minutes`, "behind20"],
+    ["Comebacks", String(t.comebacks), `wins after trailing by ${kg(BIG_LEAD)}+ · biggest: ${gameRef(t.best_comeback, t.best_comeback ? kg(t.best_comeback.trail) : "")}`, "comebacks"],
+    ["Throws", String(t.throws), `losses after leading by ${kg(BIG_LEAD)}+ · biggest: ${gameRef(t.worst_throw, t.worst_throw ? kg(t.worst_throw.led) : "")}`, "throws"],
   ];
-  return `<h2>Gold lead</h2>
-    <div class="cards reveal">${cards.map(([k, v, s], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>
+  return `<h2>Gold lead${info("team_gold")}</h2>
+    <div class="cards reveal">${cards.map(([k, v, s, tip], i) => `<div class="card" style="--i:${i}"><div class="k">${k}${info(tip)}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>
     ${leadChart(t.curve, { nameA: team.name, nameB: "Opponents", id: `team-lead-${team.slug}` })}
     <p class="table-note">Average gold lead at each minute over ${t.games} game${t.games === 1 ? "" : "s"} with replay data. ${GOLD_NOTE}</p>`;
 }
@@ -1675,38 +1720,38 @@ function teamGoldHtml(h, team, src) {
 async function renderPlayer(src, key) {
   app.innerHTML = loading(src.kicker, "Player");
   let matches;
-  try { matches = await src.load(); if (src.key === "ad2l") await ad2lData(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Player")}${errorBox(e)}`; return; }
+  try { matches = await src.load(); if (src.ad2l) await src.data(); } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Player")}${errorBox(e)}`; return; }
   const h = playerHistory(matches, key);
-  const back = `<div class="kicker" style="margin-bottom:16px"><a href="${src.key === "ad2l" ? "#/ad2l/players" : "#/players"}">← All players</a></div>`;
+  const back = `<div class="kicker" style="margin-bottom:16px"><a href="${src.ad2l ? `${src.root}/players` : "#/players"}">← All players</a></div>`;
   if (!h) { app.innerHTML = `${back}<div class="panel empty"><strong>No games found for this player</strong>Private scrims don't include players.</div>`; return; }
   const s = h.summary;
 
   // Tier-list line, if they have enough games.
   const tl = tierList(matches.filter(hasDetails));
   const tierOf = tl.tiers.flatMap(({ tier, players }) => players.map((p) => ({ ...p, tier }))).find((p) => p.key === key);
-  const roster = src.key === "ad2l" ? ad2lCache.teams.flatMap((t) => t.players.map((p) => ({ ...p, team: t }))).find((p) => String(p.account_id) === key) : null;
+  const roster = src.ad2l ? src.cache().teams.flatMap((t) => t.players.map((p) => ({ ...p, team: t }))).find((p) => String(p.account_id) === key) : null;
   const rank = rankLabel(roster?.rank_tier ?? tierOf?.rank_tier);
   const sub = [
     s.team ? `${teamLink(src, s.team, roster?.team.id ?? null)}${s.standin ? " · stand-in" : ""}` : "",
     roster?.captain ? "Captain" : "",
     rank ? esc(rank) : "",
-    src.key === "ad2l" ? `<a href="https://www.opendota.com/players/${encodeURIComponent(key)}" target="_blank" rel="noopener">OpenDota ↗</a>` : "",
+    src.ad2l ? `<a href="https://www.opendota.com/players/${encodeURIComponent(key)}" target="_blank" rel="noopener">OpenDota ↗</a>` : "",
   ].filter(Boolean).join(" · ");
 
   const cards = [
     ["Record", `${s.wins}–${s.games - s.wins}`, `${pct(s.win_rate)} win rate · ${s.games} game${s.games === 1 ? "" : "s"}`],
-    ["KDA", s.kda.toFixed(2), `${(s.kills / s.games).toFixed(1)} / ${(s.deaths / s.games).toFixed(1)} / ${(s.assists / s.games).toFixed(1)} per game`],
-    ["GPM", fmt(s.avg_gpm), `${fmt(s.avg_xpm)} XPM`],
-    ["Damage / min", fmt(s.dmg_per_min), `${fmt(s.dmg_per_1k_nw)} per 1k net worth`],
-    ["Kill participation", pct(s.avg_kp), "average per game"],
-    tierOf ? ["Tier", `${tierOf.tier}`, `${tierOf.role === "core" ? "Core" : "Support"} · rating ${tierOf.rating}`]
-      : ["Tier", "—", `needs ${MIN_GAMES}+ games`],
+    ["KDA", s.kda.toFixed(2), `${(s.kills / s.games).toFixed(1)} / ${(s.deaths / s.games).toFixed(1)} / ${(s.assists / s.games).toFixed(1)} per game`, "kda"],
+    ["GPM", fmt(s.avg_gpm), `${fmt(s.avg_xpm)} XPM`, "avg_gpm"],
+    ["Damage / min", fmt(s.dmg_per_min), `${fmt(s.dmg_per_1k_nw)} per 1k net worth`, "dmg_per_min"],
+    ["Kill participation", pct(s.avg_kp), "average per game", "avg_kp"],
+    tierOf ? ["Tier", `${tierOf.tier}`, `${tierOf.role === "core" ? "Core" : "Support"} · rating ${tierOf.rating}`, "tier"]
+      : ["Tier", "—", `needs ${MIN_GAMES}+ games`, "tier"],
     ...(s.map_games ? [
-      ["Vision", `${dec(s.obs_pg)} / ${dec(s.sen_pg)}`, "observers / sentries placed per game"],
-      ["Dewards", dec(s.dewards_pg), "enemy wards killed per game"],
-      ["Stacks", dec(s.stacks_pg), "camps stacked per game"],
-      ["Creeps", `${Math.round(s.lane_pg)} / ${Math.round(s.neutral_pg)}`, `lane / neutral per game · ${pct(s.neutral_share)} neutral`],
-      ["Objectives", `${s.roshans} / ${s.tormentors}`, "Roshan / Tormentor last hits"],
+      ["Vision", `${dec(s.obs_pg)} / ${dec(s.sen_pg)}`, "observers / sentries placed per game", "vision"],
+      ["Dewards", dec(s.dewards_pg), "enemy wards killed per game", "dewards_pg"],
+      ["Stacks", dec(s.stacks_pg), "camps stacked per game", "stacks_pg"],
+      ["Creeps", `${Math.round(s.lane_pg)} / ${Math.round(s.neutral_pg)}`, `lane / neutral per game · ${pct(s.neutral_share)} neutral`, "creeps"],
+      ["Objectives", `${s.roshans} / ${s.tormentors}`, "Roshan / Tormentor last hits", "objectives"],
     ] : []),
   ];
   const vsOf = ({ m, p }) => (p.team === "a" ? { name: m.team_b, id: m.team_b_id } : { name: m.team_a, id: m.team_a_id });
@@ -1717,7 +1762,7 @@ async function renderPlayer(src, key) {
   app.innerHTML = `
     ${back}
     ${pageHead(src.kicker, esc(s.name), sub)}
-    <div class="cards reveal">${cards.map(([k, v, t], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
+    <div class="cards reveal">${cards.map(([k, v, t, tip], i) => `<div class="card" style="--i:${i}"><div class="k">${k}${info(tip)}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
     <h2>Best games</h2>
     <div class="cards reveal">
       ${bestCard("Most damage", h.best.damage, fmt(h.best.damage.p.hero_damage), 0)}
@@ -1729,7 +1774,7 @@ async function renderPlayer(src, key) {
     <h2>Hero pool</h2>
     <div class="hero-chips">${h.heroes.map((x) => `<div class="hero-chip" title="KDA ${x.kda.toFixed(2)}">${portrait(x.hero)}<span>${heroLink(src, x.hero)}</span><b>${x.wins}–${x.games - x.wins}</b></div>`).join("")}</div>
     ${draftSlotHtml(draftSlotRecord(matches, byPlayer(key)), src, s.name)}
-    ${src.key === "ad2l" ? pubSection(key) : ""}
+    ${src.ad2l ? pubSection(src, key) : ""}
     <h2>Every game</h2>
     <div id="t"></div>
     <p class="table-note">Newest first. Sort with the menu or any column header; the arrow opens the game.</p>`;
@@ -1764,7 +1809,7 @@ async function renderHeroes(src) {
   // Captains Mode drafts (AD2L replays) add the by-phase columns and the highlight cards.
   const a = draftAnalysis(all);
   const byHero = new Map(a.games ? a.heroes.map((h) => [h.hero, h]) : []);
-  const card = (k, v, t, i, small = false) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v${small ? " small" : ""}">${v}</div><div class="s">${t}</div></div>`;
+  const card = (k, v, t, i, small = false, tip = null) => `<div class="card" style="--i:${i}"><div class="k">${k}${info(tip)}</div><div class="v${small ? " small" : ""}">${v}</div><div class="s">${t}</div></div>`;
   let cards = "";
   if (a.games) {
     const H = a.heroes;
@@ -1772,11 +1817,11 @@ async function renderHeroes(src) {
     const b1 = most((h) => h.bans[0]), p1 = most((h) => h.picks[0]), lp = most((h) => h.last_picks);
     const bestLast = H.filter((h) => h.last_picks >= 3).sort((x, y) => y.last_pick_wins / y.last_picks - x.last_pick_wins / x.last_picks || y.last_picks - x.last_picks)[0];
     cards = `<div class="cards reveal">
-      ${card("First pick", `${a.first_pick.wins}–${a.first_pick.games - a.first_pick.wins}`, `team with first pick won ${pct(a.first_pick.win_rate)} of games`, 0)}
-      ${card("Top phase 1 ban", heroLink(src, b1.hero), `${b1.bans[0]} first-phase bans · ${pct(b1.p1_ban_share)} of its bans`, 1, true)}
-      ${card("Top phase 1 pick", heroLink(src, p1.hero), `${p1.picks[0]} first-phase picks · ${p1.pick_wins[0]}–${p1.picks[0] - p1.pick_wins[0]}`, 2, true)}
-      ${card("Most last-picked", heroLink(src, lp.hero), `${lp.last_picks} last picks · ${lp.last_pick_wins}–${lp.last_picks - lp.last_pick_wins}`, 3, true)}
-      ${bestLast ? card("Best last pick", heroLink(src, bestLast.hero), `${bestLast.last_pick_wins}–${bestLast.last_picks - bestLast.last_pick_wins} as a last pick (3+ games)`, 4, true) : ""}
+      ${card("First pick", `${a.first_pick.wins}–${a.first_pick.games - a.first_pick.wins}`, `team with first pick won ${pct(a.first_pick.win_rate)} of games`, 0, false, "first_pick")}
+      ${card("Top phase 1 ban", heroLink(src, b1.hero), `${b1.bans[0]} first-phase bans · ${pct(b1.p1_ban_share)} of its bans`, 1, true, "top_p1_ban")}
+      ${card("Top phase 1 pick", heroLink(src, p1.hero), `${p1.picks[0]} first-phase picks · ${p1.pick_wins[0]}–${p1.picks[0] - p1.pick_wins[0]}`, 2, true, "top_p1_pick")}
+      ${card("Most last-picked", heroLink(src, lp.hero), `${lp.last_picks} last picks · ${lp.last_pick_wins}–${lp.last_picks - lp.last_pick_wins}`, 3, true, "last_pick")}
+      ${bestLast ? card("Best last pick", heroLink(src, bestLast.hero), `${bestLast.last_pick_wins}–${bestLast.last_picks - bestLast.last_pick_wins} as a last pick (3+ games)`, 4, true, "best_last_pick") : ""}
     </div>`;
   }
   const merged = rows.map((r) => {
@@ -1833,7 +1878,7 @@ function draftSlotHtml(rec, src, who) {
   const last = rec.slots[4], early = rec.slots.slice(0, 4).reduce((a, r) => ({ games: a.games + r.games, wins: a.wins + r.wins }), { games: 0, wins: 0 });
   const gap = last.games >= 2 && early.games >= 2 ? last.win_rate - early.wins / early.games : null;
   const verdict = gap == null ? "" : gap >= 0.3 ? ` <b class="s-a">Wins far more as a last pick.</b>` : gap <= -0.3 ? ` <b class="s-b">Does worse as a last pick.</b>` : "";
-  return `<h2>By draft pick</h2>
+  return `<h2>By draft pick${info("by_draft_pick")}</h2>
     <p class="table-note wm-intro">Which of the team's five picks ${esc(who)} came in, from ${rec.games} drafted game${rec.games === 1 ? "" : "s"}.
       Last pick ${last.games ? `${wl(last.wins, last.games)} (${pct(last.win_rate)})` : "never"} · picks 1–4 ${early.games ? `${wl(early.wins, early.games)} (${pct(early.wins / early.games)})` : "never"}.${verdict}</p>
     <div class="table-wrap"><table>
@@ -1848,7 +1893,7 @@ function draftSlotHtml(rec, src, who) {
 function heroPhaseHtml(row, drafted) {
   if (!row) return "";
   const wl = (w, g) => (g ? `${w}–${g - w}` : "—");
-  return `<h2>Draft phases</h2>
+  return `<h2>Draft phases${info("hero_phases")}</h2>
     <p class="table-note wm-intro">When ${esc(row.hero)} gets banned or picked across ${drafted} Captains Mode drafts. Phase 1 = the opening 7 bans and first 2 picks; phase 2 = 3 bans, 6 picks; phase 3 = the last 4 bans and last 2 picks.</p>
     <div class="table-wrap"><table>
       <thead><tr><th class="l">Phase</th><th>Bans</th><th>Picks</th><th>W–L when picked</th><th>Win %</th></tr></thead>
@@ -1861,7 +1906,7 @@ function heroPhaseHtml(row, drafted) {
 
 async function renderHero(src, slug) {
   const hero = HEROES.find((x) => heroSlug(x) === slug);
-  const back = `<div class="kicker" style="margin-bottom:16px"><a href="${src.key === "ad2l" ? "#/ad2l/heroes" : "#/heroes"}">← All heroes</a></div>`;
+  const back = `<div class="kicker" style="margin-bottom:16px"><a href="${src.ad2l ? `${src.root}/heroes` : "#/heroes"}">← All heroes</a></div>`;
   if (!hero) { app.innerHTML = `${back}<div class="notice err">No such hero.</div>`; return; }
   app.innerHTML = loading(src.kicker, esc(hero));
   let matches;
@@ -1875,16 +1920,16 @@ async function renderHero(src, slug) {
       <div><div class="kicker" style="--i:0">${src.kicker}</div><h1 style="--i:1">${esc(hero)}</h1>
       <p style="--i:2">${S.picks ? `Picked ${S.picks} time${S.picks === 1 ? "" : "s"} by ${h.teams.filter((t) => t.picks).length} team${h.teams.filter((t) => t.picks).length === 1 ? "" : "s"}` : "Not picked yet"}${S.drafted ? ` · banned in ${S.bans} of ${S.drafted} drafted games` : ""}.</p></div>
     </header>`;
-  if (!S.picks && !S.bans) { app.innerHTML = `${head}<div class="panel empty"><strong>No games with ${esc(hero)} yet</strong>Nobody has picked${src.key === "ad2l" ? " or banned" : ""} it in ${src.key === "ad2l" ? "this division" : "a saved scrim"}.</div>`; return; }
+  if (!S.picks && !S.bans) { app.innerHTML = `${head}<div class="panel empty"><strong>No games with ${esc(hero)} yet</strong>Nobody has picked${src.ad2l ? " or banned" : ""} it in ${src.ad2l ? "this division" : "a saved scrim"}.</div>`; return; }
 
   const cards = [
     ["Record", S.picks ? `${S.wins}–${S.picks - S.wins}` : "—", S.picks ? `${pct(S.win_rate)} win rate` : "never picked"],
-    ["Pick rate", pct(S.pick_rate), "of games with stats"],
-    ...(S.drafted ? [["Contest rate", pct(S.contest_rate), `picked or banned in ${Math.round(S.contest_rate * S.drafted)} of ${S.drafted} drafts`],
-      ["Ban rate", pct(S.ban_rate), `${S.bans} ban${S.bans === 1 ? "" : "s"}`],
-      ["Draft slot", S.avg_pick_step ? `#${S.avg_pick_step.toFixed(1)}` : "—", "average pick position (of 24)"]] : []),
-    ["KDA", S.kda == null ? "—" : S.kda.toFixed(2), "all players on it"],
-    ["GPM", fmt(S.avg_gpm), `${fmt(S.dmg_per_min)} damage / min`],
+    ["Pick rate", pct(S.pick_rate), "of games with stats", "pick_rate"],
+    ...(S.drafted ? [["Contest rate", pct(S.contest_rate), `picked or banned in ${Math.round(S.contest_rate * S.drafted)} of ${S.drafted} drafts`, "contest_rate"],
+      ["Ban rate", pct(S.ban_rate), `${S.bans} ban${S.bans === 1 ? "" : "s"}`, "ban_rate"],
+      ["Draft slot", S.avg_pick_step ? `#${S.avg_pick_step.toFixed(1)}` : "—", "average pick position (of 24)", "draft_slot"]] : []),
+    ["KDA", S.kda == null ? "—" : S.kda.toFixed(2), "all players on it", "kda"],
+    ["GPM", fmt(S.avg_gpm), `${fmt(S.dmg_per_min)} damage / min`, "avg_gpm"],
   ];
 
   // Highlights: best team and player on it (wins first, then win rate, then games), biggest game, top banner.
@@ -1904,7 +1949,7 @@ async function renderHero(src, slug) {
   ].filter(Boolean);
 
   app.innerHTML = `${head}
-    <div class="cards reveal">${cards.map(([k, v, t], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
+    <div class="cards reveal">${cards.map(([k, v, t, tip], i) => `<div class="card" style="--i:${i}"><div class="k">${k}${info(tip)}</div><div class="v">${v}</div><div class="s">${t}</div></div>`).join("")}</div>
     ${hl.length ? `<h2>Highlights</h2><div class="cards reveal">${hl.map(([k, v, t], i) => `<div class="card hl" style="--i:${i}"><div class="k">${k}</div><div class="v small">${v}</div><div class="s">${t}</div></div>`).join("")}</div>` : ""}
     ${(() => { const da = draftAnalysis(matches); return heroPhaseHtml(da.heroes.find((x) => x.hero === hero), da.games); })()}
     ${draftSlotHtml(draftSlotRecord(matches, byHero(hero)), src, hero)}
@@ -1921,8 +1966,8 @@ async function renderHero(src, slug) {
   sortableTable(document.getElementById("teams"), [
     ["name", "Team", (v, r) => teamLink(src, v, r.id), "l"],
     ["picks", "Picks", null, "", "gold"], ["wins", "Wins"],
-    ["win_rate", "Win %", (v, r) => (r.picks ? pct(v) : "—"), "", "jade"],
-    ...(S.drafted ? [["bans", "Bans", null, "", "ember"], ["banned_against", "Banned vs them"]] : []),
+    ["win_rate", "Win %", (v, r) => (r.picks ? pct(v) : "—"), "", "jade", "team_hero_wr"],
+    ...(S.drafted ? [["bans", "Bans", null, "", "ember", "team_bans"], ["banned_against", "Banned vs them"]] : []),
     ["players", "Played by", (v) => v.map(esc).join(", ") || "—", "l"],
   ], h.teams, "picks", { toolbar: true });
   if (h.players.length) sortableTable(document.getElementById("players"), [
@@ -1983,7 +2028,7 @@ function weekHighlights(games, src) {
   const kills = best(({ p }) => p.kills);
   const vs = (m) => `${esc(m.team_a)} vs ${esc(m.team_b)}`;
   return [
-    ["Player of the week", playerLink(src, pow.p), `${pow.n} MVP${pow.n === 1 ? "" : "s"} in ${gamesOf(pow.p)} game${gamesOf(pow.p) === 1 ? "" : "s"}`, pow.p.hero],
+    ["Player of the week", playerLink(src, pow.p), `${pow.n} MVP${pow.n === 1 ? "" : "s"} in ${gamesOf(pow.p)} game${gamesOf(pow.p) === 1 ? "" : "s"}`, pow.p.hero, "mvp"],
     ["Biggest damage game", fmt(dmg.p.hero_damage), `<b>${playerLink(src, dmg.p)}</b> · ${heroLink(src, dmg.p.hero)} · ${vs(dmg.m)}`, dmg.p.hero],
     ["Best KDA", `${kda.p.kills}/${kda.p.deaths}/${kda.p.assists}`, `<b>${playerLink(src, kda.p)}</b> · ${heroLink(src, kda.p.hero)} · ${vs(kda.m)}`, kda.p.hero],
     ["Top GPM", fmt(gpm.p.gpm), `<b>${playerLink(src, gpm.p)}</b> · ${heroLink(src, gpm.p.hero)} · ${vs(gpm.m)}`, gpm.p.hero],
@@ -2046,7 +2091,7 @@ async function renderWeek(src, back = 0) {
   let games, ad2l = null;
   try {
     games = await src.load();
-    if (src.key === "ad2l") ad2l = await ad2lData();
+    if (src.ad2l) ad2l = await src.data();
   } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Weekly recap")}${errorBox(e)}`; return; }
   // AD2L games count toward their series' scheduled week, so a series played early or
   // late still lands in the right week. Anything without a scheduled series uses its date.
@@ -2061,7 +2106,7 @@ async function renderWeek(src, back = 0) {
   const start = new Date(weeks[back]);
   const end = new Date(start); end.setDate(end.getDate() + 6);
   const inWeek = games.filter((m) => weekOf(m) === weeks[back]).sort((a, b) => a.createdAt - b.createdAt);
-  const base = src.key === "ad2l" ? "#/ad2l/week" : "#/week";
+  const base = src.ad2l ? `${src.root}/week` : "#/week";
   const navBtn = (to, label, on) => on ? `<a class="week-btn" href="${base}/${to}">${label}</a>` : `<span class="week-btn off">${label}</span>`;
   // Every week with games, oldest first. Numbered from the first week, so a week with no
   // games shows up as a skipped number.
@@ -2118,17 +2163,17 @@ async function renderWeek(src, back = 0) {
     const { m, s } = swung;
     const winner = m.winner === "a" ? m.team_a : m.team_b, loser = m.winner === "a" ? m.team_b : m.team_a;
     hl.push(["Biggest comeback", `<a href="${src.link(m)}">${kg(s.thrown)}</a>`,
-      `${teamLink(src, winner, m.winner === "a" ? m.team_a_id : m.team_b_id)} came back after ${teamLink(src, loser, m.winner === "a" ? m.team_b_id : m.team_a_id)} led by ${kg(s.thrown)} at ${s.thrown_minute}'`, null]);
+      `${teamLink(src, winner, m.winner === "a" ? m.team_a_id : m.team_b_id)} came back after ${teamLink(src, loser, m.winner === "a" ? m.team_b_id : m.team_a_id)} led by ${kg(s.thrown)} at ${s.thrown_minute}'`, null, "biggest_comeback"]);
   }
   app.innerHTML = `
     <div class="week-top">
-      ${pageHead(src.kicker, "Weekly recap", `Week of ${shortDate(start)} – ${shortDate(end)} · ${inWeek.length} game${inWeek.length === 1 ? "" : "s"}${src.key === "ad2l" ? " · drafts in pick/ban order" : ""}`)}
+      ${pageHead(src.kicker, "Weekly recap", `Week of ${shortDate(start)} – ${shortDate(end)} · ${inWeek.length} game${inWeek.length === 1 ? "" : "s"}${src.ad2l ? " · drafts in pick/ban order" : ""}`)}
       ${picker}
     </div>
     <div class="week-nav">${navBtn(back + 1, "← Earlier week", back < weeks.length - 1)}${navBtn(back - 1, "Later week →", back > 0)}</div>
     ${hl.length ? `<h2>Highlights</h2>
-    <div class="cards reveal">${hl.map(([k, v, s, hero], i) => `<div class="card hl" style="--i:${i}">${hero ? portrait(hero, "card-hero") : ""}<div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>` : ""}
-    <h2>${src.key === "ad2l" ? "Series" : "Games"}</h2>
+    <div class="cards reveal">${hl.map(([k, v, s, hero, tip], i) => `<div class="card hl" style="--i:${i}">${hero ? portrait(hero, "card-hero") : ""}<div class="k">${k}${info(tip)}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>` : ""}
+    <h2>${src.ad2l ? "Series" : "Games"}</h2>
     ${body}`;
 }
 
@@ -2139,9 +2184,9 @@ async function renderTeams(src, slug) {
   let matches, ad2l = null;
   try {
     matches = await src.load();
-    if (src.key === "ad2l") ad2l = await ad2lData();
+    if (src.ad2l) ad2l = await src.data();
   } catch (e) { app.innerHTML = `${pageHead(src.kicker, "Teams")}${errorBox(e)}`; return; }
-  const base = src.key === "ad2l" ? "#/ad2l/teams" : "#/teams";
+  const base = src.ad2l ? `${src.root}/teams` : "#/teams";
   let teams = listTeams(matches, ad2l?.teams ?? []);
   if (ad2l) {
     // AD2L records from PlayOn's series scores (official; complete even when a game's
@@ -2186,7 +2231,7 @@ async function renderTeams(src, slug) {
   const stats = [
     ["Record", `${rec.w}–${rec.l}`, rec.note],
     ["Avg game", h.avg_minutes ? `${Math.round(h.avg_minutes)} min` : "—", `${h.played} game${h.played === 1 ? "" : "s"}${ad2l ? " with stats" : ""}${h.private_games ? ` · ${h.private_games} private` : ""}`],
-    ["Avg kills", h.avg_kills_for != null ? h.avg_kills_for.toFixed(1) : "—", h.avg_kills_against != null ? `${h.avg_kills_against.toFixed(1)} against` : ""],
+    ["Avg kills", h.avg_kills_for != null ? h.avg_kills_for.toFixed(1) : "—", h.avg_kills_against != null ? `${h.avg_kills_against.toFixed(1)} against` : "", "avg_kills"],
     ["Most played", h.heroes[0] ? esc(h.heroes[0].hero) : "—", h.heroes[0] ? `${h.heroes[0].picks} games · ${h.heroes[0].wins}–${h.heroes[0].picks - h.heroes[0].wins}` : "no hero data"],
   ];
 
@@ -2230,13 +2275,13 @@ async function renderTeams(src, slug) {
     : h.players.map((p) => `<li>${playerLink(src, p)}<span class="tag">${p.games} game${p.games === 1 ? "" : "s"}${p.standin ? " · stand-in" : ""}</span></li>`).join("");
 
   app.innerHTML = `
-    <div class="kicker" style="margin-bottom:16px"><a href="${base}">← ${src.key === "ad2l" ? "Standings" : "All teams"}</a></div>
+    <div class="kicker" style="margin-bottom:16px"><a href="${base}">← ${src.ad2l ? "Standings" : "All teams"}</a></div>
     <header class="page-head reveal">
       <div class="kicker" style="--i:0">${src.kicker} · Team</div>
       <h1 style="--i:1">${esc(team.name)}</h1>
     </header>
     ${picker}
-    <div class="cards reveal">${stats.map(([k, v, s], i) => `<div class="card" style="--i:${i}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>
+    <div class="cards reveal">${stats.map(([k, v, s, tip], i) => `<div class="card" style="--i:${i}"><div class="k">${k}${info(tip)}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("")}</div>
     <div class="team-cols">
       <section>
         <h2>${ad2l ? "Series" : "History"}</h2>
@@ -2253,7 +2298,7 @@ async function renderTeams(src, slug) {
       if (!ph) return "";
       const chips = (list, count) => list.length ? `<div class="hero-chips">${list.slice(0, 6).map((x) => `<div class="hero-chip">${portrait(x.hero)}<span>${heroLink(src, x.hero)}</span><b>${count(x)}</b></div>`).join("")}</div>` : `<span class="muted">—</span>`;
       const row = (label, lists, count) => `<div class="ph-row"><div class="ph-label">${label}</div>${lists.map((l, i) => `<div class="ph-cell"><div class="ph-head">Phase ${i + 1}</div>${chips(l, count)}</div>`).join("")}</div>`;
-      return `<h2>Draft by phase</h2>
+      return `<h2>Draft by phase${info("draft_by_phase")}</h2>
         <div class="phase-grid reveal">
           ${row("They ban", ph.bans, (x) => `×${x.n}`)}
           ${row("Banned against them", ph.against, (x) => `×${x.n}`)}
@@ -2316,7 +2361,7 @@ function tierSection(src, matches) {
       ${list.unranked.length ? `<p class="table-note">Not ranked yet (needs ${MIN_GAMES}+ games): ${list.unranked.map((p) => `${playerLink(src, p)} (${p.games})`).join(", ")}.</p>` : ""}`;
     el.querySelectorAll(".seg").forEach((b) => (b.onclick = () => { tierRole = b.dataset.role; draw(); }));
   };
-  const html = list.eligible ? `<h2 id="tier-list">Tier list</h2>
+  const html = list.eligible ? `<h2 id="tier-list">Tier list${info("tier_list")}</h2>
     <p class="table-note wm-intro">${list.eligible} players ranked from ${matches.length} ${matches.length === 1 ? "game" : "games"}. Hover a player for the breakdown.</p>
     <div id="tiers"></div>
     <details class="how">
@@ -2342,34 +2387,35 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(fa
 function route() {
   setMenu(false);
   const h = location.hash || "#/";
-  const isAd2l = h.startsWith("#/ad2l");
-  const src = isAd2l ? SOURCES.ad2l : SOURCES.scrim;
+  const src = h.startsWith("#/ad2l") ? SOURCES.ad2l : h.startsWith("#/heroic") ? SOURCES.heroic : SOURCES.scrim;
+  const isAd2l = src.ad2l, r = src.root;
   document.body.dataset.league = src.key;
-  document.title = isAd2l ? "AD2L S48 Champion · Scrim League" : "Scrim League";
-  document.getElementById("league-name").innerHTML = isAd2l ? "AD2L<b>S48 Champion</b>" : "Scrim<b>League</b>";
+  document.title = isAd2l ? `AD2L ${src.division} · Scrim League` : "Scrim League";
+  document.getElementById("league-name").innerHTML = isAd2l ? `AD2L<b>${src.division}</b>` : "Scrim<b>League</b>";
   leagueMenu.querySelectorAll("a").forEach((a) => a.classList.toggle("current", a.dataset.league === src.key));
 
   let section, page;
   if (isAd2l) {
-    const gameId = /^#\/ad2l\/game\/(\d+|[0-9a-f]{32})$/.exec(h)?.[1];
+    // Champion (#/ad2l) and Heroic (#/heroic) share these pages.
+    const gameId = new RegExp(`^${r}/game/(\\d+|[0-9a-f]{32})$`).exec(h)?.[1];
     if (gameId) { section = "week"; page = () => renderMatch(gameId, src); }
-    else if (h.startsWith("#/ad2l/games")) { section = "week"; page = () => renderWeek(src, 0); } // old Games tab: Weekly lists every game
-    else if (h.startsWith("#/ad2l/teams")) {
-      // Standings doubles as the team list; a team's own page still lives under #/ad2l/teams/<id>.
+    else if (h.startsWith(`${r}/games`)) { section = "week"; page = () => renderWeek(src, 0); } // old Games tab: Weekly lists every game
+    else if (h.startsWith(`${r}/teams`)) {
+      // Standings doubles as the team list; a team's own page still lives under <root>/teams/<id>.
       const slug = decodeURIComponent(h.split("/")[3] ?? "");
-      section = "standings"; page = slug ? () => renderTeams(src, slug) : renderStandings;
+      section = "standings"; page = slug ? () => renderTeams(src, slug) : () => renderStandings(src);
     }
-    else if (h.startsWith("#/ad2l/week")) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
-    else if (h.startsWith("#/ad2l/tiers")) { section = "players"; page = () => renderPlayers(src); }
-    else if (h.startsWith("#/ad2l/player/")) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice("#/ad2l/player/".length))); }
-    else if (h.startsWith("#/ad2l/players")) { section = "players"; page = () => renderPlayers(src); }
-    else if (h.startsWith("#/ad2l/hero/")) { section = "heroes"; page = () => renderHero(src, h.slice("#/ad2l/hero/".length)); }
-    else if (h.startsWith("#/ad2l/heroes")) { section = "heroes"; page = () => renderHeroes(src); }
-    else if (h.startsWith("#/ad2l/draft")) { section = "heroes"; page = () => renderHeroes(src); } // old Draft tab: now part of Heroes
-    else if (h.startsWith("#/ad2l/predict")) { section = "predict"; page = renderPredict; }
-    else if (/^#\/ad2l\/edit\/[0-9a-f]{32}$/.test(h)) { section = "week"; page = () => renderEdit(h.slice("#/ad2l/edit/".length), "ad2l"); }
-    else if (h.startsWith("#/ad2l/upload")) { section = "upload"; page = async () => { endEdit(); upload.league = "ad2l"; await ad2lData().catch(() => null); await ad2lUploaded(); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
-    else { section = "standings"; page = renderStandings; }
+    else if (h.startsWith(`${r}/week`)) { section = "week"; page = () => renderWeek(src, Number(h.split("/")[3] ?? 0) || 0); }
+    else if (h.startsWith(`${r}/tiers`)) { section = "players"; page = () => renderPlayers(src); }
+    else if (h.startsWith(`${r}/player/`)) { section = "players"; page = () => renderPlayer(src, decodeURIComponent(h.slice(`${r}/player/`.length))); }
+    else if (h.startsWith(`${r}/players`)) { section = "players"; page = () => renderPlayers(src); }
+    else if (h.startsWith(`${r}/hero/`)) { section = "heroes"; page = () => renderHero(src, h.slice(`${r}/hero/`.length)); }
+    else if (h.startsWith(`${r}/heroes`)) { section = "heroes"; page = () => renderHeroes(src); }
+    else if (h.startsWith(`${r}/draft`)) { section = "heroes"; page = () => renderHeroes(src); } // old Draft tab: now part of Heroes
+    else if (h.startsWith(`${r}/predict`)) { section = "predict"; page = () => renderPredict(src); }
+    else if (new RegExp(`^${r}/edit/[0-9a-f]{32}$`).test(h)) { section = "week"; page = () => renderEdit(h.slice(`${r}/edit/`.length), src.key); }
+    else if (h.startsWith(`${r}/upload`)) { section = "upload"; page = async () => { endEdit(); upload.league = src.key; await src.data().catch(() => null); await divUploaded(src.key); if (upload.draft) upload.check = checkDraft(upload.draft); return renderUpload(); }; }
+    else { section = "standings"; page = () => renderStandings(src); }
   } else {
     const matchId = /^#\/match\/([0-9a-f]{32})$/.exec(h)?.[1];
     if (matchId) { section = "matches"; page = () => renderMatch(matchId, src); }
@@ -2416,4 +2462,5 @@ const openNested = (e) => {
 app.addEventListener("click", openNested);
 app.addEventListener("keydown", openNested);
 window.addEventListener("hashchange", route);
+wireInfo();
 route();

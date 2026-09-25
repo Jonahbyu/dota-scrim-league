@@ -15,8 +15,9 @@ const app = initializeApp(FIREBASE_CONFIG, "scrim-league");
 const auth = getAuth(app);
 const db = getFirestore(app);
 // Scrims in `matches`; AD2L division games played without a league ticket, uploaded from
-// screenshots the same way, in `ad2l_unticketed`. Same document shape and rules for both.
-const COLLECTIONS = { scrim: "matches", ad2l: "ad2l_unticketed" };
+// screenshots the same way, in `ad2l_unticketed` (Champion) and `heroic_unticketed`
+// (Heroic/Aegis). Same document shape and rules for all three.
+const COLLECTIONS = { scrim: "matches", ad2l: "ad2l_unticketed", heroic: "heroic_unticketed" };
 const coll = (league = "scrim") => collection(db, "scrimLeague", "data", COLLECTIONS[league]);
 
 export const MAX_MATCHES = 500;
@@ -65,7 +66,7 @@ export function toStored(draft, { isPrivate = false, seriesId = null } = {}) {
 
 // Returns { id } on success or { duplicateOf: id } if the game is already uploaded.
 export async function submitMatch(draft, { isPrivate = false, league = "scrim", seriesId = null } = {}) {
-  const data = toStored(draft, { isPrivate, seriesId: league === "ad2l" ? seriesId : null });
+  const data = toStored(draft, { isPrivate, seriesId: league !== "scrim" ? seriesId : null });
   const id = await matchId(data);
   const ref = doc(coll(league), id);
   if ((await getDoc(ref)).exists()) return { duplicateOf: id };
@@ -146,7 +147,8 @@ export async function listPredictions() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data(), updatedAt: d.data().updatedAt?.toDate?.() ?? null }));
 }
 
-// league "ad2l": seriesId is a PlayOn series (number); "scrim": a fixture's document ID.
+// league "ad2l" (Champion) or "heroic": seriesId is a PlayOn series (number); "scrim": a
+// fixture's document ID.
 export async function savePrediction(seriesId, pick, name, league = "ad2l") {
   await signedIn();
   const uid = auth.currentUser.uid;

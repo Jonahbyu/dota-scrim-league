@@ -10,6 +10,7 @@
     "ocr:robustness": "node scripts/ocr-robustness.js",
     "rules:test": "node scripts/rules-dry-test.cjs",
     "ad2l:sync": "node scripts/ad2l-sync.js",
+    "heroic:sync": "node scripts/ad2l-sync.js --season 676 --out heroic.json",
     "config:write": "node scripts/write-firebase-config.js"
   },
   "devDependencies": {

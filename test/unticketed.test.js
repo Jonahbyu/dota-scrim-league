@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { aliasOf, asAd2l, guessTeams, rosterQuestions } from "../public/lib/unticketed.js";
+import { aliasOf, asAd2l, guessTeams, openGames, rosterQuestions } from "../public/lib/unticketed.js";
 import { playerLeaderboard } from "../public/lib/stats.js";
 
 const d = JSON.parse(readFileSync(new URL("../public/data/ad2l.json", import.meta.url), "utf8"));
@@ -100,4 +100,13 @@ test("roster questions skip known aliases, division names and names answered sta
   const otherTeam = d.teams.find((t) => t.name !== "Damage Over Time").players[0].name; // a known stand-in
   assert.equal(rosterQuestions(dotSide([otherTeam, "Big Red", "Merc-Ury", "Icarus", "han"]), d).length, 0);
   assert.equal(rosterQuestions(dotSide(["Pips", "Big Red", "Merc-Ury", "Icarus", "han"]), d, new Set(["pips"])).length, 0);
+});
+
+test("a forfeit against a bye week isn't a game anyone can upload", () => {
+  const h = JSON.parse(readFileSync(new URL("../public/data/heroic.json", import.meta.url), "utf8"));
+  const bye = h.teams.find((t) => /bye week/i.test(t.name));
+  assert.ok(bye, "Heroic/Aegis has a bye-week placeholder team");
+  const open = openGames(h);
+  assert.ok(open.length > 0);
+  assert.equal(open.filter((g) => g.series.home === bye.id || g.series.away === bye.id).length, 0);
 });
