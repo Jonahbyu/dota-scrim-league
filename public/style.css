@@ -696,7 +696,7 @@ button.danger:hover:not(:disabled) { background: #2a100c; border-color: var(--er
 button.seg { clip-path: none; margin-right: -1px; padding: 10px 16px; }
 button.seg.on { background: var(--gold); border-color: var(--gold); color: var(--ink); }
 .tier-board { display: grid; gap: 8px; }
-.tier-band { display: grid; grid-template-columns: 92px 1fr; background: var(--stone); border: 1px solid var(--seam); min-height: 108px; }
+.tier-band { display: grid; grid-template-columns: 92px minmax(0, 1fr); background: var(--stone); border: 1px solid var(--seam); min-height: 108px; }
 .tier-letter {
   display: grid; place-items: center; font: 900 64px/1 var(--display); color: var(--ink);
   background: var(--tc); clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
@@ -724,12 +724,134 @@ button.seg.on { background: var(--gold); border-color: var(--gold); color: var(-
 .role-tag { text-transform: uppercase; letter-spacing: .1em; color: var(--bone); }
 .chip.support .role-tag { color: var(--jade); }
 .chip.core .role-tag { color: var(--gold); }
+/* expandable tier card: the rating breakdown */
+.tier-band .chip { cursor: pointer; }
+.chip:focus-visible { outline: 2px solid var(--tc); outline-offset: 2px; }
+.chip-caret { margin-left: auto; color: var(--dim); }
+.chip.open { flex-basis: 100%; width: 100%; min-width: 0; cursor: default; border-color: var(--seam-2); border-left-color: var(--tc); }
+.chip.open:hover { transform: none; }
+.chip.open > .chip-top, .chip.open > .chip-meta, .chip.open > .chip-foot { cursor: pointer; }
+.chip.open .chip-name { font-size: 16px; }
+.bd { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--seam); cursor: default; font-size: 13px; color: var(--dust); }
+.bd h4 { margin: 18px 0 8px; font: 600 11px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--bone); }
+.bd h4 small { margin-left: 8px; font-weight: 400; letter-spacing: .02em; text-transform: none; color: var(--dim); }
+/* Wide: rating, score and series on the left, the stat table on the right. */
+.bd { display: grid; gap: 0 32px; align-items: start; }
+@media (min-width: 1100px) { .bd { grid-template-columns: minmax(340px, 460px) minmax(0, 1fr); } .bd-right > h4:first-child { margin-top: 0; } }
+.bd-left, .bd-right { min-width: 0; }
+.bd-sum { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.bd-total { display: grid; justify-items: center; }
+.bd-total b { font: 900 44px/1 var(--display); color: var(--tc); }
+.bd-total small, .bd-eq small { font: 10px var(--mono); color: var(--dim); letter-spacing: .06em; }
+.bd-eq { font: 12px/1.6 var(--mono); color: var(--bone); min-width: 0; overflow-wrap: anywhere; }
+.bd-meter { display: block; height: 4px; background: var(--seam); }
+.bd-meter i { display: block; height: 100%; background: var(--tc); }
+.bd-table { font-size: 12px; }
+.bd-table th { font-size: 10px; }
+.bd-table td, .bd-table th { padding: 5px 6px; }
+.bd-table td.l { font-size: 13px; }
+.bd-dim { color: var(--dim); }
+.bd-note { font: 10px var(--mono); color: var(--dim); }
+.bd-pts { color: var(--bone); font-weight: 600; }
+.bd-total-row td { border-top: 1px solid var(--seam-2); color: var(--tc); font-weight: 700; }
+.bd-table tbody td { vertical-align: middle; }
+.bd-raw { display: block; font-size: 10px; color: var(--dim); font-weight: 400; white-space: normal; }
+/* Labels and raw numbers wrap, so the table fits whatever width the card has. */
+.bd-table td.l { white-space: normal; }
+.bd-pts small { color: var(--dim); font-weight: 400; }
+.bd-100 { width: 22%; min-width: 80px; }
+.bd-100 b { display: block; font-weight: 600; color: var(--bone); margin-bottom: 3px; }
+.bd-100 .bd-meter { height: 3px; }
+.bd-role td { padding-top: 12px; color: var(--tc); font: 600 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.bd-sub td { border-top: 1px solid var(--seam-2); color: var(--bone); }
+.bd-mult td { border-top: 1px solid var(--seam-2); }
+.bd-mult td.l { color: var(--bone); font-weight: 600; }
+.bd-mult .bd-pts small { display: block; }
+.bd-part td { color: var(--dust); border-bottom-color: transparent; }
+.bd-part td.l { padding-left: 18px; font-size: 12px; }
+.bd-table .info { vertical-align: 1px; }
+/* The bubble's 8px tap area would stick out past the table's right edge and make it scroll. */
+.bd-table th:last-child .info::before { right: 0; }
+.bd-serieslist { display: grid; gap: 4px; }
+.bd-series { display: grid; grid-template-columns: 48px minmax(0, 1fr) 30px minmax(30px, 110px) 36px 40px 40px; gap: 8px; align-items: center; font-size: 13px; }
+.bd-spts, .bd-opp { text-align: right; font: 11px var(--mono); color: var(--dust); }
+.bd-series-head span { font: 600 9px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); text-align: right; }
+.bd-series-avg { border-top: 1px solid var(--seam-2); padding-top: 5px; margin-top: 2px; }
+.bd-series-avg .bd-vs { color: var(--dust); font-size: 12px; }
+.bd-series-avg b { color: var(--tc); }
+.bd-date, .bd-wl { font: 11px var(--mono); color: var(--dim); }
+.bd-vs { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--bone); }
+.bd-vs em { font-style: normal; color: var(--dim); font-size: 11px; }
+.bd-series b { text-align: right; color: var(--bone); font: 600 12px var(--mono); }
+/* the same breakdown on a player's own page */
+.tier-detail { padding: 14px 16px; background: var(--stone-2); border: 1px solid var(--seam-2); border-left: 3px solid var(--tc); }
+.tier-detail-head { display: flex; align-items: center; gap: 12px; font: 400 11px var(--mono); color: var(--dust); letter-spacing: .04em; cursor: pointer; list-style: none; }
+.tier-detail-head::-webkit-details-marker { display: none; }
+/* Collapsed: tier, role, record and rating on one line; open, the breakdown's own big rating takes over. */
+.tier-detail-toggle { margin-left: auto; color: var(--gold); letter-spacing: .1em; text-transform: uppercase; font-size: 10px; }
+.tier-detail-toggle::after { content: "Show breakdown"; }
+.tier-detail[open] .tier-detail-toggle::after { content: "Hide breakdown"; }
+.tier-detail-rating { font: 900 30px/1 var(--display); color: var(--tc); }
+.tier-detail[open] .tier-detail-rating { display: none; }
+.tier-detail-head:focus-visible { outline: 2px solid var(--tc); outline-offset: 4px; }
+.tier-detail-letter { display: grid; place-items: center; width: 34px; height: 34px; background: var(--tc); color: var(--ink); font: 900 24px/1 var(--display); }
+@media (max-width: 720px) { .tier-detail { padding: 12px 10px; } }
+/* An open card: the breakdown's big rating replaces the corner one. On wide screens the name,
+   team and record head the left column (rating, score, series) and the stat table runs down the
+   right from the top of the card. */
+.chip.open .chip-rating { display: none; }
+@media (min-width: 1100px) {
+  .chip.open { display: grid; grid-template-columns: minmax(340px, 460px) minmax(0, 1fr); grid-template-rows: auto auto auto 1fr; column-gap: 32px; align-items: start; }
+  .chip.open > .chip-top, .chip.open > .chip-meta, .chip.open > .chip-foot { grid-column: 1; }
+  .chip.open > .bd { display: contents; }
+  .chip.open .bd-left { grid-column: 1; grid-row: 4; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--seam); }
+  .chip.open .bd-right { grid-column: 2; grid-row: 1 / span 4; }
+}
+/* how it's scored */
+@media (min-width: 1100px) {
+  details.how-tiers .how-body { columns: 2; column-gap: 44px; }
+  details.how-tiers .how-body > * { break-inside: avoid; }
+  details.how-tiers .how-body > h3 { break-after: avoid; }
+  details.how-tiers .how-body p, details.how-tiers .how-body .how-list { max-width: none; }
+  details.how-tiers .how-tables { grid-template-columns: 1fr; }
+}
+details.how h3 { margin: 26px 0 0; font: 700 18px/1.2 var(--display); letter-spacing: .04em; color: var(--bone); }
+details.how h4 { margin: 0 0 6px; font: 600 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.how-formula { font: 13px var(--mono) !important; color: var(--bone) !important; padding: 10px 12px; background: var(--stone-2); border-left: 3px solid var(--gold); }
+.how-list { color: var(--dust); font-size: 14px; max-width: 80ch; margin: 10px 0 0; padding-left: 22px; }
+.how-list li { margin: 0 0 6px; }
+.how-tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 18px; margin-top: 14px; }
+.how-table { font-size: 12px; }
+.how-table td, .how-table th { padding: 5px 7px; }
+.how-table td.wrap { font-size: 12px; min-width: 0; color: var(--dust); }
+.how-curve { width: auto; margin-top: 10px; }
+.how-curve td, .how-curve th { padding: 4px 14px; }
+@media (max-width: 720px) {
+  .bd-wide { display: none; }
+  .bd-series { grid-template-columns: 40px minmax(0, 1fr) auto auto auto auto; gap: 6px; }
+  .bd-series .bd-meter, .bd-series > span:nth-child(4) { display: none; }
+  .bd { overflow-x: clip; } /* every card fits (checked at 375px); this only hides a 1px rounding sliver */
+  .tier-chips:has(.chip.open) { padding: 8px 6px 8px 8px; }
+  .chip.open { padding: 10px 8px; }
+  .bd-100 { min-width: 44px; width: auto; }
+  .bd-raw { white-space: normal; line-height: 1.25; }
+  .bd-table .bd-note { display: none; }
+  .bd-pts small { display: block; font-size: 9px; }
+  .bd-table th, .bd-table td { padding: 4px 2px; }
+  .bd-table { font-size: 10.5px; }
+  .bd-table th { letter-spacing: 0; font-size: 9px; }
+  .bd-table td.l { white-space: normal; font-size: 12px; }
+  .how-table td.l { white-space: normal; }
+  .how-table th { white-space: normal; letter-spacing: 0; }
+  .how-table td, .how-table th { padding: 5px 4px; }
+  details.how { padding: 12px; }
+}
 details.how { margin-top: 22px; background: var(--stone); border: 1px solid var(--seam); padding: 14px 18px; }
 details.how summary { cursor: pointer; font: 600 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
 details.how p { color: var(--dust); font-size: 14px; max-width: 80ch; margin: 12px 0 0; }
 details.how b { color: var(--bone); }
 @media (max-width: 720px) {
-  .tier-band { grid-template-columns: 56px 1fr; }
+  .tier-band { grid-template-columns: 56px minmax(0, 1fr); }
   .tier-letter { font-size: 40px; }
   .chip { width: 100%; }
 }

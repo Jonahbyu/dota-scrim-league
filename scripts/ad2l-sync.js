@@ -263,6 +263,16 @@ for (const id of [...candidates].sort()) {
       camps_stacked: p.camps_stacked ?? null,
       obs_placed: p.obs_placed ?? null, sen_placed: p.sen_placed ?? null,
       obs_killed: p.observer_kills ?? null, sen_killed: p.sentry_kills ?? null,
+      // For the tier list: OpenDota's position estimate (1–5), seconds of disable dealt,
+      // building damage, laning efficiency (% of max farm, first 10 min) and seconds spent
+      // dead (life_state_dead; units checked against death counts, ~40s per death).
+      position: p.position_est ?? null, stuns: p.stuns ?? null, tower_damage: p.tower_damage ?? null,
+      lane_eff: p.lane_efficiency_pct ?? null, time_dead: p.life_state_dead ?? null,
+      // Lane result (gold and XP at 10 min, against the lane opponent), hero damage taken
+      // (survival), and utility used by supports: dust and smokes (sentries are sen_placed).
+      xp10: Array.isArray(p.xp_t) ? p.xp_t[10] ?? null : null,
+      dmg_taken: p.damage_taken ? Object.entries(p.damage_taken).filter(([k]) => k.startsWith("npc_dota_hero_")).reduce((t, [, v]) => t + v, 0) : null,
+      dust_used: p.item_uses ? p.item_uses.dust ?? 0 : null, smoke_used: p.item_uses ? p.item_uses.smoke_of_deceit ?? 0 : null,
       // From the per-unit kill counts: OpenDota's own roshan_kills field disagreed with the
       // Roshan kill events and Aegis pickups in 12 of 38 S48 games; these always agree.
       roshan_kills: p.killed ? (p.killed.npc_dota_roshan ?? 0) : null,

@@ -133,15 +133,46 @@ Scrim data lives in Firestore (the shared `pistachio-kitchen` Firebase project, 
 
 `public/lib/tiers.js`, same for both leagues:
 
-- **Role** per game from net worth: a team's top 3 are cores, the other 2 supports
-  (approximation — positions aren't in the data). A player's role is the one they played most.
-- **Impact, 70%** — per-minute stats as z-scores against same-role players only.
-  Cores: GPM, damage/min, KDA, last hits/min, XPM, kill participation. Supports: kill
-  participation, KDA, XPM, healing, damage. Deaths count against both.
-- **Winning, 30%** — win rate shrunk toward 50% as if everyone also had 6 even games
-  (same idea as the drafter's Bayesian prior, lighter because it's one season).
-- **Tiers** by rank among eligible players: S top 10%, A 20%, B 30%, C 25%, D 15%.
-  Needs 3+ games. PlayOn medal badges are shown, not scored.
+    score = stat points (out of 100) × survival × consistency × opponents × winning
+
+Every point is shown: click a player on the tier list, or open their page. The stat rows add up
+to the stat points and each multiplier shows the points it adds or removes.
+
+- **Role** from the replay's position (1–3 core, 4–5 support); games without one (screenshot
+  uploads, scrims) use net worth rank in the team. Each game is scored in the role played.
+- **Stats** — each game, each stat is a z-score against the same position (capped at ±2.5).
+  Farm, hero damage, building damage, XP, kills and assists are shares of the team's total, so
+  long games don't inflate them. GPM, net worth and support stacks (per game) are compared with the position's
+  straight-line fit on game length. Lane result = gold + XP lead at 10 min over the lane
+  opponent (cores: the opposite core; supports: lane pair vs pair). Each stat is then on its own
+  0–100 per role: a player's average, padded with 3 games at the position average; 100 = the
+  league's best such average (players with 3+ games in the role), 0 = the worst. Support
+  stacks are easier: 100 sits 70% of the way from the worst stacker to the best.
+- **Stat points** out of 100 — cores: damage share 15, farm share 15, kill share 13, GPM 13,
+  net worth 10, XP share 8, assist share 8, building share 5, lane result 5, laning 4, stun time 4.
+  Supports: dewards 15, assist share 13, ward uptime 13, stun time 8, stacks 8, kill share 8,
+  lane result 7, healing 5, damage share 4, sentries 4, dust 3, smokes 3, GPM 3, farm share 2, net
+  worth 2, building share 2.
+- **Survival** ×0.85–1.00: deaths 40%, time dead 35%, hero damage taken per life 25%, each on its
+  own 0–100.
+- **Consistency** ×0.90–1.00: the spread of the player's series stat points, pulled toward the
+  league's typical spread by 2 series; steadiest player 1.00, streakiest 0.90.
+- **Opponents** ×0.90–1.10: each opponent's game win % outside games against this team, padded
+  with 6 even games (25% → 0.90, 75% → 1.10); each series takes its opponent's factor and the
+  season multiplier weights series by their stat points.
+- **Series**: each series shows its stat points (same padding as the season, uncapped) and score
+  (× its opponent factor and the season's other multipliers); weighted by games they average to
+  the season's stat points and score exactly.
+- **Winning** ×0.70–1.30: two parts win rate (padded with 6 even games; 25% → 0, 75% → 100) to
+  one part win speed (share of the league's wins that took longer, padded with 3 average wins).
+- **Rating** = the score on a normal curve fitted to the league: the median player rates 50,
+  width 1.5 × the spread of scores. The breakdown shows it as a "Rating curve" row (rating −
+  score), the one step that compares a player with the rest of their league.
+- **Each league is scored on its own**: every AD2L division and the scrim ledger has its own
+  position averages, 100s and 0s, and curve, so a rating ranks a player within their league.
+  The Heroic A/B views use the whole Heroic/Aegis division's reference.
+- **Tiers** by fixed rating: S 85+, A 65+, B 45+, C 30+, D below (roughly 10/15/35/25/15% per
+  division right now). Needs 3+ games. PlayOn medal badges are shown, not scored.
 
 ## Uploading a game
 

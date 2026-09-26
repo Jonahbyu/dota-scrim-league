@@ -1,8 +1,21 @@
+import { METRICS } from "./tiers.js";
+
 // Info bubbles: a small "i" next to a stat's label that explains it. One popover for the
 // whole page; hover shows it with a mouse, tap/click pins it (the only way on phones),
 // Escape or a click elsewhere closes it. Obvious labels (K, D, A, Games, Win %) get none.
 
 export const INFO = {
+  // Tier-list breakdown (one bubble per stat comes from METRICS in tiers.js)
+  ...Object.fromEntries(Object.entries(METRICS).map(([m, d]) => [`tm_${m}`, d.def])),
+  tm_avg: "What the same position averages in this league. GPM and net worth: what that position gets in a game as long as this player's games, since both climb with game length.",
+  tm_stat100: "This stat on its own 0–100 scale: 100 = the best average in this league for the role (players with 3+ games), 0 = the worst. Averages are padded with 3 games at the position average, so short records don't swing to the ends. Support stacks are easier: 100 sits 70% of the way from the worst stacker to the best.",
+  tm_points: "Stat rows: points out of the 100 stat points (the stat's points × its 0–100); the most it can give is after the slash. Multiplier rows: the points it adds or takes away (its × factor underneath). All rows add up to the score.",
+  tm_survival: "Deaths, time spent dead and hero damage taken per life, each against the same position, as one 0–100. Scales the stat points from ×0.85 (0) to ×1.00 (100): dying less keeps more of what you earned.",
+  tm_consistency: "How much the player's stat points swing from series to series (±), pulled toward the typical swing for short records. The steadiest player in the league is ×1.00, the streakiest ×0.90.",
+  tm_opponents: "Each opponent's game win % against other teams (padded with 6 even games): 75% → ×1.10, 50% → ×1.00, 25% → ×0.90. The shown % is the average opponent; the multiplier weights each series by its stat points, so big series against strong teams count more.",
+  tm_winning: "Two parts win rate to one part win speed, as a 0–100. Win rate is padded with 6 even games, then 25% → 0 and 75% → 100; win speed scores each win by the share of this league's wins that took longer. 50 → ×1.00, 100 → ×1.30, 0 → ×0.70.",
+  tm_curve: "Everything above this row is about your own games. This row is the one step that compares you with the rest of your league. Scores bunch up (the typical player lands near 40 of 100), so the rating curve spreads them out: the league's median score becomes a 50 rating, and each step further from the middle is worth a little less, so 0 and 100 stay nearly out of reach. One curve width above the median rates 84, two widths rate 98, one below rates 16. The curve is 1.5 × the spread of the league's scores wide. The number here is just the rating minus the score, so the column adds up to your rating.",
+  tm_series: "Stats: the series' stat points, padded the same way as the season (a great series can pass 100). Opp.: that opponent's strength factor. Score: stats × opp. × the season's survival, consistency and winning. Weighted by games, the series average to the season row exactly.",
   // Series standings (AD2L)
   w: "Series won 2–0.",
   tie: "Series tied 1–1. AD2L series are two games, so ties are common.",
@@ -95,7 +108,7 @@ export const INFO = {
   hero_phases: "When this hero gets banned or picked in Captains Mode drafts, split by phase.",
 
   // Player / team cards
-  tier: "Tier list rank (S–D) among players with 3+ games. Rating is the percentile, 0–100. See “How it's scored” on the Players page.",
+  tier: "Tier list rank (S–D) among players with 3+ games. Rating 0–100: S 85+, A 65+, B 40+, C 20+. The Tier rating section below shows every point of the score. The full method is under “How it's scored” on the Players page.",
   vision: "Observer / sentry wards placed per game.",
   creeps: "Lane / neutral creeps killed per game, and the neutral share of all creeps.",
   objectives: "Roshan / Tormentor last hits, total.",
@@ -123,7 +136,7 @@ export const INFO = {
   match_wards: "Every ward both teams placed, from the parsed replay.",
   tower_map: "Which towers and barracks were still standing at the end of each game phase, and when each one fell. From the parsed replay.",
   map_objectives: "Creeps, stacks, wards and objectives per player, from the parsed replay.",
-  tier_list: "Players with 3+ games ranked S–D: 70% per-minute impact against same-role players, 30% win rate pulled toward 50%. Hover a player for the breakdown.",
+  tier_list: "Players with 3+ games ranked S–D. Score = stat points out of 100 (each stat compared with the same position) × survival × consistency × opponent strength × winning; the rating puts that on a curve. Click a player for every point.",
   strength_of_schedule: "How tough each team's opponents have been, and how tough the rest of the schedule is.",
   recent_pubs: "Public and ranked games since the last league night, from OpenDota, smurf accounts included.",
   pub_record: "Wins–losses in recent pubs.",
